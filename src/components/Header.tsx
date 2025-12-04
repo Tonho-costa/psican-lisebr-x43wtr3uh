@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, UserCircle } from 'lucide-react'
+import { Menu, UserCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { cn } from '@/lib/utils'
@@ -28,7 +28,6 @@ export function Header() {
 
   const navLinks = [
     { name: 'Como Funciona', href: '/#como-funciona' },
-    { name: 'Links Úteis', href: '/#links-uteis' },
     { name: 'Para Profissionais', href: '/#para-profissionais' },
     { name: 'Contato', href: '/#footer' },
   ]
