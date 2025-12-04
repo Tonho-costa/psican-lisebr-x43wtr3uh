@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Filter, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -32,22 +32,23 @@ export default function SearchPage() {
   // Helper function to filter professionals based on criteria
   const filterList = (
     list: Professional[],
-    term: string,
+    occupation: string,
+    stateFilter: string,
     cityFilter: string,
     specFilter: string,
     typeFilter: string,
   ) => {
     let filtered = list
 
-    if (term) {
-      const lowerTerm = term.toLowerCase()
+    if (occupation) {
+      const lowerTerm = occupation.toLowerCase()
       filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(lowerTerm) ||
-          p.city.toLowerCase().includes(lowerTerm) ||
-          (p.occupation && p.occupation.toLowerCase().includes(lowerTerm)) ||
-          p.specialties.some((s) => s.toLowerCase().includes(lowerTerm)),
+        (p) => p.occupation && p.occupation.toLowerCase().includes(lowerTerm),
       )
+    }
+
+    if (stateFilter && stateFilter !== 'all') {
+      filtered = filtered.filter((p) => p.state === stateFilter)
     }
 
     if (cityFilter && cityFilter !== 'all') {
@@ -68,22 +69,26 @@ export default function SearchPage() {
   }
 
   // Initial values from URL params
-  const initialTerm = searchParams.get('q') || ''
+  const initialOccupation =
+    searchParams.get('ocupacao') || searchParams.get('q') || ''
+  const initialState = searchParams.get('estado') || 'all'
   const initialCity = searchParams.get('cidade') || 'all'
   const initialSpec = searchParams.get('especialidade') || 'all'
   const initialType = searchParams.get('tipo') || 'all'
 
   // Filters state initialized from URL
+  const [occupation, setOccupation] = useState(initialOccupation)
+  const [stateFilter, setStateFilter] = useState(initialState)
   const [city, setCity] = useState(initialCity)
   const [specialty, setSpecialty] = useState(initialSpec)
   const [serviceType, setServiceType] = useState(initialType)
-  const [searchTerm, setSearchTerm] = useState(initialTerm)
 
   // Initialize filtered list using the helper function directly
   const [filteredPros, setFilteredPros] = useState(() =>
     filterList(
       professionals,
-      initialTerm,
+      initialOccupation,
+      initialState,
       initialCity,
       initialSpec,
       initialType,
@@ -91,17 +96,38 @@ export default function SearchPage() {
   )
 
   // Extract unique values for filters
-  const cities = Array.from(new Set(professionals.map((p) => p.city))).filter(
-    Boolean,
+  const states = useMemo(
+    () =>
+      Array.from(new Set(professionals.map((p) => p.state)))
+        .filter(Boolean)
+        .sort(),
+    [professionals],
   )
-  const specialties = Array.from(
-    new Set(professionals.flatMap((p) => p.specialties)),
-  ).filter(Boolean)
+
+  // Filter cities based on selected state to improve UX (dependent dropdown)
+  const cities = useMemo(() => {
+    const relevantPros =
+      stateFilter && stateFilter !== 'all'
+        ? professionals.filter((p) => p.state === stateFilter)
+        : professionals
+    return Array.from(new Set(relevantPros.map((p) => p.city)))
+      .filter(Boolean)
+      .sort()
+  }, [professionals, stateFilter])
+
+  const specialties = useMemo(
+    () =>
+      Array.from(new Set(professionals.flatMap((p) => p.specialties)))
+        .filter(Boolean)
+        .sort(),
+    [professionals],
+  )
 
   const applyFilters = () => {
     const filtered = filterList(
       professionals,
-      searchTerm,
+      occupation,
+      stateFilter,
       city,
       specialty,
       serviceType,
@@ -110,7 +136,8 @@ export default function SearchPage() {
 
     // Update URL params
     const params = new URLSearchParams()
-    if (searchTerm) params.set('q', searchTerm)
+    if (occupation) params.set('ocupacao', occupation)
+    if (stateFilter && stateFilter !== 'all') params.set('estado', stateFilter)
     if (city && city !== 'all') params.set('cidade', city)
     if (specialty && specialty !== 'all') params.set('especialidade', specialty)
     if (serviceType && serviceType !== 'all') params.set('tipo', serviceType)
@@ -118,10 +145,11 @@ export default function SearchPage() {
   }
 
   const clearFilters = () => {
+    setOccupation('')
+    setStateFilter('all')
     setCity('all')
     setSpecialty('all')
     setServiceType('all')
-    setSearchTerm('')
     setFilteredPros(professionals)
     setSearchParams(new URLSearchParams())
   }
@@ -129,16 +157,36 @@ export default function SearchPage() {
   const FilterContent = () => (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label>Busca por Texto</Label>
+        <Label>Ocupação</Label>
         <Input
-          placeholder="Nome, ocupação, cidade, especialidade..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          maxLength={150}
+          placeholder="Psicanalista, Psicólogo..."
+          value={occupation}
+          onChange={(e) => setOccupation(e.target.value)}
+          maxLength={100}
         />
-        <p className="text-[10px] text-muted-foreground text-right">
-          {searchTerm.length}/150 caracteres
-        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Estado</Label>
+        <Select
+          value={stateFilter}
+          onValueChange={(val) => {
+            setStateFilter(val)
+            setCity('all') // Reset city when state changes
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Todos os Estados" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Estados</SelectItem>
+            {states.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
