@@ -121,6 +121,7 @@ export default function Register() {
     setIsLoading(true)
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
+    const randomGender = Math.random() > 0.5 ? 'male' : 'female'
     // Transform strings to arrays where needed
     const finalData = {
       ...data,
@@ -130,7 +131,7 @@ export default function Register() {
         .map((s: string) => s.trim())
         .filter(Boolean),
       courses: [], // Default empty
-      photoUrl: `https://img.usecurling.com/ppl/medium?gender=male&seed=${Math.random()}`, // Mock photo
+      photoUrl: `https://img.usecurling.com/ppl/medium?gender=${randomGender}&seed=${Math.random()}`, // Mock photo
     }
 
     registerStore(finalData)

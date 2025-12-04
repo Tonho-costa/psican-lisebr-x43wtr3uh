@@ -126,22 +126,35 @@ export default function Index() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {featuredProfessionals.map((pro) => (
-              <ProfessionalCard key={pro.id} professional={pro} />
-            ))}
-          </div>
+          {featuredProfessionals.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {featuredProfessionals.map((pro) => (
+                <ProfessionalCard key={pro.id} professional={pro} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg mb-6">
+                Ainda não temos profissionais em destaque. Seja o primeiro!
+              </p>
+              <Button size="lg" onClick={() => navigate('/cadastro')}>
+                Cadastre-se como Profissional
+              </Button>
+            </div>
+          )}
 
-          <div className="text-center mt-12">
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-primary text-primary hover:bg-primary hover:text-white"
-              onClick={() => navigate('/busca')}
-            >
-              Ver Todos os Profissionais
-            </Button>
-          </div>
+          {featuredProfessionals.length > 0 && (
+            <div className="text-center mt-12">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-primary text-primary hover:bg-primary hover:text-white"
+                onClick={() => navigate('/busca')}
+              >
+                Ver Todos os Profissionais
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 

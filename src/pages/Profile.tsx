@@ -7,6 +7,8 @@ import {
   Award,
   Calendar,
   MessageCircle,
+  Video,
+  Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -23,7 +25,6 @@ export default function Profile() {
   useEffect(() => {
     if (!professional) {
       // Should ideally redirect to 404 or showing a not found component
-      // For now, let's keep it simple but robust
     }
   }, [professional])
 
@@ -76,6 +77,19 @@ export default function Profile() {
             </div>
 
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
+              {professional.serviceTypes.map((type) => (
+                <span
+                  key={type}
+                  className="px-3 py-1 bg-secondary text-secondary-foreground text-sm rounded-full font-medium flex items-center gap-1"
+                >
+                  {type === 'Online' ? (
+                    <Video className="w-3 h-3" />
+                  ) : (
+                    <Users className="w-3 h-3" />
+                  )}
+                  {type}
+                </span>
+              ))}
               {professional.specialties.map((spec, i) => (
                 <span
                   key={i}
@@ -139,8 +153,13 @@ export default function Profile() {
                     {professional.serviceTypes.map((type) => (
                       <span
                         key={type}
-                        className="text-sm px-2 py-1 bg-white rounded border border-border text-foreground"
+                        className="text-sm px-2 py-1 bg-white rounded border border-border text-foreground flex items-center gap-1"
                       >
+                        {type === 'Online' ? (
+                          <Video className="w-3 h-3" />
+                        ) : (
+                          <Users className="w-3 h-3" />
+                        )}
                         {type}
                       </span>
                     ))}

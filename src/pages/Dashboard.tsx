@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Card,
   CardContent,
@@ -20,7 +21,6 @@ import {
   Professional,
 } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
-import { Separator } from '@/components/ui/separator'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -34,11 +34,16 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, navigate])
 
-  const { register, handleSubmit, reset } = useForm<Partial<Professional>>({
+  const { register, handleSubmit, reset, setValue, watch } = useForm<
+    Partial<Professional>
+  >({
     defaultValues: currentProfessional || {},
   })
 
-  // Reset form when currentProfessional changes (e.g. after reload if persisted, or initial load)
+  // Watch serviceTypes for the checkboxes
+  const serviceTypes = watch('serviceTypes') || []
+
+  // Reset form when currentProfessional changes
   useEffect(() => {
     if (currentProfessional) {
       reset(currentProfessional)
@@ -206,8 +211,69 @@ export default function Dashboard() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Detalhes de Atendimento</CardTitle>
+                    <CardDescription>
+                      Configure como e onde você atende seus pacientes.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <div className="space-y-3 mb-4">
+                      <Label>Tipos de Atendimento</Label>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="srv-online"
+                            checked={serviceTypes.includes('Online')}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setValue('serviceTypes', [
+                                  ...serviceTypes,
+                                  'Online',
+                                ])
+                              } else {
+                                setValue(
+                                  'serviceTypes',
+                                  serviceTypes.filter((t) => t !== 'Online'),
+                                )
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor="srv-online"
+                            className="font-normal cursor-pointer"
+                          >
+                            Online
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="srv-presencial"
+                            checked={serviceTypes.includes('Presencial')}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setValue('serviceTypes', [
+                                  ...serviceTypes,
+                                  'Presencial',
+                                ])
+                              } else {
+                                setValue(
+                                  'serviceTypes',
+                                  serviceTypes.filter(
+                                    (t) => t !== 'Presencial',
+                                  ),
+                                )
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor="srv-presencial"
+                            className="font-normal cursor-pointer"
+                          >
+                            Presencial
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="availability">Disponibilidade</Label>
                       <Input id="availability" {...register('availability')} />
