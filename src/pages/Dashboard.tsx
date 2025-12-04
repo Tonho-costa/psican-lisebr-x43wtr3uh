@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -47,9 +48,10 @@ export default function Dashboard() {
   const onSubmit = (data: Partial<Professional>) => {
     // Handle arrays stored as strings in inputs
     const processedData = { ...data }
-    if (typeof data.specialties === 'string') {
-      // @ts-expect-error
-      processedData.specialties = data.specialties
+    const specialtiesValue = data.specialties as unknown
+
+    if (typeof specialtiesValue === 'string') {
+      processedData.specialties = specialtiesValue
         .split(',')
         .map((s) => s.trim())
     }
@@ -183,14 +185,12 @@ export default function Dashboard() {
                     <CardTitle>Formação e Especialidades</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Simplified for demo: treating arrays as joined strings or readonly */}
                     <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm mb-4">
                       Nota: Nesta demonstração, edite especialidades separando
                       por vírgulas.
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="specialties">Especialidades</Label>
-                      {/* We need to cast to any because react-hook-form expects array but we want to edit as string for simplicity in this demo without dynamic fields */}
                       <Input id="specialties" {...register('specialties')} />
                     </div>
                   </CardContent>
