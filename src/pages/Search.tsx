@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Filter, X } from 'lucide-react'
+import { Filter, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -12,7 +12,10 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import {
+  useProfessionalStore,
+  Professional,
+} from '@/stores/useProfessionalStore'
 import { ProfessionalCard } from '@/components/ProfessionalCard'
 import {
   Sheet,
@@ -25,29 +28,19 @@ import {
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { professionals } = useProfessionalStore()
-  const [filteredPros, setFilteredPros] = useState(professionals)
 
-  // Filters state
-  const [city, setCity] = useState(searchParams.get('cidade') || 'all')
-  const [specialty, setSpecialty] = useState(
-    searchParams.get('especialidade') || 'all',
-  )
-  const [serviceType, setServiceType] = useState(
-    searchParams.get('tipo') || 'all',
-  )
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
+  // Helper function to filter professionals based on criteria
+  const filterList = (
+    list: Professional[],
+    term: string,
+    cityFilter: string,
+    specFilter: string,
+    typeFilter: string,
+  ) => {
+    let filtered = list
 
-  // Extract unique values for filters
-  const cities = Array.from(new Set(professionals.map((p) => p.city)))
-  const specialties = Array.from(
-    new Set(professionals.flatMap((p) => p.specialties)),
-  )
-
-  const applyFilters = () => {
-    let filtered = professionals
-
-    if (searchTerm) {
-      const lowerTerm = searchTerm.toLowerCase()
+    if (term) {
+      const lowerTerm = term.toLowerCase()
       filtered = filtered.filter(
         (p) =>
           p.name.toLowerCase().includes(lowerTerm) ||
@@ -56,20 +49,61 @@ export default function SearchPage() {
       )
     }
 
-    if (city && city !== 'all') {
-      filtered = filtered.filter((p) => p.city === city)
+    if (cityFilter && cityFilter !== 'all') {
+      filtered = filtered.filter((p) => p.city === cityFilter)
     }
 
-    if (specialty && specialty !== 'all') {
-      filtered = filtered.filter((p) => p.specialties.includes(specialty))
+    if (specFilter && specFilter !== 'all') {
+      filtered = filtered.filter((p) => p.specialties.includes(specFilter))
     }
 
-    if (serviceType && serviceType !== 'all') {
+    if (typeFilter && typeFilter !== 'all') {
       filtered = filtered.filter((p) =>
-        p.serviceTypes.includes(serviceType as any),
+        p.serviceTypes.includes(typeFilter as any),
       )
     }
 
+    return filtered
+  }
+
+  // Initial values from URL params
+  const initialTerm = searchParams.get('q') || ''
+  const initialCity = searchParams.get('cidade') || 'all'
+  const initialSpec = searchParams.get('especialidade') || 'all'
+  const initialType = searchParams.get('tipo') || 'all'
+
+  // Filters state initialized from URL
+  const [city, setCity] = useState(initialCity)
+  const [specialty, setSpecialty] = useState(initialSpec)
+  const [serviceType, setServiceType] = useState(initialType)
+  const [searchTerm, setSearchTerm] = useState(initialTerm)
+
+  // Initialize filtered list using the helper function directly
+  // This avoids the need for a useEffect on mount and solves dependency issues
+  const [filteredPros, setFilteredPros] = useState(() =>
+    filterList(
+      professionals,
+      initialTerm,
+      initialCity,
+      initialSpec,
+      initialType,
+    ),
+  )
+
+  // Extract unique values for filters
+  const cities = Array.from(new Set(professionals.map((p) => p.city)))
+  const specialties = Array.from(
+    new Set(professionals.flatMap((p) => p.specialties)),
+  )
+
+  const applyFilters = () => {
+    const filtered = filterList(
+      professionals,
+      searchTerm,
+      city,
+      specialty,
+      serviceType,
+    )
     setFilteredPros(filtered)
 
     // Update URL params
@@ -89,10 +123,6 @@ export default function SearchPage() {
     setFilteredPros(professionals)
     setSearchParams(new URLSearchParams())
   }
-
-  useEffect(() => {
-    applyFilters()
-  }, []) // Run once on mount to apply URL params
 
   const FilterContent = () => (
     <div className="space-y-6">
