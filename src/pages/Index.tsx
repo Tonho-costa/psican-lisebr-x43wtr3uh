@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, CheckCircle2, Users, MessageCircle } from 'lucide-react'
+import {
+  Search,
+  CheckCircle2,
+  Users,
+  MessageCircle,
+  BookOpen,
+  FileQuestion,
+  Phone,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
@@ -155,6 +163,73 @@ export default function Index() {
               </Button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Useful Links Section */}
+      <section id="links-uteis" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-heading font-bold text-foreground mb-4">
+              Links Úteis
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Acesse conteúdos e recursos selecionados para apoiar sua busca por
+              bem-estar.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <a
+              href="#"
+              className="flex flex-col items-center text-center p-8 rounded-xl bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-primary/20 transition-all duration-300 group"
+            >
+              <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 text-primary group-hover:scale-110 transition-transform">
+                <BookOpen className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                O que é Psicanálise?
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Descubra como essa abordagem terapêutica pode ajudar no seu
+                autoconhecimento e saúde mental.
+              </p>
+            </a>
+
+            <a
+              href="#"
+              className="flex flex-col items-center text-center p-8 rounded-xl bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-primary/20 transition-all duration-300 group"
+            >
+              <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 text-primary group-hover:scale-110 transition-transform">
+                <FileQuestion className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                Dúvidas Frequentes
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Entenda como funcionam as sessões, sigilo profissional e duração
+                do tratamento.
+              </p>
+            </a>
+
+            <a
+              href="https://www.cvv.org.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center text-center p-8 rounded-xl bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-primary/20 transition-all duration-300 group"
+            >
+              <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 text-destructive group-hover:scale-110 transition-transform">
+                <Phone className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-bold mb-2 text-foreground group-hover:text-destructive transition-colors">
+                Precisa de Ajuda Urgente?
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                O CVV realiza apoio emocional e prevenção do suicídio, atendendo
+                gratuitamente pelo telefone 188.
+              </p>
+            </a>
+          </div>
         </div>
       </section>
 
