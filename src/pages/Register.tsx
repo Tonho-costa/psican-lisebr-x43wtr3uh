@@ -20,6 +20,7 @@ import {
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
 
 // Validation Schemas for each step
 const step1Schema = z
@@ -66,6 +67,7 @@ export default function Register() {
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<RegistrationData>>({})
+  const [photoUrl, setPhotoUrl] = useState<string>('')
   const navigate = useNavigate()
   const registerStore = useProfessionalStore((state) => state.register)
 
@@ -122,6 +124,8 @@ export default function Register() {
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
     const randomGender = Math.random() > 0.5 ? 'male' : 'female'
+    const fallbackPhoto = `https://img.usecurling.com/ppl/medium?gender=${randomGender}&seed=${Math.random()}`
+
     // Transform strings to arrays where needed
     const finalData = {
       ...data,
@@ -131,7 +135,7 @@ export default function Register() {
         .map((s: string) => s.trim())
         .filter(Boolean),
       courses: [], // Default empty
-      photoUrl: `https://img.usecurling.com/ppl/medium?gender=${randomGender}&seed=${Math.random()}`, // Mock photo
+      photoUrl: photoUrl || fallbackPhoto,
     }
 
     registerStore(finalData)
@@ -349,6 +353,20 @@ export default function Register() {
               className="space-y-6"
             >
               <div className="space-y-3">
+                <Label>Foto de Perfil</Label>
+                <div className="flex justify-center p-4 border rounded-lg bg-muted/10">
+                  <ProfilePhotoUploader
+                    onPhotoChange={setPhotoUrl}
+                    currentPhotoUrl={photoUrl}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Adicione uma foto profissional para transmitir confiança aos
+                  pacientes.
+                </p>
+              </div>
+
+              <div className="space-y-3">
                 <Label>Tipos de Atendimento</Label>
                 <div className="flex flex-col gap-2">
                   {/* Manually handling checkboxes because react-hook-form array handling with simple checkboxes can be tricky */}
@@ -421,10 +439,6 @@ export default function Register() {
                     {errorsStep4.phone.message}
                   </p>
                 )}
-              </div>
-              <div className="p-4 bg-muted/20 rounded border border-border text-sm text-muted-foreground">
-                * A foto de perfil será gerada automaticamente nesta
-                demonstração. No painel, você poderá alterá-la.
               </div>
             </form>
           )}

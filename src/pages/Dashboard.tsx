@@ -21,6 +21,7 @@ import {
   Professional,
 } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
+import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -65,6 +66,10 @@ export default function Dashboard() {
     toast.success('Perfil atualizado com sucesso!')
   }
 
+  const handlePhotoUpdate = (newPhotoUrl: string) => {
+    updateProfile({ photoUrl: newPhotoUrl })
+  }
+
   const handleLogout = () => {
     logout()
     navigate('/entrar')
@@ -79,13 +84,11 @@ export default function Dashboard() {
         <aside className="lg:col-span-1 space-y-6">
           <Card>
             <CardContent className="p-6 flex flex-col items-center text-center">
-              <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-primary">
-                <img
-                  src={currentProfessional.photoUrl}
-                  alt={currentProfessional.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <ProfilePhotoUploader
+                currentPhotoUrl={currentProfessional.photoUrl}
+                onPhotoChange={handlePhotoUpdate}
+                className="mb-4"
+              />
               <h2 className="font-bold text-lg">{currentProfessional.name}</h2>
               <p className="text-sm text-muted-foreground mb-4">
                 {currentProfessional.email}
