@@ -18,17 +18,20 @@ export function Footer() {
             <h4 className="font-bold mb-4 text-foreground">Links Úteis</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link to="#" className="hover:text-primary">
+                <Link to="/sobre-nos" className="hover:text-primary">
                   Sobre Nós
                 </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-primary">
+                <Link to="/termos-de-uso" className="hover:text-primary">
                   Termos de Uso
                 </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-primary">
+                <Link
+                  to="/politica-de-privacidade"
+                  className="hover:text-primary"
+                >
                   Política de Privacidade
                 </Link>
               </li>

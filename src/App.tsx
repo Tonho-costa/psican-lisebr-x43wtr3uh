@@ -10,6 +10,9 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import NotFound from './pages/NotFound'
+import About from './pages/About'
+import Terms from './pages/Terms'
+import Privacy from './pages/Privacy'
 
 const App = () => (
   <BrowserRouter
@@ -26,6 +29,11 @@ const App = () => (
           <Route path="/entrar" element={<Login />} />
           <Route path="/cadastro" element={<Register />} />
           <Route path="/painel/perfil" element={<Dashboard />} />
+
+          {/* New Static Pages */}
+          <Route path="/sobre-nos" element={<About />} />
+          <Route path="/termos-de-uso" element={<Terms />} />
+          <Route path="/politica-de-privacidade" element={<Privacy />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
