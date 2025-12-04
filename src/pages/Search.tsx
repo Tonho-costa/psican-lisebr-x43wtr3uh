@@ -2,16 +2,6 @@ import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Filter, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   useProfessionalStore,
   Professional,
@@ -24,49 +14,49 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { SearchFilters } from '@/components/SearchFilters'
+
+// Helper function to filter professionals based on criteria
+const filterList = (
+  list: Professional[],
+  occupation: string,
+  stateFilter: string,
+  cityFilter: string,
+  specFilter: string,
+  typeFilter: string,
+) => {
+  let filtered = list
+
+  if (occupation) {
+    const lowerTerm = occupation.toLowerCase()
+    filtered = filtered.filter(
+      (p) => p.occupation && p.occupation.toLowerCase().includes(lowerTerm),
+    )
+  }
+
+  if (stateFilter && stateFilter !== 'all') {
+    filtered = filtered.filter((p) => p.state === stateFilter)
+  }
+
+  if (cityFilter && cityFilter !== 'all') {
+    filtered = filtered.filter((p) => p.city === cityFilter)
+  }
+
+  if (specFilter && specFilter !== 'all') {
+    filtered = filtered.filter((p) => p.specialties.includes(specFilter))
+  }
+
+  if (typeFilter && typeFilter !== 'all') {
+    const type = typeFilter as 'Online' | 'Presencial'
+    filtered = filtered.filter((p) => p.serviceTypes.includes(type))
+  }
+
+  return filtered
+}
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { professionals } = useProfessionalStore()
-
-  // Helper function to filter professionals based on criteria
-  const filterList = (
-    list: Professional[],
-    occupation: string,
-    stateFilter: string,
-    cityFilter: string,
-    specFilter: string,
-    typeFilter: string,
-  ) => {
-    let filtered = list
-
-    if (occupation) {
-      const lowerTerm = occupation.toLowerCase()
-      filtered = filtered.filter(
-        (p) => p.occupation && p.occupation.toLowerCase().includes(lowerTerm),
-      )
-    }
-
-    if (stateFilter && stateFilter !== 'all') {
-      filtered = filtered.filter((p) => p.state === stateFilter)
-    }
-
-    if (cityFilter && cityFilter !== 'all') {
-      filtered = filtered.filter((p) => p.city === cityFilter)
-    }
-
-    if (specFilter && specFilter !== 'all') {
-      filtered = filtered.filter((p) => p.specialties.includes(specFilter))
-    }
-
-    if (typeFilter && typeFilter !== 'all') {
-      filtered = filtered.filter((p) =>
-        p.serviceTypes.includes(typeFilter as any),
-      )
-    }
-
-    return filtered
-  }
 
   // Initial values from URL params
   const initialOccupation =
@@ -154,121 +144,23 @@ export default function SearchPage() {
     setSearchParams(new URLSearchParams())
   }
 
-  const FilterContent = () => (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Label>Ocupação</Label>
-        <Input
-          placeholder="Psicanalista, Psicólogo..."
-          value={occupation}
-          onChange={(e) => setOccupation(e.target.value)}
-          maxLength={150}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Estado</Label>
-        <Select
-          value={stateFilter}
-          onValueChange={(val) => {
-            setStateFilter(val)
-            setCity('all') // Reset city when state changes
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Todos os Estados" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os Estados</SelectItem>
-            {states.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Cidade</Label>
-        <Select value={city} onValueChange={setCity}>
-          <SelectTrigger>
-            <SelectValue placeholder="Todas as Cidades" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as Cidades</SelectItem>
-            {cities.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Habilidades e Especialidades</Label>
-        <Select value={specialty} onValueChange={setSpecialty}>
-          <SelectTrigger>
-            <SelectValue placeholder="Todas as Especialidades" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as Especialidades</SelectItem>
-            {specialties.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Tipo de Atendimento</Label>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="online"
-              checked={serviceType === 'Online'}
-              onCheckedChange={(checked) =>
-                setServiceType(checked ? 'Online' : 'all')
-              }
-            />
-            <label
-              htmlFor="online"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Online
-            </label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="presencial"
-              checked={serviceType === 'Presencial'}
-              onCheckedChange={(checked) =>
-                setServiceType(checked ? 'Presencial' : 'all')
-              }
-            />
-            <label
-              htmlFor="presencial"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Presencial
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div className="pt-4 flex flex-col gap-2">
-        <Button onClick={applyFilters} className="w-full">
-          Aplicar Filtros
-        </Button>
-        <Button variant="outline" onClick={clearFilters} className="w-full">
-          Limpar Filtros
-        </Button>
-      </div>
-    </div>
-  )
+  const filterProps = {
+    occupation,
+    setOccupation,
+    stateFilter,
+    setStateFilter,
+    city,
+    setCity,
+    specialty,
+    setSpecialty,
+    serviceType,
+    setServiceType,
+    states,
+    cities,
+    specialties,
+    onApplyFilters: applyFilters,
+    onClearFilters: clearFilters,
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen">
@@ -276,7 +168,7 @@ export default function SearchPage() {
         {/* Desktop Filters */}
         <aside className="hidden md:block w-64 shrink-0 space-y-6 bg-card p-6 rounded-lg border border-border h-fit sticky top-24">
           <h2 className="font-heading font-bold text-xl mb-4">Filtros</h2>
-          <FilterContent />
+          <SearchFilters {...filterProps} />
         </aside>
 
         {/* Mobile Filters & Results */}
@@ -297,7 +189,7 @@ export default function SearchPage() {
                     <SheetTitle>Filtros de Busca</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6">
-                    <FilterContent />
+                    <SearchFilters {...filterProps} />
                   </div>
                 </SheetContent>
               </Sheet>
