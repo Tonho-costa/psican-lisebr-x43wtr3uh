@@ -45,6 +45,7 @@ export default function SearchPage() {
         (p) =>
           p.name.toLowerCase().includes(lowerTerm) ||
           p.city.toLowerCase().includes(lowerTerm) ||
+          (p.occupation && p.occupation.toLowerCase().includes(lowerTerm)) ||
           p.specialties.some((s) => s.toLowerCase().includes(lowerTerm)),
       )
     }
@@ -79,7 +80,6 @@ export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState(initialTerm)
 
   // Initialize filtered list using the helper function directly
-  // This avoids the need for a useEffect on mount and solves dependency issues
   const [filteredPros, setFilteredPros] = useState(() =>
     filterList(
       professionals,
@@ -91,10 +91,12 @@ export default function SearchPage() {
   )
 
   // Extract unique values for filters
-  const cities = Array.from(new Set(professionals.map((p) => p.city)))
+  const cities = Array.from(new Set(professionals.map((p) => p.city))).filter(
+    Boolean,
+  )
   const specialties = Array.from(
     new Set(professionals.flatMap((p) => p.specialties)),
-  )
+  ).filter(Boolean)
 
   const applyFilters = () => {
     const filtered = filterList(
@@ -129,10 +131,14 @@ export default function SearchPage() {
       <div className="space-y-2">
         <Label>Busca por Texto</Label>
         <Input
-          placeholder="Nome, cidade, especialidade..."
+          placeholder="Nome, ocupação, cidade, especialidade..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          maxLength={150}
         />
+        <p className="text-[10px] text-muted-foreground text-right">
+          {searchTerm.length}/150 caracteres
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -153,7 +159,7 @@ export default function SearchPage() {
       </div>
 
       <div className="space-y-2">
-        <Label>Especialidade</Label>
+        <Label>Habilidades e Especialidades</Label>
         <Select value={specialty} onValueChange={setSpecialty}>
           <SelectTrigger>
             <SelectValue placeholder="Todas as Especialidades" />

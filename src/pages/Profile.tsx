@@ -9,6 +9,7 @@ import {
   MessageCircle,
   Video,
   Users,
+  Briefcase,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -68,6 +69,12 @@ export default function Profile() {
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">
                 {professional.name}
               </h1>
+              {professional.occupation && (
+                <div className="flex items-center justify-center md:justify-start gap-2 text-primary font-medium text-lg mt-1">
+                  <Briefcase className="w-4 h-4" />
+                  <span>{professional.occupation}</span>
+                </div>
+              )}
               <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground mt-2">
                 <MapPin className="w-4 h-4" />
                 <span>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MapPin, Video, Users } from 'lucide-react'
+import { MapPin, Video, Users, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Professional } from '@/stores/useProfessionalStore'
@@ -29,9 +29,15 @@ export function ProfessionalCard({
             className="w-full h-full object-cover"
           />
         </div>
-        <h3 className="font-heading font-bold text-lg text-foreground">
+        <h3 className="font-heading font-bold text-lg text-foreground leading-tight">
           {professional.name}
         </h3>
+        {professional.occupation && (
+          <div className="flex items-center text-sm text-primary font-medium mt-1 gap-1">
+            <Briefcase className="w-3 h-3" />
+            <span>{professional.occupation}</span>
+          </div>
+        )}
         <div className="flex items-center text-sm text-muted-foreground mt-1 gap-1">
           <MapPin className="w-3 h-3" />
           <span>

@@ -4,6 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 export interface Professional {
   id: string
   name: string
+  occupation: string
   email: string
   age: number
   city: string

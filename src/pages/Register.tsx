@@ -36,6 +36,7 @@ const step1Schema = z
 
 const step2Schema = z.object({
   name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
+  occupation: z.string().min(2, 'Ocupação é obrigatória'),
   age: z.coerce.number().min(18, 'Deve ser maior de 18 anos'),
   city: z.string().min(2, 'Cidade obrigatória'),
   state: z.string().length(2, 'Use a sigla do estado (ex: SP)'),
@@ -253,6 +254,19 @@ export default function Register() {
                 {errorsStep2.name && (
                   <p className="text-sm text-destructive">
                     {errorsStep2.name.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="occupation">Ocupação</Label>
+                <Input
+                  id="occupation"
+                  placeholder="Ex: Psicanalista, Psicólogo Clínico..."
+                  {...registerStep2('occupation')}
+                />
+                {errorsStep2.occupation && (
+                  <p className="text-sm text-destructive">
+                    {errorsStep2.occupation.message}
                   </p>
                 )}
               </div>

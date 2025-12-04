@@ -90,6 +90,11 @@ export default function Dashboard() {
                 className="mb-4"
               />
               <h2 className="font-bold text-lg">{currentProfessional.name}</h2>
+              {currentProfessional.occupation && (
+                <p className="text-sm font-medium text-primary mb-1">
+                  {currentProfessional.occupation}
+                </p>
+              )}
               <p className="text-sm text-muted-foreground mb-4">
                 {currentProfessional.email}
               </p>
@@ -156,11 +161,19 @@ export default function Dashboard() {
                         <Input id="name" {...register('name')} />
                       </div>
                       <div className="space-y-2">
+                        <Label htmlFor="occupation">Ocupação</Label>
+                        <Input
+                          id="occupation"
+                          placeholder="Psicanalista, Psicólogo..."
+                          {...register('occupation')}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
                         <Label htmlFor="age">Idade</Label>
                         <Input id="age" type="number" {...register('age')} />
                       </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="city">Cidade</Label>
                         <Input id="city" {...register('city')} />
