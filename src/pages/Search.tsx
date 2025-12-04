@@ -162,7 +162,7 @@ export default function SearchPage() {
           placeholder="Psicanalista, Psicólogo..."
           value={occupation}
           onChange={(e) => setOccupation(e.target.value)}
-          maxLength={100}
+          maxLength={150}
         />
       </div>
 
