@@ -17,6 +17,17 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import {
   useProfessionalStore,
   Professional,
 } from '@/stores/useProfessionalStore'
@@ -25,8 +36,13 @@ import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { currentProfessional, isAuthenticated, updateProfile, logout } =
-    useProfessionalStore()
+  const {
+    currentProfessional,
+    isAuthenticated,
+    updateProfile,
+    logout,
+    deleteAccount,
+  } = useProfessionalStore()
 
   // Protect Route
   useEffect(() => {
@@ -73,6 +89,12 @@ export default function Dashboard() {
   const handleLogout = () => {
     logout()
     navigate('/entrar')
+  }
+
+  const handleDeleteAccount = () => {
+    deleteAccount()
+    toast.success('Sua conta foi excluída permanentemente.')
+    // The auth effect will handle redirection to /entrar
   }
 
   if (!currentProfessional) return null
@@ -127,15 +149,34 @@ export default function Dashboard() {
         <main className="lg:col-span-3">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-heading font-bold">Editar Perfil</h1>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() =>
-                toast.error('Funcionalidade não implementada na demo')
-              }
-            >
-              <Trash2 className="w-4 h-4 mr-2" /> Excluir Conta
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="w-4 h-4 mr-2" /> Excluir Conta
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Tem certeza que deseja excluir sua conta?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. Isso excluirá
+                    permanentemente sua conta e removerá seus dados de nossos
+                    servidores.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Sim, excluir conta
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
 
           <Tabs defaultValue="pessoal" className="w-full">

@@ -33,6 +33,7 @@ interface ProfessionalState {
   logout: () => void
   register: (data: Omit<Professional, 'id'>) => void
   updateProfile: (data: Partial<Professional>) => void
+  deleteAccount: () => void
   setSearchQuery: (query: Partial<ProfessionalState['searchQuery']>) => void
 }
 
@@ -78,6 +79,19 @@ export const useProfessionalStore = create<ProfessionalState>()(
           return {
             currentProfessional: updatedProfessional,
             professionals: updatedList,
+          }
+        })
+      },
+      deleteAccount: () => {
+        set((state) => {
+          if (!state.currentProfessional) return state
+          const updatedProfessionals = state.professionals.filter(
+            (p) => p.id !== state.currentProfessional?.id,
+          )
+          return {
+            professionals: updatedProfessionals,
+            currentProfessional: null,
+            isAuthenticated: false,
           }
         })
       },
