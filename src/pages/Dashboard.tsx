@@ -117,7 +117,7 @@ export default function Dashboard() {
                   {currentProfessional.occupation}
                 </p>
               )}
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-4 break-all">
                 {currentProfessional.email}
               </p>
               <Button
@@ -147,7 +147,7 @@ export default function Dashboard() {
 
         {/* Main Content */}
         <main className="lg:col-span-3">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h1 className="text-3xl font-heading font-bold">Editar Perfil</h1>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -180,7 +180,7 @@ export default function Dashboard() {
           </div>
 
           <Tabs defaultValue="pessoal" className="w-full">
-            <TabsList className="mb-6">
+            <TabsList className="w-full h-auto grid grid-cols-1 sm:grid-cols-3 mb-6 bg-muted p-1 gap-1 sm:gap-0">
               <TabsTrigger value="pessoal">Dados Pessoais</TabsTrigger>
               <TabsTrigger value="academico">Acadêmico</TabsTrigger>
               <TabsTrigger value="atendimento">Atendimento</TabsTrigger>

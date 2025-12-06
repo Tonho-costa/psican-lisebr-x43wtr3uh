@@ -66,7 +66,9 @@ export const useProfessionalStore = create<ProfessionalState>()(
           id: Math.random().toString(36).substring(7),
         }
         set((state) => ({
-          professionals: [...state.professionals, newProfessional],
+          // Prepend new professional to the beginning of the list
+          // This ensures they appear first in the featured list
+          professionals: [newProfessional, ...state.professionals],
           currentProfessional: newProfessional,
           isAuthenticated: true,
         }))

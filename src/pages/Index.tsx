@@ -8,6 +8,7 @@ import {
   BookOpen,
   FileQuestion,
   Phone,
+  ArrowRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,6 +25,7 @@ export default function Index() {
     navigate(`/busca?q=${encodeURIComponent(searchTerm)}`)
   }
 
+  // Since we now prepend new professionals, this slice will always take the newest ones
   const featuredProfessionals = professionals.slice(0, 3)
 
   return (
@@ -45,19 +47,21 @@ export default function Index() {
               className="w-full max-w-2xl relative animate-fade-in-up delay-200"
             >
               <div className="relative flex items-center">
-                <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
+                <Search className="absolute left-4 w-5 h-5 text-muted-foreground pointer-events-none" />
                 <Input
                   type="text"
-                  placeholder="Buscar profissionais por cidade, especialidade ou nome..."
-                  className="w-full h-14 pl-12 pr-36 rounded-xl shadow-elevation border-transparent focus:border-primary text-base"
+                  placeholder="Buscar profissionais..."
+                  className="w-full h-14 pl-12 pr-14 md:pr-36 rounded-xl shadow-elevation border-transparent focus:border-primary text-base placeholder:text-muted-foreground/80"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <Button
                   type="submit"
-                  className="absolute right-2 h-10 px-6 rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold transition-all"
+                  className="absolute right-2 h-10 w-10 md:w-auto md:px-6 rounded-lg bg-primary hover:bg-primary/90 text-white font-semibold transition-all p-0 flex items-center justify-center"
                 >
-                  Buscar
+                  <span className="hidden md:inline">Buscar</span>
+                  <ArrowRight className="md:hidden w-5 h-5" />
+                  <span className="sr-only">Buscar</span>
                 </Button>
               </div>
             </form>
