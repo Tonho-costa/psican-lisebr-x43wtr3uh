@@ -65,46 +65,62 @@ export default function SearchPage() {
     [professionals],
   )
 
-  // Initial values from URL params
-  const initialOccupation =
+  // Derived active filters from URL params (Single Source of Truth for the filtered list)
+  const activeOccupation =
     searchParams.get('ocupacao') || searchParams.get('q') || ''
-  const initialState = searchParams.get('estado') || 'all'
-  const initialCity = searchParams.get('cidade') || 'all'
-  const initialSpec = searchParams.get('especialidade') || 'all'
-  const initialType = searchParams.get('tipo') || 'all'
+  const activeState = searchParams.get('estado') || 'all'
+  const activeCity = searchParams.get('cidade') || 'all'
+  const activeSpec = searchParams.get('especialidade') || 'all'
+  const activeType = searchParams.get('tipo') || 'all'
 
-  // Filters state initialized from URL
-  const [occupation, setOccupation] = useState(initialOccupation)
-  const [stateFilter, setStateFilter] = useState(initialState)
-  const [city, setCity] = useState(initialCity)
-  const [specialty, setSpecialty] = useState(initialSpec)
-  const [serviceType, setServiceType] = useState(initialType)
+  // Draft state for filter inputs (controlled components)
+  const [occupation, setOccupation] = useState(activeOccupation)
+  const [stateFilter, setStateFilter] = useState(activeState)
+  const [city, setCity] = useState(activeCity)
+  const [specialty, setSpecialty] = useState(activeSpec)
+  const [serviceType, setServiceType] = useState(activeType)
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
 
-  // Initialize filtered list using the helper function directly with visibleProfessionals
+  // Sync draft state with URL params changes (e.g. browser back/forward)
+  useEffect(() => {
+    setOccupation(activeOccupation)
+    setStateFilter(activeState)
+    setCity(activeCity)
+    setSpecialty(activeSpec)
+    setServiceType(activeType)
+  }, [activeOccupation, activeState, activeCity, activeSpec, activeType])
+
+  // Initialize filtered list based on current active filters
   const [filteredPros, setFilteredPros] = useState(() =>
     filterList(
       visibleProfessionals,
-      initialOccupation,
-      initialState,
-      initialCity,
-      initialSpec,
-      initialType,
+      activeOccupation,
+      activeState,
+      activeCity,
+      activeSpec,
+      activeType,
     ),
   )
 
-  // Re-run filter when visibleProfessionals changes (e.g. new registration or deletion from another tab)
+  // Update list when visible professionals change OR when URL filters change
   useEffect(() => {
     const filtered = filterList(
       visibleProfessionals,
-      occupation,
-      stateFilter,
-      city,
-      specialty,
-      serviceType,
+      activeOccupation,
+      activeState,
+      activeCity,
+      activeSpec,
+      activeType,
     )
     setFilteredPros(filtered)
-  }, [visibleProfessionals])
+  }, [
+    visibleProfessionals,
+    activeOccupation,
+    activeState,
+    activeCity,
+    activeSpec,
+    activeType,
+  ])
 
   // Extract unique values for filters based on visible professionals
   const states = useMemo(
@@ -115,7 +131,8 @@ export default function SearchPage() {
     [visibleProfessionals],
   )
 
-  // Filter cities based on selected state to improve UX (dependent dropdown)
+  // Filter cities based on selected state (draft) to improve UX (dependent dropdown)
+  // Note: Using draft state 'stateFilter' here so dropdown updates as user selects state
   const cities = useMemo(() => {
     const relevantPros =
       stateFilter && stateFilter !== 'all'
@@ -135,17 +152,8 @@ export default function SearchPage() {
   )
 
   const applyFilters = () => {
-    const filtered = filterList(
-      visibleProfessionals,
-      occupation,
-      stateFilter,
-      city,
-      specialty,
-      serviceType,
-    )
-    setFilteredPros(filtered)
-
-    // Update URL params
+    // Update URL params to reflect the draft state
+    // This will update activeXXX variables and trigger the list update via useEffect
     const params = new URLSearchParams()
     if (occupation) params.set('ocupacao', occupation)
     if (stateFilter && stateFilter !== 'all') params.set('estado', stateFilter)
@@ -159,12 +167,7 @@ export default function SearchPage() {
   }
 
   const clearFilters = () => {
-    setOccupation('')
-    setStateFilter('all')
-    setCity('all')
-    setSpecialty('all')
-    setServiceType('all')
-    setFilteredPros(visibleProfessionals)
+    // Clear URL params
     setSearchParams(new URLSearchParams())
     setIsMobileFiltersOpen(false)
   }
