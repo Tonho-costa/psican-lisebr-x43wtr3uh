@@ -91,35 +91,6 @@ export default function SearchPage() {
     ),
   )
 
-  // Re-filter if visibleProfessionals changes (e.g., updated store)
-  // This ensures synchronization without needing a separate useEffect for filteredPros
-  // However, keeping local state aligned with filters logic is better with a useMemo for filteredPros if we want instant feedback,
-  // but here we have "Apply Filters" pattern.
-  // We'll re-initialize or update if needed. But 'useState' initializer only runs once.
-  // If store updates, we should probably re-apply current filters.
-  // For simplicity, we will use useMemo for filteredPros in a way that respects "Apply" button if desired,
-  // but the original code had explicit "Apply".
-  // To respect the "Apply" logic: we only update filteredPros when user clicks Apply or clears.
-  // BUT we should update it if the underlying data changes (e.g. a new registration).
-
-  useMemo(() => {
-    // Force re-application of current applied filters when data changes
-    // This is a bit hacky with the current structure, but safe for this scale
-    const current = filterList(
-      visibleProfessionals,
-      occupation,
-      stateFilter,
-      city,
-      specialty,
-      serviceType,
-    )
-    // Only update if we are in initial load state or if we want real-time updates.
-    // The original code used useState.
-    // Let's stick to the manual apply for user interaction, but we need to reflect store changes.
-    // We can just rely on user interaction or initial load for now, as per requirements.
-    // "Navigating to the professional directory... should include newly registered" -> Initial load handles this.
-  }, [visibleProfessionals])
-
   // Extract unique values for filters based on visible professionals
   const states = useMemo(
     () =>
