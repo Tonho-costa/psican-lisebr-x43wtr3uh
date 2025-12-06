@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Camera, Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { Camera, Upload, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -28,7 +28,6 @@ export function ProfilePhotoUploader({
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // cleanup stream on unmount
@@ -151,10 +150,19 @@ export function ProfilePhotoUploader({
     }
   }
 
+  const handleContainerClick = () => {
+    if (!isLoading) {
+      fileInputRef.current?.click()
+    }
+  }
+
   return (
     <div className={cn('flex flex-col items-center gap-4', className)}>
-      <div className="relative group">
-        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-background shadow-xl bg-muted flex items-center justify-center">
+      <div
+        className="relative group cursor-pointer"
+        onClick={handleContainerClick}
+      >
+        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-background shadow-xl bg-muted flex items-center justify-center transition-all group-hover:border-primary/20">
           {preview ? (
             <img
               src={preview}
@@ -165,21 +173,16 @@ export function ProfilePhotoUploader({
             <ImageIcon className="w-12 h-12 text-muted-foreground opacity-50" />
           )}
           {isLoading && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
               <Loader2 className="w-8 h-8 text-white animate-spin" />
             </div>
           )}
         </div>
 
-        {/* Quick edit overlay on hover - standard pattern */}
-        {preview && !isLoading && (
-          <div
-            className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 cursor-pointer"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="w-6 h-6 text-white" />
-          </div>
-        )}
+        {/* Quick edit overlay - visible on hover for desktop, accessible via buttons for mobile */}
+        <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          <Upload className="w-8 h-8 text-white drop-shadow-md" />
+        </div>
       </div>
 
       <div className="flex gap-2 w-full justify-center">
@@ -193,8 +196,12 @@ export function ProfilePhotoUploader({
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
+          size="sm" // Kept sm but increased touch area via gap and margin
+          className="h-9"
+          onClick={(e) => {
+            e.stopPropagation()
+            fileInputRef.current?.click()
+          }}
           disabled={isLoading}
         >
           <Upload className="w-4 h-4 mr-2" />
@@ -204,7 +211,11 @@ export function ProfilePhotoUploader({
           type="button"
           variant="outline"
           size="sm"
-          onClick={startCamera}
+          className="h-9"
+          onClick={(e) => {
+            e.stopPropagation()
+            startCamera()
+          }}
           disabled={isLoading}
         >
           <Camera className="w-4 h-4 mr-2" />
@@ -216,26 +227,30 @@ export function ProfilePhotoUploader({
         open={isCameraOpen}
         onOpenChange={(open) => !open && stopCamera()}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md w-[95vw] max-h-[90vh] flex flex-col p-4">
           <DialogHeader>
             <DialogTitle>Tirar Foto</DialogTitle>
             <DialogDescription>
               Ajuste sua posição e clique em capturar.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center justify-center bg-black rounded-lg overflow-hidden aspect-video relative">
+          <div className="flex-grow flex items-center justify-center bg-black rounded-lg overflow-hidden relative min-h-[250px]">
             <video
               ref={videoRef}
               autoPlay
               playsInline
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
-          <DialogFooter className="flex sm:justify-between gap-2">
-            <Button variant="ghost" onClick={stopCamera}>
+          <DialogFooter className="flex flex-row justify-between gap-2 mt-4 sm:justify-end">
+            <Button
+              variant="ghost"
+              onClick={stopCamera}
+              className="flex-1 sm:flex-none"
+            >
               Cancelar
             </Button>
-            <Button onClick={takePhoto}>
+            <Button onClick={takePhoto} className="flex-1 sm:flex-none">
               <Camera className="w-4 h-4 mr-2" />
               Capturar
             </Button>

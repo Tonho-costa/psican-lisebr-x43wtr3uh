@@ -58,14 +58,14 @@ export default function Dashboard() {
   >({
     defaultValues: {
       ...currentProfessional,
-      isVisible: currentProfessional?.isVisible ?? true, // Default to true if undefined
+      isVisible: currentProfessional?.isVisible ?? true,
     },
   })
 
   // Watch serviceTypes for the checkboxes
   const serviceTypes = watch('serviceTypes') || []
 
-  // Reset form when currentProfessional changes
+  // Reset form when currentProfessional changes (e.g. from sync)
   useEffect(() => {
     if (currentProfessional) {
       reset({
@@ -102,29 +102,32 @@ export default function Dashboard() {
   const handleDeleteAccount = () => {
     deleteAccount()
     toast.success('Sua conta foi excluída permanentemente.')
+    // Navigation to /entrar is handled by auth check effect
   }
 
   if (!currentProfessional) return null
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <div className="container mx-auto px-4 py-6 md:py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
         {/* Sidebar */}
         <aside className="lg:col-span-1 space-y-6">
-          <Card>
+          <Card className="overflow-hidden">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <ProfilePhotoUploader
                 currentPhotoUrl={currentProfessional.photoUrl}
                 onPhotoChange={handlePhotoUpdate}
                 className="mb-4"
               />
-              <h2 className="font-bold text-lg">{currentProfessional.name}</h2>
+              <h2 className="font-bold text-lg leading-tight mb-1">
+                {currentProfessional.name}
+              </h2>
               {currentProfessional.occupation && (
                 <p className="text-sm font-medium text-primary mb-1">
                   {currentProfessional.occupation}
                 </p>
               )}
-              <p className="text-sm text-muted-foreground mb-4 break-all">
+              <p className="text-xs text-muted-foreground mb-4 break-all">
                 {currentProfessional.email}
               </p>
               <Button
@@ -139,12 +142,12 @@ export default function Dashboard() {
           </Card>
 
           <nav className="flex flex-col gap-2">
-            <Button variant="secondary" className="justify-start">
+            <Button variant="secondary" className="justify-start w-full">
               <User className="w-4 h-4 mr-2" /> Meu Perfil
             </Button>
             <Button
               variant="ghost"
-              className="justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+              className="justify-start w-full text-destructive hover:text-destructive/90 hover:bg-destructive/10"
               onClick={handleLogout}
             >
               <LogOut className="w-4 h-4 mr-2" /> Sair
@@ -155,14 +158,20 @@ export default function Dashboard() {
         {/* Main Content */}
         <main className="lg:col-span-3">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <h1 className="text-3xl font-heading font-bold">Editar Perfil</h1>
+            <h1 className="text-2xl md:text-3xl font-heading font-bold">
+              Editar Perfil
+            </h1>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   <Trash2 className="w-4 h-4 mr-2" /> Excluir Conta
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="w-[95vw] max-w-lg">
                 <AlertDialogHeader>
                   <AlertDialogTitle>
                     Tem certeza que deseja excluir sua conta?
@@ -173,7 +182,7 @@ export default function Dashboard() {
                     servidores.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
+                <AlertDialogFooter className="gap-2 sm:gap-0">
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
@@ -194,7 +203,7 @@ export default function Dashboard() {
             </TabsList>
 
             <form onSubmit={handleSubmit(onSubmit)}>
-              <TabsContent value="pessoal">
+              <TabsContent value="pessoal" className="mt-0">
                 <Card>
                   <CardHeader>
                     <CardTitle>Informações Pessoais</CardTitle>
@@ -203,9 +212,11 @@ export default function Dashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <Label className="text-base">Perfil Público</Label>
+                    <div className="flex items-center justify-between rounded-lg border p-4 bg-muted/10">
+                      <div className="space-y-0.5 pr-4">
+                        <Label className="text-base font-semibold">
+                          Perfil Público
+                        </Label>
                         <p className="text-sm text-muted-foreground">
                           Permitir que seu perfil apareça nos resultados de
                           busca.
@@ -251,20 +262,20 @@ export default function Dashboard() {
                       <Label htmlFor="bio">Bio</Label>
                       <Textarea
                         id="bio"
-                        className="h-32"
+                        className="h-32 min-h-[120px]"
                         {...register('bio')}
                       />
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button type="submit">
+                    <Button type="submit" className="w-full sm:w-auto">
                       <Save className="w-4 h-4 mr-2" /> Salvar Alterações
                     </Button>
                   </CardFooter>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="academico">
+              <TabsContent value="academico" className="mt-0">
                 <Card>
                   <CardHeader>
                     <CardTitle>Formação e Especialidades</CardTitle>
@@ -278,16 +289,23 @@ export default function Dashboard() {
                       <Label htmlFor="specialties">Especialidades</Label>
                       <Input id="specialties" {...register('specialties')} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Formação Acadêmica</Label>
+                      <div className="p-3 rounded-md border bg-muted/20 text-sm text-muted-foreground">
+                        Edição de formação acadêmica simplificada para
+                        demonstração.
+                      </div>
+                    </div>
                   </CardContent>
                   <CardFooter>
-                    <Button type="submit">
+                    <Button type="submit" className="w-full sm:w-auto">
                       <Save className="w-4 h-4 mr-2" /> Salvar Alterações
                     </Button>
                   </CardFooter>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="atendimento">
+              <TabsContent value="atendimento" className="mt-0">
                 <Card>
                   <CardHeader>
                     <CardTitle>Detalhes de Atendimento</CardTitle>
@@ -298,8 +316,8 @@ export default function Dashboard() {
                   <CardContent className="space-y-4">
                     <div className="space-y-3 mb-4">
                       <Label>Tipos de Atendimento</Label>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center space-x-2">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center space-x-2 p-2 rounded border hover:bg-muted/20 transition-colors">
                           <Checkbox
                             id="srv-online"
                             checked={serviceTypes.includes('Online')}
@@ -319,12 +337,12 @@ export default function Dashboard() {
                           />
                           <Label
                             htmlFor="srv-online"
-                            className="font-normal cursor-pointer"
+                            className="font-normal cursor-pointer flex-grow py-1"
                           >
                             Online
                           </Label>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 p-2 rounded border hover:bg-muted/20 transition-colors">
                           <Checkbox
                             id="srv-presencial"
                             checked={serviceTypes.includes('Presencial')}
@@ -346,7 +364,7 @@ export default function Dashboard() {
                           />
                           <Label
                             htmlFor="srv-presencial"
-                            className="font-normal cursor-pointer"
+                            className="font-normal cursor-pointer flex-grow py-1"
                           >
                             Presencial
                           </Label>
@@ -400,7 +418,7 @@ export default function Dashboard() {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button type="submit">
+                    <Button type="submit" className="w-full sm:w-auto">
                       <Save className="w-4 h-4 mr-2" /> Salvar Alterações
                     </Button>
                   </CardFooter>

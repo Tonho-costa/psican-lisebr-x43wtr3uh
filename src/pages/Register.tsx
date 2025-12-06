@@ -29,7 +29,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
 
-// Validation Schemas for each step
+// Validation Schemas for each step (kept consistent)
 const step1Schema = z
   .object({
     email: z.string().email('Email inválido'),
@@ -162,7 +162,7 @@ export default function Register() {
   ]
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-2xl">
+    <div className="container mx-auto px-4 py-8 md:py-12 max-w-2xl">
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between items-center relative">
@@ -178,13 +178,17 @@ export default function Register() {
             >
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all',
+                  'w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all',
                   step >= s.num
                     ? 'bg-primary border-primary text-white'
                     : 'bg-background border-muted text-muted-foreground',
                 )}
               >
-                {step > s.num ? <Check className="w-5 h-5" /> : s.num}
+                {step > s.num ? (
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                ) : (
+                  s.num
+                )}
               </div>
               <span
                 className={cn(
@@ -391,9 +395,9 @@ export default function Register() {
 
               <div className="space-y-3">
                 <Label>Tipos de Atendimento</Label>
-                <div className="flex flex-col gap-2">
-                  {/* Manually handling checkboxes because react-hook-form array handling with simple checkboxes can be tricky */}
-                  <div className="flex items-center space-x-2">
+                <div className="flex flex-col gap-3">
+                  {/* Manually handling checkboxes to ensure mobile usability */}
+                  <div className="flex items-center space-x-2 p-2 rounded border hover:bg-muted/10 transition-colors">
                     <Checkbox
                       id="srv-online"
                       onCheckedChange={(checked) => {
@@ -407,11 +411,14 @@ export default function Register() {
                           )
                       }}
                     />
-                    <label htmlFor="srv-online" className="text-sm">
+                    <label
+                      htmlFor="srv-online"
+                      className="text-sm flex-grow cursor-pointer py-1"
+                    >
                       Online
                     </label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 p-2 rounded border hover:bg-muted/10 transition-colors">
                     <Checkbox
                       id="srv-presencial"
                       onCheckedChange={(checked) => {
@@ -425,7 +432,10 @@ export default function Register() {
                           )
                       }}
                     />
-                    <label htmlFor="srv-presencial" className="text-sm">
+                    <label
+                      htmlFor="srv-presencial"
+                      className="text-sm flex-grow cursor-pointer py-1"
+                    >
                       Presencial
                     </label>
                   </div>

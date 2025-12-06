@@ -135,7 +135,6 @@ export const useProfessionalStore = create<ProfessionalState>()(
         }
         set((state) => ({
           // Prepend new professional to the beginning of the list
-          // This ensures they appear first in the featured list
           professionals: [newProfessional, ...state.professionals],
           currentProfessional: newProfessional,
           isAuthenticated: true,
@@ -176,3 +175,12 @@ export const useProfessionalStore = create<ProfessionalState>()(
     },
   ),
 )
+
+// Enable cross-tab synchronization
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'professional-storage') {
+      useProfessionalStore.persist.rehydrate()
+    }
+  })
+}
