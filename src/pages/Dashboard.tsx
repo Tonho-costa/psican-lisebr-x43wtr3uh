@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Save, LogOut, Trash2, User, Instagram, Facebook } from 'lucide-react'
+import { Save, LogOut, Trash2, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -33,6 +33,7 @@ import {
 } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
+import { InstagramIcon, FacebookIcon } from '@/components/Icons'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -336,12 +337,22 @@ export default function Dashboard() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">WhatsApp</Label>
-                      <Input id="phone" {...register('phone')} />
+                      <Input
+                        id="phone"
+                        placeholder="Ex: 5511999999999"
+                        {...register('phone')}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Insira o número com o código do país (ex: 55 para
+                        Brasil).
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="instagram">Instagram (URL)</Label>
                       <div className="relative">
-                        <Instagram className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <div className="absolute left-3 top-3 text-muted-foreground flex items-center justify-center w-4 h-4">
+                          <InstagramIcon className="w-4 h-4" />
+                        </div>
                         <Input
                           id="instagram"
                           className="pl-9"
@@ -353,7 +364,9 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       <Label htmlFor="facebook">Facebook (URL)</Label>
                       <div className="relative">
-                        <Facebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <div className="absolute left-3 top-3 text-muted-foreground flex items-center justify-center w-4 h-4">
+                          <FacebookIcon className="w-4 h-4" />
+                        </div>
                         <Input
                           id="facebook"
                           className="pl-9"

@@ -6,18 +6,16 @@ import {
   GraduationCap,
   Award,
   Calendar,
-  MessageCircle,
   Video,
   Users,
   Briefcase,
-  Instagram,
-  Facebook,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
 import { useEffect } from 'react'
+import { WhatsAppIcon, InstagramIcon, FacebookIcon } from '@/components/Icons'
 
 export default function Profile() {
   const { id } = useParams()
@@ -41,9 +39,11 @@ export default function Profile() {
   }
 
   const handleWhatsApp = () => {
+    // Sanitize phone number: remove non-digit characters
+    const cleanPhone = professional.phone.replace(/\D/g, '')
     const message = `Olá, Dr(a). ${professional.name}. Encontrei seu perfil no PsicanáliseBR e gostaria de mais informações.`
     window.open(
-      `https://wa.me/${professional.phone}?text=${encodeURIComponent(message)}`,
+      `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`,
       '_blank',
     )
   }
@@ -111,20 +111,23 @@ export default function Profile() {
           </div>
 
           <div className="flex flex-col gap-3 min-w-[200px]">
-            <Button
-              onClick={handleWhatsApp}
-              className="w-full h-12 bg-[#25D366] hover:bg-[#1da851] text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
-            >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Conversar no WhatsApp
-            </Button>
+            {/* Conditionally render WhatsApp button if phone is present */}
+            {professional.phone && (
+              <Button
+                onClick={handleWhatsApp}
+                className="w-full h-12 bg-[#25D366] hover:bg-[#1da851] text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                <WhatsAppIcon className="w-5 h-5 mr-2" />
+                Conversar no WhatsApp
+              </Button>
+            )}
 
             {professional.instagram && (
               <Button
                 onClick={() => window.open(professional.instagram, '_blank')}
                 className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-90 text-white border-0"
               >
-                <Instagram className="w-5 h-5 mr-2" />
+                <InstagramIcon className="w-5 h-5 mr-2" />
                 Instagram
               </Button>
             )}
@@ -134,7 +137,7 @@ export default function Profile() {
                 onClick={() => window.open(professional.facebook, '_blank')}
                 className="w-full bg-[#1877F2] hover:bg-[#1864cc] text-white"
               >
-                <Facebook className="w-5 h-5 mr-2" />
+                <FacebookIcon className="w-5 h-5 mr-2" />
                 Facebook
               </Button>
             )}
