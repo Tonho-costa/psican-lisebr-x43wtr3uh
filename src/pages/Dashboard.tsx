@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Save, LogOut, Trash2, User } from 'lucide-react'
+import { Save, LogOut, Trash2, User, Instagram, Facebook } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -94,7 +94,6 @@ export default function Dashboard() {
   const handleDeleteAccount = () => {
     deleteAccount()
     toast.success('Sua conta foi excluída permanentemente.')
-    // The auth effect will handle redirection to /entrar
   }
 
   if (!currentProfessional) return null
@@ -338,6 +337,30 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       <Label htmlFor="phone">WhatsApp</Label>
                       <Input id="phone" {...register('phone')} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="instagram">Instagram (URL)</Label>
+                      <div className="relative">
+                        <Instagram className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="instagram"
+                          className="pl-9"
+                          placeholder="https://instagram.com/seu.perfil"
+                          {...register('instagram')}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="facebook">Facebook (URL)</Label>
+                      <div className="relative">
+                        <Facebook className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="facebook"
+                          className="pl-9"
+                          placeholder="https://facebook.com/seu.perfil"
+                          {...register('facebook')}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter>

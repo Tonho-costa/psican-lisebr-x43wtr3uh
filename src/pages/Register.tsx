@@ -3,7 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, Check, ChevronRight, ChevronLeft } from 'lucide-react'
+import {
+  Loader2,
+  Check,
+  ChevronRight,
+  ChevronLeft,
+  Instagram,
+  Facebook,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -56,6 +63,8 @@ const step4Schema = z.object({
     .min(1, 'Selecione pelo menos um tipo de atendimento'),
   availability: z.string().min(5, 'Informe sua disponibilidade'),
   phone: z.string().min(10, 'Informe um número de WhatsApp válido com DDD'),
+  instagram: z.string().optional(),
+  facebook: z.string().optional(),
 })
 
 // Combine for full type
@@ -453,6 +462,30 @@ export default function Register() {
                     {errorsStep4.phone.message}
                   </p>
                 )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instagram">Instagram (Opcional)</Label>
+                <div className="relative">
+                  <Instagram className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="instagram"
+                    placeholder="https://instagram.com/seu.perfil"
+                    className="pl-9"
+                    {...registerStep4('instagram')}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="facebook">Facebook (Opcional)</Label>
+                <div className="relative">
+                  <Facebook className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="facebook"
+                    placeholder="https://facebook.com/seu.perfil"
+                    className="pl-9"
+                    {...registerStep4('facebook')}
+                  />
+                </div>
               </div>
             </form>
           )}

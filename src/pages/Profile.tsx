@@ -10,6 +10,8 @@ import {
   Video,
   Users,
   Briefcase,
+  Instagram,
+  Facebook,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -116,6 +118,27 @@ export default function Profile() {
               <MessageCircle className="w-5 h-5 mr-2" />
               Conversar no WhatsApp
             </Button>
+
+            {professional.instagram && (
+              <Button
+                onClick={() => window.open(professional.instagram, '_blank')}
+                className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-90 text-white border-0"
+              >
+                <Instagram className="w-5 h-5 mr-2" />
+                Instagram
+              </Button>
+            )}
+
+            {professional.facebook && (
+              <Button
+                onClick={() => window.open(professional.facebook, '_blank')}
+                className="w-full bg-[#1877F2] hover:bg-[#1864cc] text-white"
+              >
+                <Facebook className="w-5 h-5 mr-2" />
+                Facebook
+              </Button>
+            )}
+
             <Button variant="outline" onClick={handleShare} className="w-full">
               <Share2 className="w-4 h-4 mr-2" />
               Compartilhar Perfil

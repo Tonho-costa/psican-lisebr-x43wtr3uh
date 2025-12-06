@@ -17,6 +17,8 @@ export interface Professional {
   courses: string[]
   availability: string
   phone: string
+  instagram?: string
+  facebook?: string
 }
 
 interface ProfessionalState {
