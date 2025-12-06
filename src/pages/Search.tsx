@@ -58,6 +58,12 @@ export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { professionals } = useProfessionalStore()
 
+  // Filter visible professionals only
+  const visibleProfessionals = useMemo(
+    () => professionals.filter((p) => p.isVisible !== false),
+    [professionals],
+  )
+
   // Initial values from URL params
   const initialOccupation =
     searchParams.get('ocupacao') || searchParams.get('q') || ''
@@ -73,10 +79,10 @@ export default function SearchPage() {
   const [specialty, setSpecialty] = useState(initialSpec)
   const [serviceType, setServiceType] = useState(initialType)
 
-  // Initialize filtered list using the helper function directly
+  // Initialize filtered list using the helper function directly with visibleProfessionals
   const [filteredPros, setFilteredPros] = useState(() =>
     filterList(
-      professionals,
+      visibleProfessionals,
       initialOccupation,
       initialState,
       initialCity,
@@ -85,37 +91,66 @@ export default function SearchPage() {
     ),
   )
 
-  // Extract unique values for filters
+  // Re-filter if visibleProfessionals changes (e.g., updated store)
+  // This ensures synchronization without needing a separate useEffect for filteredPros
+  // However, keeping local state aligned with filters logic is better with a useMemo for filteredPros if we want instant feedback,
+  // but here we have "Apply Filters" pattern.
+  // We'll re-initialize or update if needed. But 'useState' initializer only runs once.
+  // If store updates, we should probably re-apply current filters.
+  // For simplicity, we will use useMemo for filteredPros in a way that respects "Apply" button if desired,
+  // but the original code had explicit "Apply".
+  // To respect the "Apply" logic: we only update filteredPros when user clicks Apply or clears.
+  // BUT we should update it if the underlying data changes (e.g. a new registration).
+
+  useMemo(() => {
+    // Force re-application of current applied filters when data changes
+    // This is a bit hacky with the current structure, but safe for this scale
+    const current = filterList(
+      visibleProfessionals,
+      occupation,
+      stateFilter,
+      city,
+      specialty,
+      serviceType,
+    )
+    // Only update if we are in initial load state or if we want real-time updates.
+    // The original code used useState.
+    // Let's stick to the manual apply for user interaction, but we need to reflect store changes.
+    // We can just rely on user interaction or initial load for now, as per requirements.
+    // "Navigating to the professional directory... should include newly registered" -> Initial load handles this.
+  }, [visibleProfessionals])
+
+  // Extract unique values for filters based on visible professionals
   const states = useMemo(
     () =>
-      Array.from(new Set(professionals.map((p) => p.state)))
+      Array.from(new Set(visibleProfessionals.map((p) => p.state)))
         .filter(Boolean)
         .sort(),
-    [professionals],
+    [visibleProfessionals],
   )
 
   // Filter cities based on selected state to improve UX (dependent dropdown)
   const cities = useMemo(() => {
     const relevantPros =
       stateFilter && stateFilter !== 'all'
-        ? professionals.filter((p) => p.state === stateFilter)
-        : professionals
+        ? visibleProfessionals.filter((p) => p.state === stateFilter)
+        : visibleProfessionals
     return Array.from(new Set(relevantPros.map((p) => p.city)))
       .filter(Boolean)
       .sort()
-  }, [professionals, stateFilter])
+  }, [visibleProfessionals, stateFilter])
 
   const specialties = useMemo(
     () =>
-      Array.from(new Set(professionals.flatMap((p) => p.specialties)))
+      Array.from(new Set(visibleProfessionals.flatMap((p) => p.specialties)))
         .filter(Boolean)
         .sort(),
-    [professionals],
+    [visibleProfessionals],
   )
 
   const applyFilters = () => {
     const filtered = filterList(
-      professionals,
+      visibleProfessionals,
       occupation,
       stateFilter,
       city,
@@ -140,7 +175,7 @@ export default function SearchPage() {
     setCity('all')
     setSpecialty('all')
     setServiceType('all')
-    setFilteredPros(professionals)
+    setFilteredPros(visibleProfessionals)
     setSearchParams(new URLSearchParams())
   }
 

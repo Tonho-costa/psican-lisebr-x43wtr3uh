@@ -25,8 +25,10 @@ export default function Index() {
     navigate(`/busca?q=${encodeURIComponent(searchTerm)}`)
   }
 
-  // Since we now prepend new professionals, this slice will always take the newest ones
-  const featuredProfessionals = professionals.slice(0, 3)
+  // Filter visible professionals and take the newest ones
+  const featuredProfessionals = professionals
+    .filter((p) => p.isVisible !== false)
+    .slice(0, 3)
 
   return (
     <div className="flex flex-col w-full">

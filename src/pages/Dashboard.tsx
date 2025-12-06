@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 import {
   Card,
   CardContent,
@@ -55,7 +56,10 @@ export default function Dashboard() {
   const { register, handleSubmit, reset, setValue, watch } = useForm<
     Partial<Professional>
   >({
-    defaultValues: currentProfessional || {},
+    defaultValues: {
+      ...currentProfessional,
+      isVisible: currentProfessional?.isVisible ?? true, // Default to true if undefined
+    },
   })
 
   // Watch serviceTypes for the checkboxes
@@ -64,7 +68,10 @@ export default function Dashboard() {
   // Reset form when currentProfessional changes
   useEffect(() => {
     if (currentProfessional) {
-      reset(currentProfessional)
+      reset({
+        ...currentProfessional,
+        isVisible: currentProfessional.isVisible ?? true,
+      })
     }
   }, [currentProfessional, reset])
 
@@ -195,7 +202,23 @@ export default function Dashboard() {
                       Atualize seus dados básicos e apresentação.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Perfil Público</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Permitir que seu perfil apareça nos resultados de
+                          busca.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={watch('isVisible')}
+                        onCheckedChange={(checked) =>
+                          setValue('isVisible', checked)
+                        }
+                      />
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Nome Completo</Label>

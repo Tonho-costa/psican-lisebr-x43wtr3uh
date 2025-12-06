@@ -9,6 +9,7 @@ import {
   Video,
   Users,
   Briefcase,
+  Lock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -20,19 +21,39 @@ import { WhatsAppIcon, InstagramIcon, FacebookIcon } from '@/components/Icons'
 export default function Profile() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { professionals } = useProfessionalStore()
+  const { professionals, currentProfessional } = useProfessionalStore()
   const professional = professionals.find((p) => p.id === id)
+  const isOwner = currentProfessional?.id === professional?.id
+
+  // Check visibility
+  const isVisible = professional?.isVisible !== false // Default to true if undefined
 
   useEffect(() => {
-    if (!professional) {
-      // Should ideally redirect to 404 or showing a not found component
+    // If professional exists but is not visible and user is not owner, redirect or show error
+    if (professional && !isVisible && !isOwner) {
+      // We handle this in the render to show a nice message
     }
-  }, [professional])
+  }, [professional, isVisible, isOwner])
 
   if (!professional) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <h2 className="text-2xl font-bold mb-4">Profissional não encontrado</h2>
+        <Button onClick={() => navigate('/busca')}>Voltar para a busca</Button>
+      </div>
+    )
+  }
+
+  if (!isVisible && !isOwner) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+          <Lock className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Perfil Privado</h2>
+        <p className="text-muted-foreground mb-6">
+          Este perfil não está visível publicamente no momento.
+        </p>
         <Button onClick={() => navigate('/busca')}>Voltar para a busca</Button>
       </div>
     )
@@ -55,6 +76,23 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Warning for owner if profile is hidden */}
+      {isOwner && !isVisible && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
+          <Lock className="w-5 h-5" />
+          <span className="font-medium">
+            Seu perfil está definido como privado e não aparece nas buscas.
+          </span>
+          <Button
+            variant="link"
+            className="text-yellow-900 underline ml-auto h-auto p-0"
+            onClick={() => navigate('/painel/perfil')}
+          >
+            Alterar visibilidade
+          </Button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-border overflow-hidden shadow-sm">
         {/* Profile Header */}
         <div className="p-6 md:p-10 flex flex-col md:flex-row items-center md:items-start gap-8 bg-gradient-to-b from-muted/30 to-transparent">
