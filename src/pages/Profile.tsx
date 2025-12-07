@@ -14,26 +14,47 @@ import {
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { WhatsAppIcon, InstagramIcon, FacebookIcon } from '@/components/Icons'
+import { profileService } from '@/services/profileService'
+import { Professional } from '@/stores/useProfessionalStore'
 
 export default function Profile() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { professionals, currentProfessional } = useProfessionalStore()
-  const professional = professionals.find((p) => p.id === id)
-  const isOwner = currentProfessional?.id === professional?.id
+  const { user } = useAuth()
+  const [professional, setProfessional] = useState<Professional | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Check visibility
-  const isVisible = professional?.isVisible !== false // Default to true if undefined
+  const isOwner = user?.id === id
 
   useEffect(() => {
-    // If professional exists but is not visible and user is not owner, redirect or show error
-    if (professional && !isVisible && !isOwner) {
-      // We handle this in the render to show a nice message
+    const loadProfile = async () => {
+      if (!id) return
+      setLoading(true)
+      const { data, error } = await profileService.getProfile(id)
+      if (data) {
+        setProfessional(data)
+      } else if (error) {
+        console.error(error)
+      }
+      setLoading(false)
     }
-  }, [professional, isVisible, isOwner])
+    loadProfile()
+  }, [id])
+
+  // Check visibility
+  const isVisible = professional?.isVisible !== false
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        Carregando...
+      </div>
+    )
+  }
 
   if (!professional) {
     return (
@@ -60,7 +81,6 @@ export default function Profile() {
   }
 
   const handleWhatsApp = () => {
-    // Sanitize phone number: remove non-digit characters
     const cleanPhone = professional.phone.replace(/\D/g, '')
     const message = `Olá, Dr(a). ${professional.name}. Encontrei seu perfil no PsicanáliseBR e gostaria de mais informações.`
     window.open(
@@ -76,7 +96,6 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Warning for owner if profile is hidden */}
       {isOwner && !isVisible && (
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
           <Lock className="w-5 h-5" />
@@ -94,7 +113,6 @@ export default function Profile() {
       )}
 
       <div className="bg-white rounded-xl border border-border overflow-hidden shadow-sm">
-        {/* Profile Header */}
         <div className="p-6 md:p-10 flex flex-col md:flex-row items-center md:items-start gap-8 bg-gradient-to-b from-muted/30 to-transparent">
           <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-md overflow-hidden shrink-0">
             <img
@@ -149,7 +167,6 @@ export default function Profile() {
           </div>
 
           <div className="flex flex-col gap-3 min-w-[200px]">
-            {/* Conditionally render WhatsApp button if phone is present */}
             {professional.phone && (
               <Button
                 onClick={handleWhatsApp}
@@ -187,7 +204,6 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Profile Content */}
         <div className="p-6 md:p-10">
           <Tabs defaultValue="sobre" className="w-full">
             <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto md:mx-0 mb-8">

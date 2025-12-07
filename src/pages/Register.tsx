@@ -24,12 +24,13 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { useAuth } from '@/hooks/use-auth'
+import { profileService } from '@/services/profileService'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
 
-// Validation Schemas for each step (kept consistent)
+// Validation Schemas
 const step1Schema = z
   .object({
     email: z.string().email('Email inválido'),
@@ -67,7 +68,6 @@ const step4Schema = z.object({
   facebook: z.string().optional(),
 })
 
-// Combine for full type
 type RegistrationData = z.infer<typeof step1Schema> &
   z.infer<typeof step2Schema> &
   z.infer<typeof step3Schema> &
@@ -79,7 +79,7 @@ export default function Register() {
   const [formData, setFormData] = useState<Partial<RegistrationData>>({})
   const [photoUrl, setPhotoUrl] = useState<string>('')
   const navigate = useNavigate()
-  const registerStore = useProfessionalStore((state) => state.register)
+  const { signUp } = useAuth()
 
   const {
     register: registerStep1,
@@ -131,27 +131,74 @@ export default function Register() {
 
   const handleFinalSubmit = async (data: any) => {
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      const randomGender = Math.random() > 0.5 ? 'male' : 'female'
+      const fallbackPhoto = `https://img.usecurling.com/ppl/medium?gender=${randomGender}&seed=${Math.random()}`
+      const finalPhotoUrl = photoUrl || fallbackPhoto
 
-    const randomGender = Math.random() > 0.5 ? 'male' : 'female'
-    const fallbackPhoto = `https://img.usecurling.com/ppl/medium?gender=${randomGender}&seed=${Math.random()}`
+      // 1. Sign Up user via Supabase Auth
+      const { data: authData, error: authError } = await signUp(
+        data.email,
+        data.password,
+        {
+          full_name: data.name,
+          avatar_url: finalPhotoUrl,
+        },
+      )
 
-    // Transform strings to arrays where needed
-    const finalData = {
-      ...data,
-      education: data.education.split('\n').filter(Boolean),
-      specialties: data.specialties
-        .split(',')
-        .map((s: string) => s.trim())
-        .filter(Boolean),
-      courses: [], // Default empty
-      photoUrl: photoUrl || fallbackPhoto,
+      if (authError) {
+        toast.error('Erro ao criar conta: ' + authError.message)
+        setIsLoading(false)
+        return
+      }
+
+      if (authData.user) {
+        // 2. Update the automatically created profile with extra details
+        const finalData = {
+          occupation: data.occupation,
+          age: data.age,
+          city: data.city,
+          state: data.state,
+          bio: data.bio,
+          photoUrl: finalPhotoUrl,
+          education: data.education.split('\n').filter(Boolean),
+          specialties: data.specialties
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean),
+          serviceTypes: data.serviceTypes,
+          availability: data.availability,
+          phone: data.phone,
+          instagram: data.instagram,
+          facebook: data.facebook,
+          courses: [],
+          isVisible: true,
+        }
+
+        // Wait a brief moment for trigger to create profile if needed, though usually instant
+        // Or retry logic could be added. We proceed to update.
+        const { error: profileError } = await profileService.updateProfile(
+          authData.user.id,
+          finalData,
+        )
+
+        if (profileError) {
+          console.error('Error updating profile details:', profileError)
+          toast.warning(
+            'Conta criada, mas houve um erro ao salvar alguns detalhes. Você pode editá-los no painel.',
+          )
+        } else {
+          toast.success('Cadastro realizado com sucesso!')
+        }
+
+        navigate('/painel/perfil')
+      }
+    } catch (error: any) {
+      toast.error('Ocorreu um erro inesperado.')
+      console.error(error)
+    } finally {
+      setIsLoading(false)
     }
-
-    registerStore(finalData)
-    setIsLoading(false)
-    toast.success('Cadastro realizado com sucesso!')
-    navigate('/painel/perfil')
   }
 
   const steps = [
@@ -396,7 +443,6 @@ export default function Register() {
               <div className="space-y-3">
                 <Label>Tipos de Atendimento</Label>
                 <div className="flex flex-col gap-3">
-                  {/* Manually handling checkboxes to ensure mobile usability */}
                   <div className="flex items-center space-x-2 p-2 rounded border hover:bg-muted/10 transition-colors">
                     <Checkbox
                       id="srv-online"

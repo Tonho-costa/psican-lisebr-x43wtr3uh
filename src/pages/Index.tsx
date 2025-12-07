@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Search,
@@ -12,23 +12,42 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { profileService } from '@/services/profileService'
+import { Professional } from '@/stores/useProfessionalStore'
 import { ProfessionalCard } from '@/components/ProfessionalCard'
 
 export default function Index() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
-  const { professionals } = useProfessionalStore()
+  const [featuredProfessionals, setFeaturedProfessionals] = useState<
+    Professional[]
+  >([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadFeatured = async () => {
+      // Try to get manually featured first, or just latest visible as fallback for now if none
+      // The service implements getFeaturedProfiles which checks is_featured=true
+      let { data } = await profileService.getFeaturedProfiles()
+
+      // If no featured professionals, get some recent ones
+      if (!data || data.length === 0) {
+        const { data: allData } = await profileService.getAllProfiles()
+        if (allData) {
+          data = allData.slice(0, 3)
+        }
+      }
+
+      setFeaturedProfessionals(data || [])
+      setLoading(false)
+    }
+    loadFeatured()
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     navigate(`/busca?q=${encodeURIComponent(searchTerm)}`)
   }
-
-  // Filter visible professionals and take the newest ones
-  const featuredProfessionals = professionals
-    .filter((p) => p.isVisible !== false)
-    .slice(0, 3)
 
   return (
     <div className="flex flex-col w-full">
@@ -70,7 +89,6 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Background Illustration Overlay */}
         <div className="absolute top-1/2 right-0 -translate-y-1/2 opacity-10 pointer-events-none hidden xl:block">
           <img
             src="https://img.usecurling.com/i?q=brain&color=green&shape=outline"
@@ -140,7 +158,11 @@ export default function Index() {
             </p>
           </div>
 
-          {featuredProfessionals.length > 0 ? (
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : featuredProfessionals.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {featuredProfessionals.map((pro) => (
                 <ProfessionalCard key={pro.id} professional={pro} />

@@ -31,7 +31,9 @@ const filterList = (
   if (occupation) {
     const lowerTerm = occupation.toLowerCase()
     filtered = filtered.filter(
-      (p) => p.occupation && p.occupation.toLowerCase().includes(lowerTerm),
+      (p) =>
+        (p.occupation && p.occupation.toLowerCase().includes(lowerTerm)) ||
+        p.name.toLowerCase().includes(lowerTerm),
     )
   }
 
@@ -57,7 +59,13 @@ const filterList = (
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { professionals } = useProfessionalStore()
+  const { professionals, fetchProfessionals, isLoading } =
+    useProfessionalStore()
+
+  // Fetch professionals on mount
+  useEffect(() => {
+    fetchProfessionals()
+  }, [fetchProfessionals])
 
   // Filter visible professionals only - Reactive to store changes
   const visibleProfessionals = useMemo(
@@ -65,7 +73,7 @@ export default function SearchPage() {
     [professionals],
   )
 
-  // Derived active filters from URL params (Single Source of Truth for the filtered list)
+  // Derived active filters from URL params
   const activeOccupation =
     searchParams.get('ocupacao') || searchParams.get('q') || ''
   const activeState = searchParams.get('estado') || 'all'
@@ -73,7 +81,7 @@ export default function SearchPage() {
   const activeSpec = searchParams.get('especialidade') || 'all'
   const activeType = searchParams.get('tipo') || 'all'
 
-  // Draft state for filter inputs (controlled components)
+  // Draft state for filter inputs
   const [occupation, setOccupation] = useState(activeOccupation)
   const [stateFilter, setStateFilter] = useState(activeState)
   const [city, setCity] = useState(activeCity)
@@ -81,7 +89,7 @@ export default function SearchPage() {
   const [serviceType, setServiceType] = useState(activeType)
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
 
-  // Sync draft state with URL params changes (e.g. browser back/forward)
+  // Sync draft state with URL params changes
   useEffect(() => {
     setOccupation(activeOccupation)
     setStateFilter(activeState)
@@ -91,16 +99,7 @@ export default function SearchPage() {
   }, [activeOccupation, activeState, activeCity, activeSpec, activeType])
 
   // Initialize filtered list based on current active filters
-  const [filteredPros, setFilteredPros] = useState(() =>
-    filterList(
-      visibleProfessionals,
-      activeOccupation,
-      activeState,
-      activeCity,
-      activeSpec,
-      activeType,
-    ),
-  )
+  const [filteredPros, setFilteredPros] = useState<Professional[]>([])
 
   // Update list when visible professionals change OR when URL filters change
   useEffect(() => {
@@ -131,8 +130,6 @@ export default function SearchPage() {
     [visibleProfessionals],
   )
 
-  // Filter cities based on selected state (draft) to improve UX (dependent dropdown)
-  // Note: Using draft state 'stateFilter' here so dropdown updates as user selects state
   const cities = useMemo(() => {
     const relevantPros =
       stateFilter && stateFilter !== 'all'
@@ -152,8 +149,6 @@ export default function SearchPage() {
   )
 
   const applyFilters = () => {
-    // Update URL params to reflect the draft state
-    // This will update activeXXX variables and trigger the list update via useEffect
     const params = new URLSearchParams()
     if (occupation) params.set('ocupacao', occupation)
     if (stateFilter && stateFilter !== 'all') params.set('estado', stateFilter)
@@ -161,13 +156,10 @@ export default function SearchPage() {
     if (specialty && specialty !== 'all') params.set('especialidade', specialty)
     if (serviceType && serviceType !== 'all') params.set('tipo', serviceType)
     setSearchParams(params)
-
-    // Close mobile sheet if open
     setIsMobileFiltersOpen(false)
   }
 
   const clearFilters = () => {
-    // Clear URL params
     setSearchParams(new URLSearchParams())
     setIsMobileFiltersOpen(false)
   }
@@ -230,7 +222,16 @@ export default function SearchPage() {
             </div>
           </div>
 
-          {filteredPros.length > 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-[350px] rounded-lg bg-muted/20 animate-pulse"
+                />
+              ))}
+            </div>
+          ) : filteredPros.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPros.map((pro) => (

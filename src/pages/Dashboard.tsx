@@ -32,26 +32,27 @@ import {
   useProfessionalStore,
   Professional,
 } from '@/stores/useProfessionalStore'
+import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
 import { InstagramIcon, FacebookIcon } from '@/components/Icons'
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const {
-    currentProfessional,
-    isAuthenticated,
-    updateProfile,
-    logout,
-    deleteAccount,
-  } = useProfessionalStore()
+  const { user, signOut, loading: authLoading } = useAuth()
+  const { currentProfessional, updateProfile, fetchCurrentProfile } =
+    useProfessionalStore()
 
-  // Protect Route
+  // Protect Route & Sync Profile
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/entrar')
+    if (!authLoading) {
+      if (!user) {
+        navigate('/entrar')
+      } else {
+        fetchCurrentProfile(user.id)
+      }
     }
-  }, [isAuthenticated, navigate])
+  }, [user, authLoading, navigate, fetchCurrentProfile])
 
   const { register, handleSubmit, reset, setValue, watch } = useForm<
     Partial<Professional>
@@ -75,7 +76,9 @@ export default function Dashboard() {
     }
   }, [currentProfessional, reset])
 
-  const onSubmit = (data: Partial<Professional>) => {
+  const onSubmit = async (data: Partial<Professional>) => {
+    if (!user) return
+
     // Handle arrays stored as strings in inputs
     const processedData = { ...data }
     const specialtiesValue = data.specialties as unknown
@@ -84,28 +87,48 @@ export default function Dashboard() {
       processedData.specialties = specialtiesValue
         .split(',')
         .map((s) => s.trim())
+        .filter(Boolean)
     }
 
-    updateProfile(processedData)
-    toast.success('Perfil atualizado com sucesso!')
+    try {
+      await updateProfile(user.id, processedData)
+      toast.success('Perfil atualizado com sucesso!')
+    } catch (err) {
+      toast.error('Erro ao atualizar perfil.')
+      console.error(err)
+    }
   }
 
-  const handlePhotoUpdate = (newPhotoUrl: string) => {
-    updateProfile({ photoUrl: newPhotoUrl })
+  const handlePhotoUpdate = async (newPhotoUrl: string) => {
+    if (user) {
+      try {
+        await updateProfile(user.id, { photoUrl: newPhotoUrl })
+        toast.success('Foto atualizada!')
+      } catch (err) {
+        toast.error('Erro ao salvar foto.')
+      }
+    }
   }
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await signOut()
     navigate('/entrar')
   }
 
   const handleDeleteAccount = () => {
-    deleteAccount()
-    toast.success('Sua conta foi excluída permanentemente.')
-    // Navigation to /entrar is handled by auth check effect
+    toast.error(
+      'A exclusão de conta ainda não está disponível automaticamente.',
+    )
+    // Requires Edge Function implementation for auth.admin.deleteUser
   }
 
-  if (!currentProfessional) return null
+  if (authLoading || !currentProfessional) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-8">
@@ -282,19 +305,11 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm mb-4">
-                      Nota: Nesta demonstração, edite especialidades separando
-                      por vírgulas.
+                      Nota: Edite suas especialidades separando por vírgulas.
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="specialties">Especialidades</Label>
                       <Input id="specialties" {...register('specialties')} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Formação Acadêmica</Label>
-                      <div className="p-3 rounded-md border bg-muted/20 text-sm text-muted-foreground">
-                        Edição de formação acadêmica simplificada para
-                        demonstração.
-                      </div>
                     </div>
                   </CardContent>
                   <CardFooter>

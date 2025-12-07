@@ -15,7 +15,7 @@ import {
   CardDescription,
   CardFooter,
 } from '@/components/ui/card'
-import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 
 const loginSchema = z.object({
@@ -28,7 +28,7 @@ type LoginForm = z.infer<typeof loginSchema>
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const login = useProfessionalStore((state) => state.login)
+  const { signIn } = useAuth()
 
   const {
     register,
@@ -40,13 +40,10 @@ export default function Login() {
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    const success = login(data.email)
+    const { error } = await signIn(data.email, data.password)
     setIsLoading(false)
 
-    if (success) {
+    if (!error) {
       toast.success('Login realizado com sucesso!')
       navigate('/painel/perfil')
     } else {
