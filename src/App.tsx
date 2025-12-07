@@ -14,6 +14,8 @@ import NotFound from './pages/NotFound'
 import About from './pages/About'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 const App = () => (
   <AuthProvider>
@@ -30,6 +32,8 @@ const App = () => (
             <Route path="/perfil/:id" element={<Profile />} />
             <Route path="/entrar" element={<Login />} />
             <Route path="/cadastro" element={<Register />} />
+            <Route path="/recuperar-senha" element={<ForgotPassword />} />
+            <Route path="/redefinir-senha" element={<ResetPassword />} />
             <Route path="/painel/perfil" element={<Dashboard />} />
 
             {/* Static Pages */}

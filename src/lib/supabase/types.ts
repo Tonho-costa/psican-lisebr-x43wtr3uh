@@ -17,31 +17,70 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          age: number | null
+          availability: string | null
           avatar_url: string | null
+          city: string | null
+          courses: string[] | null
           created_at: string
           description: string | null
+          education: string[] | null
+          email: string | null
+          facebook: string | null
           full_name: string | null
           id: string
+          instagram: string | null
           is_featured: boolean | null
           is_visible: boolean | null
+          occupation: string | null
+          phone: string | null
+          service_types: string[] | null
+          specialties: string[] | null
+          state: string | null
         }
         Insert: {
+          age?: number | null
+          availability?: string | null
           avatar_url?: string | null
+          city?: string | null
+          courses?: string[] | null
           created_at?: string
           description?: string | null
+          education?: string[] | null
+          email?: string | null
+          facebook?: string | null
           full_name?: string | null
           id: string
+          instagram?: string | null
           is_featured?: boolean | null
           is_visible?: boolean | null
+          occupation?: string | null
+          phone?: string | null
+          service_types?: string[] | null
+          specialties?: string[] | null
+          state?: string | null
         }
         Update: {
+          age?: number | null
+          availability?: string | null
           avatar_url?: string | null
+          city?: string | null
+          courses?: string[] | null
           created_at?: string
           description?: string | null
+          education?: string[] | null
+          email?: string | null
+          facebook?: string | null
           full_name?: string | null
           id?: string
+          instagram?: string | null
           is_featured?: boolean | null
           is_visible?: boolean | null
+          occupation?: string | null
+          phone?: string | null
+          service_types?: string[] | null
+          specialties?: string[] | null
+          state?: string | null
         }
         Relationships: []
       }
