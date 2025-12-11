@@ -43,7 +43,7 @@ const mapToProfessional = (row: ProfileDB): Professional => ({
   phone: row.phone || '',
   instagram: row.instagram || undefined,
   facebook: row.facebook || undefined,
-  isVisible: row.is_visible,
+  isVisible: row.is_visible ?? true,
 })
 
 const mapToDB = (professional: Partial<Professional>): Partial<ProfileDB> => {
@@ -81,29 +81,40 @@ export const profileService = {
    */
   async getProfile(userId: string) {
     const { data, error } = await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .select('*')
       .eq('id', userId)
       .single()
 
-    if (error) return { data: null, error }
-    return { data: mapToProfessional(data as ProfileDB), error: null }
+    if (error) {
+      console.error('Error fetching profile:', error)
+      return { data: null, error }
+    }
+    return { data: mapToProfessional(data as any), error: null }
   },
 
   /**
    * Updates a profile.
    */
   async updateProfile(userId: string, updates: Partial<Professional>) {
-    const dbUpdates = mapToDB(updates)
-    const { data, error } = await supabase
-      .from('profiles' as any)
-      .update(dbUpdates)
-      .eq('id', userId)
-      .select()
-      .single()
+    try {
+      const dbUpdates = mapToDB(updates)
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(dbUpdates)
+        .eq('id', userId)
+        .select()
+        .single()
 
-    if (error) return { data: null, error }
-    return { data: mapToProfessional(data as ProfileDB), error: null }
+      if (error) {
+        console.error('Error updating profile:', error)
+        return { data: null, error }
+      }
+      return { data: mapToProfessional(data as any), error: null }
+    } catch (err: any) {
+      console.error('Unexpected error in updateProfile:', err)
+      return { data: null, error: err }
+    }
   },
 
   /**
@@ -111,13 +122,16 @@ export const profileService = {
    */
   async getAllProfiles() {
     const { data, error } = await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .select('*')
       .eq('is_visible', true)
       .order('created_at', { ascending: false })
 
-    if (error) return { data: null, error }
-    return { data: (data as ProfileDB[]).map(mapToProfessional), error: null }
+    if (error) {
+      console.error('Error fetching all profiles:', error)
+      return { data: null, error }
+    }
+    return { data: (data as any[]).map(mapToProfessional), error: null }
   },
 
   /**
@@ -125,24 +139,24 @@ export const profileService = {
    */
   async getFeaturedProfiles() {
     const { data, error } = await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .select('*')
       .eq('is_featured', true)
       .eq('is_visible', true)
       .limit(3)
 
-    if (error) return { data: null, error }
-    return { data: (data as ProfileDB[]).map(mapToProfessional), error: null }
+    if (error) {
+      console.error('Error fetching featured profiles:', error)
+      return { data: null, error }
+    }
+    return { data: (data as any[]).map(mapToProfessional), error: null }
   },
 
   /**
    * Searches/Filters profiles (simple client-side filtering is done in component usually,
    * but we can add server side filtering here if needed).
-   * For now, just gets all visible to filter in UI or fetches all.
    */
   async searchProfiles(filters?: any) {
-    // Basic implementation returning all visible, filtering happens in store/component for now
-    // to maintain parity with previous implementation complexity
     return this.getAllProfiles()
   },
 }

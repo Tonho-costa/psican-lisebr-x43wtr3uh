@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Loader2, Save, Mail, Fingerprint } from 'lucide-react'
+import { Loader2, Save, Mail, Fingerprint, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Professional,
@@ -24,6 +24,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { StringListInput } from '@/components/StringListInput'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
+import { Switch } from '@/components/ui/switch'
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -45,6 +46,7 @@ const profileSchema = z.object({
   phone: z.string(),
   instagram: z.string().optional(),
   facebook: z.string().optional(),
+  isVisible: z.boolean().default(true),
 })
 
 type ProfileFormValues = z.infer<typeof profileSchema>
@@ -75,6 +77,7 @@ export function ProfileForm({ professional }: ProfileFormProps) {
       phone: professional.phone,
       instagram: professional.instagram || '',
       facebook: professional.facebook || '',
+      isVisible: professional.isVisible,
     },
   })
 
@@ -82,10 +85,16 @@ export function ProfileForm({ professional }: ProfileFormProps) {
     setIsSaving(true)
     try {
       await updateProfile(professional.id, data)
-      toast.success('Perfil atualizado com sucesso!')
+      toast.success('Perfil atualizado com sucesso!', {
+        description: 'Suas alterações foram salvas e já estão visíveis.',
+      })
     } catch (error: any) {
       console.error(error)
-      toast.error(error.message || 'Erro ao atualizar perfil.')
+      toast.error('Erro ao atualizar perfil.', {
+        description:
+          error.message ||
+          'Ocorreu um problema ao salvar suas alterações. Tente novamente.',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -101,7 +110,38 @@ export function ProfileForm({ professional }: ProfileFormProps) {
             <TabsTrigger value="contact">Contato & Bio</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="basic" className="space-y-6">
+          <TabsContent value="basic" className="space-y-6 animate-fade-in">
+            {/* Visibility Toggle */}
+            <FormField
+              control={form.control}
+              name="isVisible"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-muted/20">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base flex items-center gap-2">
+                      {field.value ? (
+                        <Eye className="w-4 h-4 text-primary" />
+                      ) : (
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      )}
+                      Visibilidade do Perfil
+                    </FormLabel>
+                    <FormDescription>
+                      {field.value
+                        ? 'Seu perfil está público e visível nas buscas.'
+                        : 'Seu perfil está privado. Ninguém poderá encontrá-lo.'}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             {/* Read-Only Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border border-border/50">
               <div className="space-y-2">
@@ -221,7 +261,10 @@ export function ProfileForm({ professional }: ProfileFormProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="professional" className="space-y-8">
+          <TabsContent
+            value="professional"
+            className="space-y-8 animate-fade-in"
+          >
             <FormField
               control={form.control}
               name="serviceTypes"
@@ -352,7 +395,7 @@ export function ProfileForm({ professional }: ProfileFormProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="contact" className="space-y-6">
+          <TabsContent value="contact" className="space-y-6 animate-fade-in">
             <FormField
               control={form.control}
               name="bio"
@@ -443,7 +486,7 @@ export function ProfileForm({ professional }: ProfileFormProps) {
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end pt-4 border-t">
+        <div className="flex justify-end pt-4 border-t sticky bottom-0 bg-background py-4 z-10">
           <Button type="submit" size="lg" disabled={isSaving}>
             {isSaving ? (
               <>

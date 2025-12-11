@@ -92,19 +92,24 @@ export const useProfessionalStore = create<ProfessionalState>((set, get) => ({
 
   updateProfile: async (userId: string, data: Partial<Professional>) => {
     set({ isLoading: true })
-    const { data: updated, error } = await profileService.updateProfile(
-      userId,
-      data,
-    )
-    if (updated && !error) {
-      set((state) => ({
-        currentProfessional: updated,
-        professionals: state.professionals.map((p) =>
-          p.id === updated.id ? updated : p,
-        ),
-        isLoading: false,
-      }))
-    } else {
+    try {
+      const { data: updated, error } = await profileService.updateProfile(
+        userId,
+        data,
+      )
+      if (updated && !error) {
+        set((state) => ({
+          currentProfessional: updated,
+          professionals: state.professionals.map((p) =>
+            p.id === updated.id ? updated : p,
+          ),
+          isLoading: false,
+        }))
+      } else {
+        throw error || new Error('Falha ao atualizar perfil')
+      }
+    } catch (error) {
+      console.error('Error in store updateProfile:', error)
       set({ isLoading: false })
       throw error
     }
