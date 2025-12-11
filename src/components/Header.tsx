@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, UserCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
@@ -10,11 +10,13 @@ import {
   SheetTrigger,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { toast } from 'sonner'
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const { isAuthenticated, currentProfessional, logout } =
     useProfessionalStore()
 
@@ -25,6 +27,18 @@ export function Header() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      setIsMobileMenuOpen(false)
+      navigate('/')
+      toast.success('Você saiu com sucesso.')
+    } catch (error) {
+      console.error('Logout error:', error)
+      toast.error('Erro ao sair.')
+    }
+  }
 
   const navLinks = [
     { name: 'Como Funciona', href: '/#como-funciona' },
@@ -71,7 +85,11 @@ export function Header() {
                   {currentProfessional?.name}
                 </Button>
               </Link>
-              <Button variant="outline" onClick={logout} className="text-xs">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="text-xs"
+              >
                 Sair
               </Button>
             </div>
@@ -125,13 +143,7 @@ export function Header() {
                     >
                       Meu Painel
                     </Link>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        logout()
-                        setIsMobileMenuOpen(false)
-                      }}
-                    >
+                    <Button variant="outline" onClick={handleLogout}>
                       Sair
                     </Button>
                   </>

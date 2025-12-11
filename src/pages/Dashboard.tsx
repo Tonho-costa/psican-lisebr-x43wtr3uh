@@ -8,7 +8,7 @@ import { ProfileForm } from '@/components/ProfileForm'
 import { Button } from '@/components/ui/button'
 
 export default function Dashboard() {
-  const { user, loading: authLoading, signOut } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const {
     currentProfessional,
     fetchCurrentProfile,
@@ -27,13 +27,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      const { error } = await signOut()
-      if (error) {
-        toast.error('Erro ao sair da conta.')
-        console.error(error)
-        return
-      }
-      storeLogout()
+      await storeLogout()
       navigate('/entrar')
       toast.success('Você saiu com sucesso.')
     } catch (error) {

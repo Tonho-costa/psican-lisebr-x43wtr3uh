@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { profileService } from '@/services/profileService'
+import { supabase } from '@/lib/supabase/client'
 
 export interface Professional {
   id: string
@@ -26,7 +27,7 @@ interface ProfessionalState {
   professionals: Professional[]
   currentProfessional: Professional | null
   isLoading: boolean
-  isAuthenticated: boolean // kept for store compatibility, but driven by auth hook mainly
+  isAuthenticated: boolean
   searchQuery: {
     city: string
     specialty: string
@@ -39,11 +40,11 @@ interface ProfessionalState {
   fetchProfessionals: () => Promise<void>
   fetchCurrentProfile: (userId: string) => Promise<void>
   updateProfile: (userId: string, data: Partial<Professional>) => Promise<void>
-  logout: () => void // Resets store state
+  logout: () => Promise<void> // Resets store state and signs out
   setSearchQuery: (query: Partial<ProfessionalState['searchQuery']>) => void
-  // Legacy/Auth actions (handled by useAuth now, but kept as placeholders or helpers)
-  login: (email: string) => boolean // Deprecated in favor of useAuth
-  register: (data: any) => void // Deprecated in favor of useAuth
+  // Legacy/Auth actions
+  login: (email: string) => boolean
+  register: (data: any) => void
   deleteAccount: () => void
 }
 
@@ -109,12 +110,15 @@ export const useProfessionalStore = create<ProfessionalState>((set, get) => ({
     }
   },
 
-  logout: () => set({ currentProfessional: null, isAuthenticated: false }),
+  logout: async () => {
+    await supabase.auth.signOut()
+    set({ currentProfessional: null, isAuthenticated: false })
+  },
 
   setSearchQuery: (query) =>
     set((state) => ({ searchQuery: { ...state.searchQuery, ...query } })),
 
-  // Deprecated/No-op actions that should be handled by components via useAuth
+  // Deprecated/No-op actions
   login: () => {
     console.warn('Use useAuth().signIn instead')
     return false
@@ -123,7 +127,6 @@ export const useProfessionalStore = create<ProfessionalState>((set, get) => ({
     console.warn('Use useAuth().signUp instead')
   },
   deleteAccount: () => {
-    // Logic to delete account via Supabase Edge Function or Client (if allowed)
     console.warn(
       'Delete account implementation requires Supabase admin/functions',
     )
