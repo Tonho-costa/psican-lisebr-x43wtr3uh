@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, LogOut } from 'lucide-react'
-import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { ProfileForm } from '@/components/ProfileForm'
@@ -9,12 +8,8 @@ import { Button } from '@/components/ui/button'
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth()
-  const {
-    currentProfessional,
-    fetchCurrentProfile,
-    isLoading,
-    logout: storeLogout,
-  } = useProfessionalStore()
+  const { currentProfessional, fetchCurrentProfile, isLoading } =
+    useProfessionalStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -24,17 +19,6 @@ export default function Dashboard() {
       fetchCurrentProfile(user.id)
     }
   }, [user, authLoading, currentProfessional, fetchCurrentProfile, navigate])
-
-  const handleLogout = async () => {
-    try {
-      await storeLogout()
-      navigate('/entrar')
-      toast.success('Você saiu com sucesso.')
-    } catch (error) {
-      console.error(error)
-      toast.error('Ocorreu um erro ao tentar sair.')
-    }
-  }
 
   if (authLoading || isLoading) {
     return (
@@ -69,14 +53,6 @@ export default function Dashboard() {
             atualizado.
           </p>
         </div>
-        <Button
-          variant="destructive"
-          onClick={handleLogout}
-          className="w-full md:w-auto"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Sair
-        </Button>
       </div>
 
       <div className="bg-white rounded-xl border border-border shadow-sm p-6 md:p-8">
