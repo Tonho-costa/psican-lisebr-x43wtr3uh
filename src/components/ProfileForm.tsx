@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Loader2, Save } from 'lucide-react'
+import { Loader2, Save, Mail, Fingerprint } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Professional,
@@ -21,7 +21,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { StringListInput } from '@/components/StringListInput'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
@@ -46,7 +45,6 @@ const profileSchema = z.object({
   phone: z.string(),
   instagram: z.string().optional(),
   facebook: z.string().optional(),
-  isVisible: z.boolean(),
 })
 
 type ProfileFormValues = z.infer<typeof profileSchema>
@@ -77,7 +75,6 @@ export function ProfileForm({ professional }: ProfileFormProps) {
       phone: professional.phone,
       instagram: professional.instagram || '',
       facebook: professional.facebook || '',
-      isVisible: professional.isVisible,
     },
   })
 
@@ -98,14 +95,41 @@ export function ProfileForm({ professional }: ProfileFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="basic">Dados Pessoais</TabsTrigger>
             <TabsTrigger value="professional">Profissional</TabsTrigger>
             <TabsTrigger value="contact">Contato & Bio</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-6">
+            {/* Read-Only Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg border border-border/50">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Fingerprint className="w-4 h-4" />
+                  ID do Usuário
+                </div>
+                <Input
+                  value={professional.id}
+                  disabled
+                  readOnly
+                  className="bg-muted text-muted-foreground"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <Mail className="w-4 h-4" />
+                  Email
+                </div>
+                <Input
+                  value={professional.email}
+                  disabled
+                  readOnly
+                  className="bg-muted text-muted-foreground"
+                />
+              </div>
+            </div>
+
             <FormField
               control={form.control}
               name="photoUrl"
@@ -412,32 +436,6 @@ export function ProfileForm({ professional }: ProfileFormProps) {
                       />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
-            <div className="p-4 rounded-lg border bg-card">
-              <FormField
-                control={form.control}
-                name="isVisible"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Perfil Público</FormLabel>
-                      <FormDescription>
-                        Quando ativado, seu perfil aparecerá nas buscas e será
-                        visível para todos.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
                   </FormItem>
                 )}
               />
