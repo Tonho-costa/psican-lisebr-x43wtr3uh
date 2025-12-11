@@ -8,6 +8,12 @@ import {
   Leaf,
   Feather,
   BookOpen,
+  Check,
+  Quote,
+  Heart,
+  Brain,
+  Calendar,
+  AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -127,10 +133,169 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Philosophy / How It Works */}
+      {/* NEW SECTION: Como funciona (About EscutaPSI) */}
       <section
         id="como-funciona"
         className="py-24 bg-white relative overflow-hidden"
+      >
+        <div className="container mx-auto px-4 relative z-10">
+          {/* Section Header */}
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-4xl md:text-5xl font-heading font-medium text-foreground">
+              Como funciona
+            </h2>
+            <div className="w-24 h-1 bg-secondary mx-auto rounded-full opacity-60"></div>
+            <div className="max-w-3xl mx-auto mt-8 p-6 bg-muted/20 rounded-xl border border-muted/50">
+              <h3 className="text-2xl font-heading font-bold text-primary mb-2">
+                EscutaPSI
+              </h3>
+              <div className="flex gap-2 justify-center text-muted-foreground italic text-lg">
+                <Quote className="w-5 h-5 shrink-0 rotate-180 opacity-50" />
+                <p>
+                  Toda vida importa. Sua história importa. Sempre há um caminho
+                  possível.
+                </p>
+                <Quote className="w-5 h-5 shrink-0 opacity-50" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+            {/* Quem Somos */}
+            <div className="bg-background rounded-xl p-8 shadow-sm border border-border/50 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 text-primary">
+                <Users className="w-6 h-6" />
+                <h3 className="text-2xl font-heading font-bold">Quem Somos</h3>
+              </div>
+              <p className="text-muted-foreground leading-relaxed">
+                Acreditamos que cada pessoa carrega uma história única, marcada
+                por afetos, desafios, descobertas e possibilidades. A EscutaPSI
+                nasce com o propósito de oferecer um espaço seguro, ético e
+                acolhedor, onde você possa falar livremente e ser escutado de
+                forma profunda e sem julgamentos.
+              </p>
+            </div>
+
+            {/* Nossa Abordagem */}
+            <div className="bg-background rounded-xl p-8 shadow-sm border border-border/50 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 text-primary">
+                <Leaf className="w-6 h-6" />
+                <h3 className="text-2xl font-heading font-bold">
+                  Nossa Abordagem
+                </h3>
+              </div>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                A psicanálise é uma prática que valoriza a palavra, o silêncio e
+                o tempo de cada sujeito. Por meio de uma escuta sensível,
+                ajudamos você a:
+              </p>
+              <ul className="space-y-2 mb-6">
+                {[
+                  'Entrar em contato com conflitos internos;',
+                  'Reconhecer padrões que se repetem;',
+                  'Compreender emoções e escolhas;',
+                  'Construir novos sentidos para a sua vida e sua história.',
+                ].map((item, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-muted-foreground"
+                  >
+                    <Check className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm font-medium text-foreground bg-primary/5 p-3 rounded-lg border border-primary/10">
+                Trabalhamos com responsabilidade clínica, sigilo absoluto e
+                compromisso ético.
+              </p>
+            </div>
+
+            {/* Como Podemos Ajudar */}
+            <div className="bg-background rounded-xl p-8 shadow-sm border border-border/50 hover:shadow-md transition-all duration-300 md:col-span-2">
+              <div className="flex items-center gap-3 mb-6 text-primary">
+                <Brain className="w-6 h-6" />
+                <h3 className="text-2xl font-heading font-bold">
+                  Como Podemos Ajudar
+                </h3>
+              </div>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Oferecemos suporte especializado para questões como:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                {[
+                  'Ansiedade e preocupação excessiva',
+                  'Depressão e tristeza persistente',
+                  'Burnout e esgotamento emocional',
+                  'Luto e perdas afetivas',
+                  'Melancolia, autopunição e sentimentos sem causa aparente',
+                  'Distimia e tristeza moderada de longa duração',
+                  'Conflitos afetivos, familiares e relacionais',
+                  'Autoestima, inseguranças e dificuldades de autoconhecimento',
+                  'Pensamentos suicidas e sofrimento intenso',
+                ].map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-transparent hover:border-primary/20 transition-colors"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-secondary shrink-0" />
+                    <span className="text-sm text-foreground/80">{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-4 rounded-lg border border-amber-200">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <span className="font-medium">
+                  (Em caso de emergência, ligue 188 ou 190.)
+                </span>
+              </div>
+            </div>
+
+            {/* Nosso Compromisso */}
+            <div className="bg-background rounded-xl p-8 shadow-sm border border-border/50 hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4 text-primary">
+                <Heart className="w-6 h-6" />
+                <h3 className="text-2xl font-heading font-bold">
+                  Nosso Compromisso
+                </h3>
+              </div>
+              <p className="text-muted-foreground leading-relaxed">
+                Ajudar você a construir um espaço interno mais leve, consciente
+                e possível. Acreditamos no cuidado contínuo, na escuta ética e
+                no fortalecimento da autonomia para que cada pessoa se torne
+                protagonista de sua própria história.
+              </p>
+            </div>
+
+            {/* Agende seu atendimento */}
+            <div className="bg-primary text-primary-foreground rounded-xl p-8 shadow-lg transform md:scale-105 border border-primary flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-4 text-secondary">
+                <Calendar className="w-6 h-6 text-white" />
+                <h3 className="text-2xl font-heading font-bold text-white">
+                  Agende seu atendimento
+                </h3>
+              </div>
+              <p className="text-primary-foreground/90 leading-relaxed mb-8 text-lg">
+                Entre em contato para iniciar sua jornada de cuidado e
+                transformação.
+              </p>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full text-white hover:bg-white hover:text-secondary font-bold"
+                onClick={() => navigate('/busca')}
+              >
+                Buscar Profissional
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Path of Listening (Formerly "Como funciona") */}
+      <section
+        id="caminho-da-escuta"
+        className="py-24 bg-muted/30 relative overflow-hidden"
       >
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-20">
@@ -148,7 +313,7 @@ export default function Index() {
             <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 border-t-2 border-dashed border-primary/20 z-0" />
 
             {/* Step 1 */}
-            <div className="flex flex-col items-center text-center group relative z-10 bg-white p-4">
+            <div className="flex flex-col items-center text-center group relative z-10 bg-background p-4 rounded-xl">
               <div className="w-24 h-24 rounded-full bg-background border border-primary/20 flex items-center justify-center mb-8 text-primary transition-all duration-500 group-hover:bg-primary group-hover:text-white shadow-sm">
                 <Search className="w-10 h-10" />
               </div>
@@ -162,7 +327,7 @@ export default function Index() {
             </div>
 
             {/* Step 2 */}
-            <div className="flex flex-col items-center text-center group relative z-10 bg-white p-4">
+            <div className="flex flex-col items-center text-center group relative z-10 bg-background p-4 rounded-xl">
               <div className="w-24 h-24 rounded-full bg-background border border-primary/20 flex items-center justify-center mb-8 text-primary transition-all duration-500 group-hover:bg-primary group-hover:text-white shadow-sm">
                 <Leaf className="w-10 h-10" />
               </div>
@@ -176,7 +341,7 @@ export default function Index() {
             </div>
 
             {/* Step 3 */}
-            <div className="flex flex-col items-center text-center group relative z-10 bg-white p-4">
+            <div className="flex flex-col items-center text-center group relative z-10 bg-background p-4 rounded-xl">
               <div className="w-24 h-24 rounded-full bg-background border border-primary/20 flex items-center justify-center mb-8 text-primary transition-all duration-500 group-hover:bg-primary group-hover:text-white shadow-sm">
                 <MessageCircle className="w-10 h-10" />
               </div>
@@ -193,9 +358,9 @@ export default function Index() {
       </section>
 
       {/* Featured Professionals */}
-      <section className="py-24 bg-muted/30 relative">
+      <section className="py-24 bg-white relative">
         {/* Decorative Background Element */}
-        <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-white to-transparent opacity-50" />
+        <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-muted/30 to-transparent opacity-50" />
 
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
@@ -227,7 +392,7 @@ export default function Index() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-white rounded-xl border border-dashed border-border">
+            <div className="text-center py-20 bg-muted/20 rounded-xl border border-dashed border-border">
               <p className="text-muted-foreground text-lg mb-6">
                 Ainda não temos profissionais em destaque.
               </p>
@@ -295,7 +460,7 @@ export default function Index() {
       </section>
 
       {/* Library / Content Teaser */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-muted/10">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-heading text-foreground mb-4">
