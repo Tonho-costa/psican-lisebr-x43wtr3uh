@@ -26,9 +26,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Poppins', 'sans-serif'],
+        heading: ['Cormorant Garamond', 'serif'],
         body: ['Lato', 'sans-serif'],
         sans: ['Lato', 'sans-serif'],
+        serif: ['Cormorant Garamond', 'serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -89,11 +90,16 @@ export default {
             transform: 'translateY(0)',
           },
         },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
+        'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
+        float: 'float 6s ease-in-out infinite',
       },
     },
   },

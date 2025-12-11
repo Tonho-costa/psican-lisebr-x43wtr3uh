@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,82 +7,78 @@
 @layer base {
   :root {
     /* 
-      Primary: #6B8E23 -> 80 60% 35%
-      Primary Hover: #55731C -> 81 61% 28%
-      Secondary: #A9A9A9 -> 0 0% 66%
-      Background (Beige): #F5F5DC -> 60 56% 91%
-      Page Background (White): #FFFFFF -> 0 0% 100%
-      Primary Text (Charcoal): #36454F -> 204 19% 26%
-      Secondary Text (Slate): #708090 -> 210 13% 50%
-      Success: #28A745 -> 134 61% 41%
-      Error: #DC3545 -> 354 70% 54%
-      Border: #E0E0E0 -> 0 0% 88%
+      Palette Update:
+      Moss Green (Primary): #4A5D23 -> 85 45% 25%
+      Terracotta (Secondary): #E2725B -> 16 65% 60%
+      Graphite (Foreground): #2F4F4F -> 200 15% 25%
+      Warm Beige (Background): #FDF5E6 -> 35 40% 96%
+      Lighter Beige (Muted): #FAF0E6 -> 35 30% 92%
     */
-    --background: 0 0% 100%;
-    --foreground: 204 19% 26%;
+    --background: 35 40% 96%;
+    --foreground: 200 15% 25%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 204 19% 26%;
+    --card: 35 40% 98%;
+    --card-foreground: 200 15% 25%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 204 19% 26%;
+    --popover: 35 40% 98%;
+    --popover-foreground: 200 15% 25%;
 
-    --primary: 80 60% 35%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 85 35% 32%;
+    --primary-foreground: 35 40% 96%;
 
-    --secondary: 0 0% 66%;
-    --secondary-foreground: 204 19% 26%;
+    --secondary: 16 60% 55%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 60 56% 91%;
-    --muted-foreground: 210 13% 50%;
+    --muted: 35 25% 90%;
+    --muted-foreground: 200 10% 45%;
 
-    --accent: 60 56% 91%;
-    --accent-foreground: 204 19% 26%;
+    --accent: 35 25% 88%;
+    --accent-foreground: 200 15% 25%;
 
     --destructive: 354 70% 54%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 80 60% 35%;
+    --border: 35 20% 85%;
+    --input: 35 20% 85%;
+    --ring: 85 35% 32%;
 
     --radius: 0.5rem;
 
-    --chart-1: 80 60% 35%;
-    --chart-2: 210 13% 50%;
-    --chart-3: 60 56% 91%;
-    --chart-4: 42 100% 50%;
+    --chart-1: 85 35% 32%;
+    --chart-2: 16 60% 55%;
+    --chart-3: 200 15% 25%;
+    --chart-4: 35 30% 80%;
     --chart-5: 33 100% 50%;
   }
 
   .dark {
-    --background: 204 19% 26%;
-    --foreground: 0 0% 100%;
+    --background: 200 15% 15%;
+    --foreground: 35 40% 96%;
 
-    --card: 204 19% 26%;
-    --card-foreground: 0 0% 100%;
+    --card: 200 15% 20%;
+    --card-foreground: 35 40% 96%;
 
-    --popover: 204 19% 26%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 200 15% 20%;
+    --popover-foreground: 35 40% 96%;
 
-    --primary: 80 60% 35%;
+    --primary: 85 35% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 13% 50%;
+    --secondary: 16 60% 65%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 204 19% 35%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 200 15% 25%;
+    --muted-foreground: 200 10% 70%;
 
-    --accent: 204 19% 35%;
+    --accent: 200 15% 25%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 354 70% 54%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 204 19% 35%;
-    --input: 204 19% 35%;
-    --ring: 80 60% 35%;
+    --border: 200 15% 25%;
+    --input: 200 15% 25%;
+    --ring: 85 35% 45%;
   }
 }
 
@@ -112,5 +108,8 @@
   }
   .animate-accordion-up {
     animation: accordion-up 0.2s ease-out;
+  }
+  .animate-float-slow {
+    animation: float 6s ease-in-out infinite;
   }
 }
