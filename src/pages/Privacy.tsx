@@ -24,8 +24,8 @@ export default function Privacy() {
       <div className="prose prose-gray max-w-none space-y-8 text-foreground/80">
         <section>
           <p className="lead text-lg">
-            A sua privacidade é fundamental para a PsicanáliseBR. Esta Política
-            de Privacidade descreve como coletamos, usamos, armazenamos e
+            A sua privacidade é fundamental para a EscutaPSI. Esta Política de
+            Privacidade descreve como coletamos, usamos, armazenamos e
             protegemos suas informações pessoais, em conformidade com a Lei
             Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
           </p>
@@ -154,7 +154,7 @@ export default function Privacy() {
           <p>
             Para exercer seus direitos ou esclarecer dúvidas sobre nossa
             Política de Privacidade, entre em contato com nosso Encarregado de
-            Dados (DPO) pelo e-mail: privacidade@psicanalisebr.com.br
+            Dados (DPO) pelo e-mail: privacidade@escutapsi.com.br
           </p>
         </section>
       </div>

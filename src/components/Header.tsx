@@ -44,10 +44,10 @@ export function Header() {
       <div className="container mx-auto px-4 h-full flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">
-            P
+            E
           </div>
           <span className="text-xl font-heading font-bold text-foreground">
-            Psicanálise<span className="text-primary">BR</span>
+            Escuta<span className="text-primary">PSI</span>
           </span>
         </Link>
 

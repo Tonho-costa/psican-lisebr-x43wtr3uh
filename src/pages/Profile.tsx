@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
@@ -82,7 +81,7 @@ export default function Profile() {
 
   const handleWhatsApp = () => {
     const cleanPhone = professional.phone.replace(/\D/g, '')
-    const message = `Olá, Dr(a). ${professional.name}. Encontrei seu perfil no PsicanáliseBR e gostaria de mais informações.`
+    const message = `Olá, Dr(a). ${professional.name}. Encontrei seu perfil na EscutaPSI e gostaria de mais informações.`
     window.open(
       `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`,
       '_blank',

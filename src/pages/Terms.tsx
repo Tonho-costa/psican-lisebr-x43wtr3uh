@@ -27,7 +27,7 @@ export default function Terms() {
             1. Aceitação dos Termos
           </h2>
           <p>
-            Ao acessar e utilizar a plataforma PsicanáliseBR, você concorda em
+            Ao acessar e utilizar a plataforma EscutaPSI, você concorda em
             cumprir e estar vinculado aos seguintes termos e condições de uso.
             Se você não concordar com qualquer parte destes termos, não deverá
             utilizar nossos serviços.
@@ -39,16 +39,15 @@ export default function Terms() {
             2. Descrição do Serviço
           </h2>
           <p>
-            A PsicanáliseBR é uma plataforma online que atua como intermediária,
+            A EscutaPSI é uma plataforma online que atua como intermediária,
             facilitando a conexão entre profissionais de psicanálise e
             psicologia ("Profissionais") e indivíduos interessados em seus
             serviços ("Pacientes" ou "Usuários").
           </p>
           <p className="mt-2 font-medium">
-            Importante: A PsicanáliseBR não presta serviços de saúde, não
-            realiza diagnósticos e não substitui o aconselhamento médico
-            profissional. Em caso de emergência, procure o hospital mais
-            próximo.
+            Importante: A EscutaPSI não presta serviços de saúde, não realiza
+            diagnósticos e não substitui o aconselhamento médico profissional.
+            Em caso de emergência, procure o hospital mais próximo.
           </p>
         </section>
 
@@ -99,7 +98,7 @@ export default function Terms() {
           <p>
             Todo o conteúdo disponibilizado na plataforma, incluindo textos,
             gráficos, logotipos, ícones, imagens e software, é propriedade da
-            PsicanáliseBR ou de seus licenciadores e é protegido pelas leis de
+            EscutaPSI ou de seus licenciadores e é protegido pelas leis de
             direitos autorais e propriedade intelectual.
           </p>
         </section>
@@ -109,7 +108,7 @@ export default function Terms() {
             5. Limitação de Responsabilidade
           </h2>
           <p>
-            A PsicanáliseBR não se responsabiliza por danos diretos, indiretos,
+            A EscutaPSI não se responsabiliza por danos diretos, indiretos,
             incidentais ou consequenciais resultantes do uso ou da incapacidade
             de uso do serviço, ou por qualquer conduta de terceiros na
             plataforma. A relação terapêutica é estabelecida exclusivamente
@@ -136,7 +135,7 @@ export default function Terms() {
           <p>
             Para esclarecer dúvidas sobre estes Termos de Uso, entre em contato
             através do nosso canal de suporte ou pelo e-mail:
-            legal@psicanalisebr.com.br
+            legal@escutapsi.com.br
           </p>
         </section>
       </div>

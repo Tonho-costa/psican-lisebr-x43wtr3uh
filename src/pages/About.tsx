@@ -79,7 +79,7 @@ export default function About() {
                 Mais que um diretório, um espaço de encontro
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                A PsicanáliseBR nasceu da necessidade de organizar e facilitar o
+                A EscutaPSI nasceu da necessidade de organizar e facilitar o
                 acesso a serviços psicanalíticos de qualidade no Brasil.
                 Entendemos que encontrar o profissional certo é o primeiro passo
                 fundamental para um tratamento eficaz.
