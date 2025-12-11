@@ -83,9 +83,9 @@ export function ProfileForm({ professional }: ProfileFormProps) {
     try {
       await updateProfile(professional.id, data)
       toast.success('Perfil atualizado com sucesso!')
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      toast.error('Erro ao atualizar perfil.')
+      toast.error(error.message || 'Erro ao atualizar perfil.')
     } finally {
       setIsSaving(false)
     }
