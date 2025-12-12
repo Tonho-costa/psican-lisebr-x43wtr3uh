@@ -39,7 +39,10 @@ interface ProfessionalState {
   setCurrentProfessional: (pro: Professional | null) => void
   fetchProfessionals: () => Promise<void>
   fetchCurrentProfile: (userId: string) => Promise<void>
-  updateProfile: (userId: string, data: Partial<Professional>) => Promise<void>
+  updateProfile: (
+    userId: string,
+    data: Partial<Professional>,
+  ) => Promise<Professional | null>
   logout: () => Promise<void> // Resets store state and signs out
   setSearchQuery: (query: Partial<ProfessionalState['searchQuery']>) => void
   // Legacy/Auth actions
@@ -104,6 +107,7 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
             p.id === updated.id ? updated : p,
           ),
         }))
+        return updated
       } else {
         throw error || new Error('Falha ao atualizar perfil')
       }

@@ -84,8 +84,31 @@ export function ProfileForm({ professional }: ProfileFormProps) {
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSaving(true)
     try {
-      await updateProfile(professional.id, data)
-      form.reset(data) // Reset form state to mark as pristine with new values
+      const updatedProfile = await updateProfile(professional.id, data)
+
+      if (updatedProfile) {
+        // Reset form state to mark as pristine with new values from backend
+        const newValues: ProfileFormValues = {
+          name: updatedProfile.name,
+          occupation: updatedProfile.occupation,
+          age: updatedProfile.age,
+          city: updatedProfile.city,
+          state: updatedProfile.state,
+          bio: updatedProfile.bio,
+          photoUrl: updatedProfile.photoUrl,
+          serviceTypes: updatedProfile.serviceTypes,
+          specialties: updatedProfile.specialties || [],
+          education: updatedProfile.education || [],
+          courses: updatedProfile.courses || [],
+          availability: updatedProfile.availability,
+          phone: updatedProfile.phone,
+          instagram: updatedProfile.instagram || '',
+          facebook: updatedProfile.facebook || '',
+          isVisible: updatedProfile.isVisible,
+        }
+        form.reset(newValues)
+      }
+
       toast.success('Perfil atualizado com sucesso!', {
         description: 'Suas alterações foram salvas e já estão visíveis.',
       })
