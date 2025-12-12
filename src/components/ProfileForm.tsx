@@ -85,6 +85,7 @@ export function ProfileForm({ professional }: ProfileFormProps) {
     setIsSaving(true)
     try {
       await updateProfile(professional.id, data)
+      form.reset(data) // Reset form state to mark as pristine with new values
       toast.success('Perfil atualizado com sucesso!', {
         description: 'Suas alterações foram salvas e já estão visíveis.',
       })
@@ -487,7 +488,11 @@ export function ProfileForm({ professional }: ProfileFormProps) {
         </Tabs>
 
         <div className="flex justify-end pt-4 border-t sticky bottom-0 bg-background py-4 z-10">
-          <Button type="submit" size="lg" disabled={isSaving}>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isSaving || !form.formState.isDirty}
+          >
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

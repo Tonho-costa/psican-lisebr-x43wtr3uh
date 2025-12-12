@@ -1,31 +1,11 @@
 import { supabase } from '@/lib/supabase/client'
 import { Professional } from '@/stores/useProfessionalStore'
+import { Database } from '@/lib/supabase/types'
 
-// Define the DB shape internally to handle mapping
-interface ProfileDB {
-  id: string
-  created_at: string
-  full_name: string | null
-  avatar_url: string | null
-  description: string | null
-  email: string | null
-  occupation: string | null
-  age: number | null
-  city: string | null
-  state: string | null
-  service_types: string[] | null
-  specialties: string[] | null
-  education: string[] | null
-  courses: string[] | null
-  availability: string | null
-  phone: string | null
-  instagram: string | null
-  facebook: string | null
-  is_featured: boolean
-  is_visible: boolean
-}
+type ProfileRow = Database['public']['Tables']['profiles']['Row']
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
-const mapToProfessional = (row: ProfileDB): Professional => ({
+const mapToProfessional = (row: ProfileRow): Professional => ({
   id: row.id,
   name: row.full_name || '',
   occupation: row.occupation || '',
@@ -46,8 +26,8 @@ const mapToProfessional = (row: ProfileDB): Professional => ({
   isVisible: row.is_visible ?? true,
 })
 
-const mapToDB = (professional: Partial<Professional>): Partial<ProfileDB> => {
-  const db: Partial<ProfileDB> = {}
+const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
+  const db: ProfileUpdate = {}
   if (professional.name !== undefined) db.full_name = professional.name
   if (professional.occupation !== undefined)
     db.occupation = professional.occupation
@@ -90,7 +70,7 @@ export const profileService = {
       console.error('Error fetching profile:', error)
       return { data: null, error }
     }
-    return { data: mapToProfessional(data as any), error: null }
+    return { data: mapToProfessional(data), error: null }
   },
 
   /**
@@ -110,7 +90,7 @@ export const profileService = {
         console.error('Error updating profile:', error)
         return { data: null, error }
       }
-      return { data: mapToProfessional(data as any), error: null }
+      return { data: mapToProfessional(data), error: null }
     } catch (err: any) {
       console.error('Unexpected error in updateProfile:', err)
       return { data: null, error: err }
@@ -131,7 +111,7 @@ export const profileService = {
       console.error('Error fetching all profiles:', error)
       return { data: null, error }
     }
-    return { data: (data as any[]).map(mapToProfessional), error: null }
+    return { data: (data || []).map(mapToProfessional), error: null }
   },
 
   /**
@@ -149,7 +129,7 @@ export const profileService = {
       console.error('Error fetching featured profiles:', error)
       return { data: null, error }
     }
-    return { data: (data as any[]).map(mapToProfessional), error: null }
+    return { data: (data || []).map(mapToProfessional), error: null }
   },
 
   /**

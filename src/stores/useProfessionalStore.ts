@@ -91,7 +91,7 @@ export const useProfessionalStore = create<ProfessionalState>((set, get) => ({
   },
 
   updateProfile: async (userId: string, data: Partial<Professional>) => {
-    set({ isLoading: true })
+    // Avoid setting global isLoading to prevent UI flashing
     try {
       const { data: updated, error } = await profileService.updateProfile(
         userId,
@@ -103,14 +103,12 @@ export const useProfessionalStore = create<ProfessionalState>((set, get) => ({
           professionals: state.professionals.map((p) =>
             p.id === updated.id ? updated : p,
           ),
-          isLoading: false,
         }))
       } else {
         throw error || new Error('Falha ao atualizar perfil')
       }
     } catch (error) {
       console.error('Error in store updateProfile:', error)
-      set({ isLoading: false })
       throw error
     }
   },
