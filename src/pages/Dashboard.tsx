@@ -1,62 +1,122 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
+import { ExternalLink, Loader2, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { ProfileForm } from '@/components/ProfileForm'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuth()
-  const { currentProfessional, fetchCurrentProfile, isLoading } =
-    useProfessionalStore()
   const navigate = useNavigate()
+  const { user, loading: authLoading, signOut } = useAuth()
+  const {
+    currentProfessional,
+    fetchCurrentProfile,
+    isLoading: profileLoading,
+  } = useProfessionalStore()
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/entrar')
-    } else if (user && !currentProfessional) {
-      fetchCurrentProfile(user.id)
     }
-  }, [user, authLoading, currentProfessional, fetchCurrentProfile, navigate])
+  }, [authLoading, user, navigate])
 
-  if (authLoading || isLoading) {
+  useEffect(() => {
+    if (user?.id) {
+      // Fetch profile if it's not loaded or if it doesn't match current user (e.g. after relogin with different user)
+      if (!currentProfessional || currentProfessional.id !== user.id) {
+        fetchCurrentProfile(user.id)
+      }
+    }
+  }, [user, currentProfessional, fetchCurrentProfile])
+
+  const handleLogout = async () => {
+    await signOut()
+    navigate('/')
+  }
+
+  const handleViewProfile = () => {
+    if (currentProfessional?.id) {
+      navigate(`/perfil/${currentProfessional.id}`)
+    }
+  }
+
+  if (authLoading || (profileLoading && !currentProfessional)) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
+      <div className="flex h-[80vh] w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-muted-foreground">Carregando...</span>
       </div>
     )
   }
 
-  if (!user || !currentProfessional) {
-    return (
-      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <h2 className="text-xl font-semibold">Perfil não encontrado</h2>
-        <p className="text-muted-foreground">
-          Não foi possível carregar seus dados.
-        </p>
-        <Button onClick={() => window.location.reload()}>
-          Tentar novamente
-        </Button>
-      </div>
-    )
-  }
+  if (!user) return null
 
   return (
-    <div className="container max-w-5xl mx-auto py-8 px-4 animate-fade-in">
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="container mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-heading">Editar Perfil</h1>
-          <p className="text-muted-foreground mt-1">
-            Gerencie suas informações profissionais e mantenha seu perfil
-            atualizado.
+          <h1 className="text-3xl font-bold font-heading text-foreground">
+            Painel do Profissional
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Gerencie suas informações, visibilidade e dados de contato.
           </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={handleViewProfile}
+            disabled={!currentProfessional}
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Ver Perfil Público
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sair
+          </Button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-border shadow-sm p-6 md:p-8">
-        <ProfileForm professional={currentProfessional} />
+      <Separator className="mb-8" />
+
+      <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
+        <div className="p-6 md:p-8">
+          {currentProfessional ? (
+            <>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold">Editar Perfil</h2>
+                <p className="text-sm text-muted-foreground">
+                  Mantenha seus dados atualizados para que os pacientes possam
+                  te encontrar.
+                </p>
+              </div>
+              <ProfileForm professional={currentProfessional} />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="mb-4 rounded-full bg-muted p-4">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium">Carregando informações...</h3>
+              <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+                Não foi possível carregar seu perfil. Tente recarregar a página.
+              </p>
+              <Button
+                variant="link"
+                onClick={() => user.id && fetchCurrentProfile(user.id)}
+                className="mt-4"
+              >
+                Tentar novamente
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
