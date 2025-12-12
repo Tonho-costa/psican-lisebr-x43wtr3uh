@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/card'
 import { useAuth } from '@/hooks/use-auth'
 import { profileService } from '@/services/profileService'
+import { storageService } from '@/services/storageService'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
@@ -78,6 +79,7 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<RegistrationData>>({})
   const [photoUrl, setPhotoUrl] = useState<string>('')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const navigate = useNavigate()
   const { signUp } = useAuth()
 
@@ -132,9 +134,10 @@ export default function Register() {
   const handleFinalSubmit = async (data: any) => {
     setIsLoading(true)
     try {
+      // Determines initial photo URL (fallback or preview)
       const randomGender = Math.random() > 0.5 ? 'male' : 'female'
       const fallbackPhoto = `https://img.usecurling.com/ppl/medium?gender=${randomGender}&seed=${Math.random()}`
-      const finalPhotoUrl = photoUrl || fallbackPhoto
+      let finalPhotoUrl = photoUrl || fallbackPhoto
 
       // 1. Sign Up user via Supabase Auth
       const { data: authData, error: authError } = await signUp(
@@ -153,7 +156,21 @@ export default function Register() {
       }
 
       if (authData.user) {
-        // 2. Update the automatically created profile with extra details
+        // 2. Upload Avatar if file exists
+        if (avatarFile) {
+          const { url: uploadedUrl, error: uploadError } =
+            await storageService.uploadAvatar(authData.user.id, avatarFile)
+          if (!uploadError && uploadedUrl) {
+            finalPhotoUrl = uploadedUrl
+          } else {
+            console.error('Error uploading initial avatar:', uploadError)
+            toast.warning(
+              'Conta criada, mas houve um erro ao salvar a foto de perfil.',
+            )
+          }
+        }
+
+        // 3. Update the automatically created profile with extra details
         const finalData = {
           occupation: data.occupation,
           age: data.age,
@@ -175,8 +192,6 @@ export default function Register() {
           isVisible: true,
         }
 
-        // Wait a brief moment for trigger to create profile if needed, though usually instant
-        // Or retry logic could be added. We proceed to update.
         const { error: profileError } = await profileService.updateProfile(
           authData.user.id,
           finalData,
@@ -427,17 +442,12 @@ export default function Register() {
               className="space-y-6"
             >
               <div className="space-y-3">
-                <Label>Foto de Perfil</Label>
-                <div className="flex justify-center p-4 border rounded-lg bg-muted/10">
-                  <ProfilePhotoUploader
-                    onPhotoChange={setPhotoUrl}
-                    currentPhotoUrl={photoUrl}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  Adicione uma foto profissional para transmitir confiança aos
-                  pacientes.
-                </p>
+                <ProfilePhotoUploader
+                  value={photoUrl}
+                  onChange={setPhotoUrl}
+                  onFileChange={setAvatarFile}
+                  name={watch('name') || ''}
+                />
               </div>
 
               <div className="space-y-3">

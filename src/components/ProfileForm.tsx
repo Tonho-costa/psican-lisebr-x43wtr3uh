@@ -212,6 +212,7 @@ export function ProfileForm({ professional }: ProfileFormProps) {
                     value={field.value}
                     onChange={field.onChange}
                     name={form.watch('name')}
+                    userId={professional.id}
                   />
                   <FormMessage />
                 </FormItem>
