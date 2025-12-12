@@ -77,6 +77,7 @@ export const profileService = {
 
   /**
    * Updates a profile.
+   * Returns the updated profile from the database to ensure UI consistency.
    */
   async updateProfile(userId: string, updates: Partial<Professional>) {
     try {
@@ -138,6 +139,8 @@ export const profileService = {
    * Searches/Filters profiles.
    */
   async searchProfiles(_filters?: any) {
+    // Currently re-using getAllProfiles as filtering is done client-side in the store or component for now
+    // In a real app with many users, this should be a DB query
     return this.getAllProfiles()
   },
 }

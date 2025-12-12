@@ -31,8 +31,11 @@ const profileSchema = z.object({
   occupation: z.string().min(2, 'Profissão é obrigatória'),
   age: z.coerce.number().min(18, 'Idade mínima é 18 anos'),
   city: z.string().min(2, 'Cidade é obrigatória'),
-  state: z.string().min(2, 'Estado é obrigatório'),
-  bio: z.string().max(1000, 'Biografia muito longa'),
+  state: z
+    .string()
+    .min(2, 'Estado é obrigatório')
+    .max(2, 'Use a sigla do estado'),
+  bio: z.string().max(2000, 'Biografia muito longa'),
   photoUrl: z.string().url('URL inválida').or(z.literal('')),
   serviceTypes: z
     .array(z.enum(['Online', 'Presencial']))
@@ -88,6 +91,7 @@ export function ProfileForm({ professional }: ProfileFormProps) {
 
       if (updatedProfile) {
         // Reset form state to mark as pristine with new values from backend
+        // This ensures the button gets disabled until new changes are made
         const newValues: ProfileFormValues = {
           name: updatedProfile.name,
           occupation: updatedProfile.occupation,
@@ -107,26 +111,31 @@ export function ProfileForm({ professional }: ProfileFormProps) {
           isVisible: updatedProfile.isVisible,
         }
         form.reset(newValues)
-      }
 
-      toast.success('Perfil atualizado com sucesso!', {
-        description: 'Suas alterações foram salvas e já estão visíveis.',
-      })
+        toast.success('Perfil salvo com sucesso!', {
+          description: 'Suas alterações foram gravadas no banco de dados.',
+        })
+      } else {
+        throw new Error('Não foi possível obter os dados atualizados.')
+      }
     } catch (error: any) {
       console.error(error)
-      toast.error('Erro ao atualizar perfil.', {
+      toast.error('Erro ao salvar alterações.', {
         description:
-          error.message ||
-          'Ocorreu um problema ao salvar suas alterações. Tente novamente.',
+          error.message || 'Verifique sua conexão e tente novamente.',
       })
     } finally {
       setIsSaving(false)
     }
   }
 
+  // Determine if button should be disabled
+  // Disabled if: Saving OR Form is not dirty (no changes)
+  const isButtonDisabled = isSaving || !form.formState.isDirty
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-20">
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="basic">Dados Pessoais</TabsTrigger>
@@ -177,7 +186,7 @@ export function ProfileForm({ professional }: ProfileFormProps) {
                   value={professional.id}
                   disabled
                   readOnly
-                  className="bg-muted text-muted-foreground"
+                  className="bg-muted text-muted-foreground font-mono text-xs"
                 />
               </div>
               <div className="space-y-2">
@@ -274,9 +283,14 @@ export function ProfileForm({ professional }: ProfileFormProps) {
                 name="state"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado</FormLabel>
+                    <FormLabel>Estado (UF)</FormLabel>
                     <FormControl>
-                      <Input placeholder="UF" maxLength={2} {...field} />
+                      <Input
+                        placeholder="Ex: SP"
+                        maxLength={2}
+                        className="uppercase"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -431,11 +445,15 @@ export function ProfileForm({ professional }: ProfileFormProps) {
                   <FormLabel>Apresentação / Biografia</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Conte um pouco sobre você e sua abordagem..."
-                      className="min-h-[150px]"
+                      placeholder="Conte um pouco sobre você, sua abordagem e experiência..."
+                      className="min-h-[200px]"
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription>
+                    Uma boa apresentação é fundamental para que os pacientes se
+                    identifiquem com você.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -452,7 +470,7 @@ export function ProfileForm({ professional }: ProfileFormProps) {
                       <Input placeholder="(00) 00000-0000" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Será usado para o botão de WhatsApp.
+                      Este número será usado para o botão de contato.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -513,24 +531,27 @@ export function ProfileForm({ professional }: ProfileFormProps) {
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end pt-4 border-t sticky bottom-0 bg-background py-4 z-10">
-          <Button
-            type="submit"
-            size="lg"
-            disabled={isSaving || !form.formState.isDirty}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Salvar Alterações
-              </>
-            )}
-          </Button>
+        <div className="fixed bottom-0 left-0 right-0 p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 flex justify-center md:justify-end md:px-10 shadow-lg animate-in slide-in-from-bottom-5">
+          <div className="container max-w-4xl flex justify-end">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isButtonDisabled}
+              className="w-full md:w-auto shadow-md"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando alterações...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Alterações
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>
