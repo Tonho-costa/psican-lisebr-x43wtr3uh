@@ -5,6 +5,7 @@ import { Database } from '@/lib/supabase/types'
 type ProfileRow = Database['public']['Tables']['profiles']['Row']
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
+// Maps Database Row to Professional Interface
 const mapToProfessional = (row: ProfileRow): Professional => ({
   id: row.id,
   name: row.full_name || '',
@@ -26,12 +27,12 @@ const mapToProfessional = (row: ProfileRow): Professional => ({
   isVisible: row.is_visible ?? true,
 })
 
+// Maps Professional Interface to Database Update object
 const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
   const db: ProfileUpdate = {}
   if (professional.name !== undefined) db.full_name = professional.name
   if (professional.occupation !== undefined)
     db.occupation = professional.occupation
-  // Email is usually not updatable via profile form, but if passed:
   if (professional.email !== undefined) db.email = professional.email
   if (professional.age !== undefined) db.age = professional.age
   if (professional.city !== undefined) db.city = professional.city
@@ -134,10 +135,9 @@ export const profileService = {
   },
 
   /**
-   * Searches/Filters profiles (simple client-side filtering is done in component usually,
-   * but we can add server side filtering here if needed).
+   * Searches/Filters profiles.
    */
-  async searchProfiles(filters?: any) {
+  async searchProfiles(_filters?: any) {
     return this.getAllProfiles()
   },
 }

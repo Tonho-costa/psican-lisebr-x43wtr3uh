@@ -48,7 +48,7 @@ interface ProfessionalState {
   deleteAccount: () => void
 }
 
-export const useProfessionalStore = create<ProfessionalState>((set, get) => ({
+export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
   professionals: [],
   currentProfessional: null,
   isLoading: false,
