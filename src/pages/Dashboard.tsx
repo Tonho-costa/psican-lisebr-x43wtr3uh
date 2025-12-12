@@ -42,7 +42,10 @@ export default function Dashboard() {
     }
   }
 
-  if (authLoading || (profileLoading && !currentProfessional)) {
+  // Determine if we are in a loading state
+  const isLoading = authLoading || (profileLoading && !currentProfessional)
+
+  if (isLoading) {
     return (
       <div className="flex h-[80vh] w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

@@ -31,6 +31,7 @@ const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
   if (professional.name !== undefined) db.full_name = professional.name
   if (professional.occupation !== undefined)
     db.occupation = professional.occupation
+  // Email is usually not updatable via profile form, but if passed:
   if (professional.email !== undefined) db.email = professional.email
   if (professional.age !== undefined) db.age = professional.age
   if (professional.city !== undefined) db.city = professional.city

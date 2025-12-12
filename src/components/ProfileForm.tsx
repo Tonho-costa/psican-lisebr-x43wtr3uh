@@ -296,9 +296,12 @@ export function ProfileForm({ professional }: ProfileFormProps) {
                                   checked={field.value?.includes(type as any)}
                                   onCheckedChange={(checked) => {
                                     return checked
-                                      ? field.onChange([...field.value, type])
+                                      ? field.onChange([
+                                          ...(field.value || []),
+                                          type,
+                                        ])
                                       : field.onChange(
-                                          field.value?.filter(
+                                          (field.value || [])?.filter(
                                             (value) => value !== type,
                                           ),
                                         )
