@@ -48,7 +48,7 @@ interface ProfessionalState {
   // Legacy/Auth actions
   login: (email: string) => boolean
   register: (data: any) => void
-  deleteAccount: () => void
+  deleteAccount: () => Promise<void>
 }
 
 export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
@@ -125,6 +125,20 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
   setSearchQuery: (query) =>
     set((state) => ({ searchQuery: { ...state.searchQuery, ...query } })),
 
+  deleteAccount: async () => {
+    try {
+      const { error } = await profileService.deleteAccount()
+      if (error) throw error
+
+      // Perform logout logic
+      await supabase.auth.signOut()
+      set({ currentProfessional: null, isAuthenticated: false })
+    } catch (error) {
+      console.error('Error in store deleteAccount:', error)
+      throw error
+    }
+  },
+
   // Deprecated/No-op actions
   login: () => {
     console.warn('Use useAuth().signIn instead')
@@ -132,11 +146,5 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
   },
   register: () => {
     console.warn('Use useAuth().signUp instead')
-  },
-  deleteAccount: () => {
-    console.warn(
-      'Delete account implementation requires Supabase admin/functions',
-    )
-    set({ currentProfessional: null, isAuthenticated: false })
   },
 }))

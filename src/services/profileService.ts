@@ -143,4 +143,14 @@ export const profileService = {
     // In a real app with many users, this should be a DB query
     return this.getAllProfiles()
   },
+
+  /**
+   * Deletes the current user account via edge function.
+   */
+  async deleteAccount() {
+    const { data, error } = await supabase.functions.invoke('delete-account', {
+      method: 'POST',
+    })
+    return { data, error }
+  },
 }

@@ -2,8 +2,17 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Loader2, Save, Mail, Fingerprint, Eye, EyeOff } from 'lucide-react'
+import {
+  Loader2,
+  Save,
+  Mail,
+  Fingerprint,
+  Eye,
+  EyeOff,
+  Trash2,
+} from 'lucide-react'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 import {
   Professional,
   useProfessionalStore,
@@ -25,6 +34,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { StringListInput } from '@/components/StringListInput'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
 import { Switch } from '@/components/ui/switch'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -59,8 +86,10 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ professional }: ProfileFormProps) {
-  const { updateProfile } = useProfessionalStore()
+  const { updateProfile, deleteAccount } = useProfessionalStore()
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const navigate = useNavigate()
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -90,8 +119,6 @@ export function ProfileForm({ professional }: ProfileFormProps) {
       const updatedProfile = await updateProfile(professional.id, data)
 
       if (updatedProfile) {
-        // Reset form state to mark as pristine with new values from backend
-        // This ensures the button gets disabled until new changes are made
         const newValues: ProfileFormValues = {
           name: updatedProfile.name,
           occupation: updatedProfile.occupation,
@@ -129,8 +156,21 @@ export function ProfileForm({ professional }: ProfileFormProps) {
     }
   }
 
-  // Determine if button should be disabled
-  // Disabled if: Saving OR Form is not dirty (no changes)
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true)
+    try {
+      await deleteAccount()
+      toast.success('Conta excluída com sucesso.')
+      navigate('/')
+    } catch (error: any) {
+      console.error(error)
+      toast.error('Erro ao excluir conta.', {
+        description: error.message || 'Tente novamente mais tarde.',
+      })
+      setIsDeleting(false)
+    }
+  }
+
   const isButtonDisabled = isSaving || !form.formState.isDirty
 
   return (
@@ -298,6 +338,58 @@ export function ProfileForm({ professional }: ProfileFormProps) {
                 )}
               />
             </div>
+
+            <Card className="border-destructive/30 bg-destructive/5 mt-8">
+              <CardHeader>
+                <CardTitle className="text-destructive flex items-center gap-2">
+                  <Trash2 className="w-5 h-5" />
+                  Zona de Perigo
+                </CardTitle>
+                <CardDescription>
+                  Ações irreversíveis para sua conta.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={isDeleting}>
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Excluindo...
+                        </>
+                      ) : (
+                        'Excluir Minha Conta'
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Você tem certeza absoluta?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. Isso excluirá
+                        permanentemente sua conta e removerá seus dados de
+                        nossos servidores.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={(e) => {
+                          e.preventDefault()
+                          handleDeleteAccount()
+                        }}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Sim, excluir minha conta
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent
