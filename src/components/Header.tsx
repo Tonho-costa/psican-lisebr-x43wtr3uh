@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, UserCircle } from 'lucide-react'
+import { Menu, UserCircle, MessageCircle, Leaf } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { cn } from '@/lib/utils'
@@ -41,70 +41,91 @@ export function Header() {
   }
 
   const navLinks = [
-    { name: 'Como Funciona', href: '/#como-funciona' },
-    { name: 'Para Profissionais', href: '/#para-profissionais' },
-    { name: 'Contato', href: '/#footer' },
+    { name: 'Quem Somos', href: '/#quem-somos' },
+    { name: 'Abordagem', href: '/#abordagem' },
+    { name: 'Como Ajudamos', href: '/#como-ajudamos' },
+    { name: 'Agende', href: '/#agende' },
+    { name: 'Rede de Escuta', href: '/#rede-escuta' },
   ]
+
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (href.startsWith('/#') && location.pathname === '/') {
+      e.preventDefault()
+      const id = href.substring(2)
+      const element = document.getElementById(id)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
+      setIsMobileMenuOpen(false)
+    }
+  }
 
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        isScrolled
-          ? 'bg-white/90 backdrop-blur-md shadow-sm h-[60px] md:h-[72px]'
-          : 'bg-transparent h-[60px] md:h-[72px]',
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white border-b border-border/50',
+        isScrolled ? 'shadow-sm h-[60px] md:h-[72px]' : 'h-[60px] md:h-[72px]',
       )}
     >
       <div className="container mx-auto px-4 h-full flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">
-            E
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+            <Leaf className="w-5 h-5" />
           </div>
-          <span className="text-xl font-heading font-bold text-foreground">
-            Escuta<span className="text-primary">PSI</span>
+          <span className="text-xl font-heading font-semibold text-foreground tracking-wide">
+            Escuta<span className="text-primary italic">Psi</span>
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
               key={link.name}
               href={link.href}
-              className="text-sm font-medium text-foreground hover:text-primary transition-colors relative after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:w-0 after:h-[2px] after:bg-primary after:transition-all hover:after:w-full"
+              onClick={(e) => handleNavClick(e, link.href)}
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:w-0 after:h-[1px] after:bg-primary after:transition-all hover:after:w-full"
             >
               {link.name}
             </a>
           ))}
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ml-4 pl-4 border-l border-border">
               <Link to="/painel/perfil">
-                <Button variant="ghost" className="gap-2">
+                <Button
+                  variant="ghost"
+                  className="gap-2 text-foreground/80 hover:text-primary"
+                >
                   <UserCircle className="w-5 h-5" />
-                  {currentProfessional?.name}
+                  <span className="max-w-[100px] truncate">
+                    {currentProfessional?.name}
+                  </span>
                 </Button>
               </Link>
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="text-xs"
+                className="text-xs border-primary/20 hover:bg-primary/5 hover:text-primary"
               >
                 Sair
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ml-4 pl-4 border-l border-border">
               <Link to="/entrar">
                 <Button
                   variant="ghost"
-                  className="text-primary hover:text-primary/80 hover:bg-primary/10"
+                  className="text-foreground/80 hover:text-primary hover:bg-transparent"
                 >
                   Entrar
                 </Button>
               </Link>
               <Link to="/cadastro">
-                <Button className="bg-primary hover:bg-primary/90 text-white">
+                <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 shadow-sm">
                   Cadastre-se
                 </Button>
               </Link>
@@ -113,10 +134,10 @@ export function Header() {
         </nav>
 
         {/* Mobile Menu */}
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="text-foreground">
                 <Menu className="w-6 h-6" />
               </Button>
             </SheetTrigger>
@@ -128,7 +149,7 @@ export function Header() {
                     key={link.name}
                     href={link.href}
                     className="text-lg font-medium text-foreground hover:text-primary transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => handleNavClick(e, link.href)}
                   >
                     {link.name}
                   </a>
@@ -161,7 +182,7 @@ export function Header() {
                       to="/cadastro"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Button className="w-full bg-primary hover:bg-primary/90">
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                         Cadastre-se
                       </Button>
                     </Link>

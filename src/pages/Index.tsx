@@ -1,29 +1,28 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search,
-  Users,
-  MessageCircle,
   ArrowRight,
   Leaf,
   Feather,
   BookOpen,
   Check,
   Quote,
-  Heart,
+  MessageCircle,
   Brain,
-  Calendar,
+  Ear,
+  Users,
   AlertCircle,
+  Heart,
+  Lightbulb,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { profileService } from '@/services/profileService'
 import { Professional } from '@/stores/useProfessionalStore'
 import { ProfessionalCard } from '@/components/ProfessionalCard'
+import { Separator } from '@/components/ui/separator'
 
 export default function Index() {
   const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
   const [featuredProfessionals, setFeaturedProfessionals] = useState<
     Professional[]
   >([])
@@ -44,475 +43,385 @@ export default function Index() {
     loadFeatured()
   }, [])
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    navigate(`/busca?q=${encodeURIComponent(searchTerm)}`)
-  }
-
   return (
-    <div className="flex flex-col w-full overflow-x-hidden">
+    <div className="flex flex-col w-full overflow-x-hidden font-body text-graphite bg-ice">
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center bg-background overflow-hidden py-20">
-        {/* Abstract Descending Organic Lines - Background */}
-        <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none z-0">
+      <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-b from-ice to-white overflow-hidden py-20">
+        <div className="absolute top-0 right-0 w-full h-full opacity-5 pointer-events-none z-0">
           <img
-            src="https://img.usecurling.com/i?q=abstract%20curved%20lines&shape=outline&color=orange"
+            src="https://img.usecurling.com/i?q=abstract%20minimalist%20lines&shape=outline&color=gray"
             alt="Organic Lines"
-            className="absolute -right-20 top-0 w-[800px] h-[800px] object-contain opacity-40 rotate-12"
-          />
-          <img
-            src="https://img.usecurling.com/i?q=fluid%20lines&shape=outline&color=gray"
-            alt="Fluid Lines"
-            className="absolute -left-40 bottom-0 w-[600px] h-[600px] object-contain opacity-30 -rotate-45"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] object-contain opacity-40"
           />
         </div>
 
-        {/* Minimalist Tree - Symbol of Growth and Structure */}
-        <div className="absolute top-10 md:top-20 right-10 md:right-32 opacity-15 pointer-events-none z-0 hidden lg:block animate-float-slow">
-          <img
-            src="https://img.usecurling.com/i?q=minimalist%20tree&shape=outline&color=green"
-            alt="Minimalist Tree"
-            className="w-[400px] h-[400px] object-contain"
-          />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col items-center text-center max-w-4xl mx-auto space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 text-primary text-sm font-medium animate-fade-in-up">
-              <Feather className="w-4 h-4" />
-              <span>Acolhimento e Escuta</span>
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-heading font-medium text-foreground tracking-tight leading-[1.1] animate-fade-in-up delay-100">
-              Encontre o espaço para <br />
-              <span className="text-primary italic">sua interioridade</span>
+        <div className="container mx-auto px-4 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-8 animate-fade-in-up">
+            <h1 className="text-6xl md:text-8xl font-heading font-medium text-graphite tracking-tight leading-[1] relative">
+              Escuta<span className="text-primary italic">Psi</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-200">
-              Conectando você a psicanalistas qualificados para uma jornada de
-              palavras, significados e autoconhecimento.
+            <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-lg leading-relaxed font-serif italic">
+              "Quando alguém te escuta, algo em você se reorganiza."
             </p>
 
-            <form
-              onSubmit={handleSearch}
-              className="w-full max-w-xl relative animate-fade-in-up delay-300 mt-8"
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white rounded-full px-10 h-14 text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+              onClick={() => navigate('/busca')}
             >
-              <div className="relative flex items-center group">
-                <Search className="absolute left-5 w-5 h-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                <Input
-                  type="text"
-                  placeholder="Busque por nome, especialidade ou cidade..."
-                  className="w-full h-16 pl-14 pr-16 rounded-full shadow-sm border-primary/20 bg-white/80 backdrop-blur-sm focus:border-primary focus:ring-primary/20 text-lg placeholder:text-muted-foreground/60 transition-all hover:border-primary/40"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="absolute right-2 w-12 h-12 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all hover:scale-105"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                  <span className="sr-only">Buscar</span>
-                </Button>
-              </div>
-            </form>
+              Agendar Atendimento
+            </Button>
           </div>
-        </div>
 
-        {/* Stylized Roots - Connecting to the next section */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-5xl opacity-20 pointer-events-none z-0">
-          <img
-            src="https://img.usecurling.com/i?q=tree%20roots&shape=outline&color=black"
-            alt="Stylized Roots"
-            className="w-full h-[300px] object-cover object-top mask-image-gradient"
-            style={{
-              maskImage: 'linear-gradient(to bottom, black, transparent)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)',
-            }}
-          />
+          <div className="hidden md:flex justify-center items-center animate-fade-in-up delay-200">
+            <div className="relative w-[400px] h-[500px] bg-moss/20 rounded-full blur-3xl absolute -z-10"></div>
+            <img
+              src="https://img.usecurling.com/i?q=serene%20face%20outline&shape=outline&color=gray"
+              alt="Minimalist Illustration"
+              className="w-[400px] h-[500px] object-contain opacity-80"
+            />
+          </div>
         </div>
       </section>
 
-      {/* NEW SECTION: Como funciona (About EscutaPSI) */}
-      <section
-        id="como-funciona"
-        className="py-24 bg-white relative overflow-hidden"
-      >
-        <div className="container mx-auto px-4 relative z-10">
-          {/* Section Header */}
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="text-4xl md:text-5xl font-heading font-medium text-foreground">
-              Como funciona
-            </h2>
-            <div className="w-24 h-1 bg-secondary mx-auto rounded-full opacity-60"></div>
-            <div className="max-w-3xl mx-auto mt-8 p-6 bg-muted/20 rounded-xl border border-muted/50">
-              <h3 className="text-2xl font-heading font-bold text-primary mb-2">
-                EscutaPSI
-              </h3>
-              <div className="flex gap-2 justify-center text-muted-foreground italic text-lg">
-                <Quote className="w-5 h-5 shrink-0 rotate-180 opacity-50" />
-                <p>
-                  Toda vida importa. Sua história importa. Sempre há um caminho
-                  possível.
+      {/* Quem Somos Section */}
+      <section id="quem-somos" className="py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center gap-16 max-w-6xl mx-auto">
+            <div className="md:w-1/2 relative">
+              <div className="border border-[#DDE5E5] p-8 md:p-12 rounded-sm relative z-10 bg-white/80 backdrop-blur-sm">
+                <h2 className="text-4xl font-heading font-medium mb-6 text-graphite">
+                  Quem Somos
+                </h2>
+                <div className="w-16 h-0.5 bg-primary/40 mb-8"></div>
+                <p className="text-muted-foreground leading-relaxed text-lg font-light">
+                  A EscutaPsi nasce do desejo de criar pontes. Somos um coletivo
+                  dedicado à psicanálise e à saúde mental, acreditando que a
+                  fala tem poder curativo. Oferecemos um espaço seguro onde sua
+                  história é recebida com ética e profundidade.
                 </p>
-                <Quote className="w-5 h-5 shrink-0 opacity-50" />
+                <div className="mt-6 flex items-center gap-2 text-primary font-medium italic">
+                  <Leaf className="w-5 h-5" />
+                  <span>Acolhimento e Ética</span>
+                </div>
+              </div>
+            </div>
+            <div className="md:w-1/2 flex justify-center">
+              <img
+                src="https://img.usecurling.com/i?q=organic%20shapes%20lines&shape=outline&color=green"
+                alt="Illustration"
+                className="w-full max-w-md object-contain opacity-70"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Nossa Abordagem Section */}
+      <section id="abordagem" className="py-24 bg-sand/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-heading font-medium text-graphite">
+                Nossa Abordagem
+              </h2>
+              <div className="w-24 h-0.5 bg-primary/40 mx-auto mt-4"></div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <div className="prose prose-lg text-muted-foreground">
+                <p>
+                  A psicanálise é uma prática clínica que aposta na
+                  singularidade de cada sujeito. Não buscamos apenas eliminar
+                  sintomas, mas compreender suas raízes na história de vida de
+                  cada um.
+                </p>
+                <p>
+                  Trabalhamos com o tempo de cada pessoa, respeitando seus
+                  silêncios e suas palavras, em um processo de construção
+                  conjunta.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-white border border-sand flex items-center justify-center text-primary shrink-0">
+                    <Ear className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-bold text-xl mb-2">
+                      Escuta Qualificada
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Atenção flutuante que capta o não-dito e os sentidos
+                      ocultos da fala.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-white border border-sand flex items-center justify-center text-primary shrink-0">
+                    <Brain className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-bold text-xl mb-2">
+                      Inconsciente
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Investigação dos processos psíquicos que escapam à
+                      consciência.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-white border border-sand flex items-center justify-center text-primary shrink-0">
+                    <Heart className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-bold text-xl mb-2">
+                      Transferência
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      O vínculo de confiança que possibilita o trabalho
+                      analítico.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            {/* Quem Somos */}
-            <div className="bg-background rounded-xl p-8 shadow-sm border border-border/50 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-3 mb-4 text-primary">
-                <Users className="w-6 h-6" />
-                <h3 className="text-2xl font-heading font-bold">Quem Somos</h3>
+      {/* Como Podemos Ajudar Section */}
+      <section id="como-ajudamos" className="py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-heading font-medium text-graphite">
+              Como Podemos Ajudar
+            </h2>
+            <p className="text-muted-foreground mt-4 font-light">
+              Suporte especializado para diversas questões do sofrimento humano.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {[
+              {
+                icon: <Feather className="w-8 h-8" />,
+                title: 'Angústia e Ansiedade',
+                desc: 'Espaço para elaborar medos, preocupações excessivas e sensações de desamparo.',
+              },
+              {
+                icon: <Users className="w-8 h-8" />,
+                title: 'Conflitos Relacionais',
+                desc: 'Compreensão de padrões repetitivos em relacionamentos familiares e amorosos.',
+              },
+              {
+                icon: <Lightbulb className="w-8 h-8" />,
+                title: 'Autoconhecimento',
+                desc: 'Uma jornada para descobrir desejos próprios e construir novos caminhos de vida.',
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="bg-white border border-gray-100 rounded-xl p-8 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center group"
+              >
+                <div className="mb-6 text-primary/80 group-hover:text-primary transition-colors">
+                  {item.icon}
+                </div>
+                <h3 className="text-xl font-heading font-bold mb-4">
+                  {item.title}
+                </h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {item.desc}
+                </p>
               </div>
-              <p className="text-muted-foreground leading-relaxed">
-                Acreditamos que cada pessoa carrega uma história única, marcada
-                por afetos, desafios, descobertas e possibilidades. A EscutaPSI
-                nasce com o propósito de oferecer um espaço seguro, ético e
-                acolhedor, onde você possa falar livremente e ser escutado de
-                forma profunda e sem julgamentos.
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <div className="inline-flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-4 py-2 rounded-full border border-amber-100">
+              <AlertCircle className="w-4 h-4" />
+              <span>
+                Em caso de emergência, procure ajuda imediatamente. Ligue 188.
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Nosso Compromisso Section */}
+      <section className="py-20 bg-ice">
+        <div className="container mx-auto px-4 text-center max-w-4xl">
+          <Quote className="w-8 h-8 text-primary/30 mx-auto mb-6 rotate-180" />
+          <h2 className="text-3xl md:text-5xl font-heading font-medium text-graphite leading-tight mb-8">
+            "Nosso compromisso é com a ética do desejo e a dignidade de cada
+            sujeito que nos procura."
+          </h2>
+          <div className="w-16 h-1 bg-primary mx-auto rounded-full opacity-60"></div>
+        </div>
+      </section>
+
+      {/* Agende Seu Atendimento Section (Includes Featured List functionality) */}
+      <section
+        id="agende"
+        className="py-24 bg-moss/30 relative overflow-hidden"
+      >
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col items-center text-center space-y-8 mb-16">
+            <h2 className="text-4xl md:text-5xl font-heading font-medium text-graphite">
+              Agende Seu Atendimento
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl font-light">
+              Dê o primeiro passo. Encontre o profissional ideal para sua
+              jornada.
+            </p>
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white rounded-full px-12 h-16 text-xl shadow-xl transition-transform hover:scale-105"
+              onClick={() => navigate('/busca')}
+            >
+              Entrar em Contato
+            </Button>
+          </div>
+
+          {/* Featured Professionals - Kept for functionality */}
+          <div className="mt-16">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="h-px bg-primary/20 flex-grow"></div>
+              <span className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
+                Profissionais em Destaque
+              </span>
+              <div className="h-px bg-primary/20 flex-grow"></div>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+              </div>
+            ) : featuredProfessionals.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                {featuredProfessionals.map((pro) => (
+                  <ProfessionalCard
+                    key={pro.id}
+                    professional={pro}
+                    className="bg-white border-white/50 shadow-sm hover:shadow-xl"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 bg-white/50 rounded-xl border border-dashed border-primary/20">
+                <p className="text-muted-foreground">
+                  Ainda não temos profissionais em destaque.
+                </p>
+              </div>
+            )}
+
+            <div className="text-center mt-8">
+              <Button
+                variant="link"
+                className="text-primary hover:text-primary/80"
+                onClick={() => navigate('/busca')}
+              >
+                Ver todos os profissionais{' '}
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* O que é Psicanálise / Por que fazer */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-6xl mx-auto">
+            <div className="space-y-6">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <h2 className="text-3xl font-heading font-medium">
+                O que é Psicanálise?
+              </h2>
+              <p className="text-muted-foreground leading-relaxed text-lg">
+                Criada por Sigmund Freud, a psicanálise é um método de
+                investigação da mente humana e de tratamento dos sofrimentos
+                psíquicos. Ela parte do princípio de que muitos dos nossos
+                comportamentos e sentimentos são determinados por processos
+                inconscientes.
+              </p>
+              <p className="text-muted-foreground leading-relaxed text-lg">
+                Através da "cura pela fala", o analista ajuda o paciente a
+                trazer à tona esses conteúdos, permitindo novas formas de lidar
+                com o sofrimento.
               </p>
             </div>
 
-            {/* Nossa Abordagem */}
-            <div className="bg-background rounded-xl p-8 shadow-sm border border-border/50 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-3 mb-4 text-primary">
-                <Leaf className="w-6 h-6" />
-                <h3 className="text-2xl font-heading font-bold">
-                  Nossa Abordagem
-                </h3>
+            <div className="space-y-6">
+              <div className="w-12 h-12 bg-sand rounded-full flex items-center justify-center text-graphite mb-4">
+                <Check className="w-6 h-6" />
               </div>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                A psicanálise é uma prática que valoriza a palavra, o silêncio e
-                o tempo de cada sujeito. Por meio de uma escuta sensível,
-                ajudamos você a:
-              </p>
-              <ul className="space-y-2 mb-6">
+              <h2 className="text-3xl font-heading font-medium">
+                Por que fazer Análise?
+              </h2>
+              <ul className="space-y-4">
                 {[
-                  'Entrar em contato com conflitos internos;',
-                  'Reconhecer padrões que se repetem;',
-                  'Compreender emoções e escolhas;',
-                  'Construir novos sentidos para a sua vida e sua história.',
-                ].map((item, index) => (
+                  'Para lidar melhor com a angústia e sintomas persistentes.',
+                  'Para entender repetições em sua vida pessoal e profissional.',
+                  'Para fortalecer a autonomia diante das próprias escolhas.',
+                  'Para transformar a relação consigo mesmo e com os outros.',
+                ].map((item, idx) => (
                   <li
-                    key={index}
-                    className="flex items-start gap-2 text-muted-foreground"
+                    key={idx}
+                    className="flex gap-4 items-start text-muted-foreground text-lg"
                   >
-                    <Check className="w-5 h-5 text-secondary shrink-0 mt-0.5" />
+                    <span className="w-2 h-2 mt-2.5 rounded-full bg-primary shrink-0"></span>
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
-              <p className="text-sm font-medium text-foreground bg-primary/5 p-3 rounded-lg border border-primary/10">
-                Trabalhamos com responsabilidade clínica, sigilo absoluto e
-                compromisso ético.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Rede de Escuta (Call to Professionals) */}
+      <section id="rede-escuta" className="py-24 bg-sand/40">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-12 max-w-5xl mx-auto bg-white p-10 md:p-16 rounded-2xl shadow-sm border border-sand">
+            <div className="md:w-1/2 space-y-6">
+              <div className="inline-flex p-3 bg-primary/10 rounded-full text-primary mb-2">
+                <MessageCircle className="w-8 h-8" />
+              </div>
+              <h2 className="text-4xl font-heading font-medium text-graphite">
+                Faça Parte da Nossa Rede de Escuta
+              </h2>
+              <p className="text-xl font-serif italic text-muted-foreground">
+                "Se você é psicanalista, junte-se à nossa rede de escuta."
+              </p>
+              <p className="text-muted-foreground font-light">
+                Oferecemos uma plataforma elegante e ética para você divulgar
+                seu trabalho e conectar-se com novos pacientes.
               </p>
             </div>
-
-            {/* Como Podemos Ajudar */}
-            <div className="bg-background rounded-xl p-8 shadow-sm border border-border/50 hover:shadow-md transition-all duration-300 md:col-span-2">
-              <div className="flex items-center gap-3 mb-6 text-primary">
-                <Brain className="w-6 h-6" />
-                <h3 className="text-2xl font-heading font-bold">
-                  Como Podemos Ajudar
-                </h3>
-              </div>
-              <p className="text-muted-foreground leading-relaxed mb-6">
-                Oferecemos suporte especializado para questões como:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {[
-                  'Ansiedade e preocupação excessiva',
-                  'Depressão e tristeza persistente',
-                  'Burnout e esgotamento emocional',
-                  'Luto e perdas afetivas',
-                  'Melancolia, autopunição e sentimentos sem causa aparente',
-                  'Distimia e tristeza moderada de longa duração',
-                  'Conflitos afetivos, familiares e relacionais',
-                  'Autoestima, inseguranças e dificuldades de autoconhecimento',
-                  'Pensamentos suicidas e sofrimento intenso',
-                ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-transparent hover:border-primary/20 transition-colors"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-secondary shrink-0" />
-                    <span className="text-sm text-foreground/80">{item}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-4 rounded-lg border border-amber-200">
-                <AlertCircle className="w-5 h-5 shrink-0" />
-                <span className="font-medium">
-                  (Em caso de emergência, ligue 188 ou 190.)
-                </span>
-              </div>
-            </div>
-
-            {/* Nosso Compromisso */}
-            <div className="bg-background rounded-xl p-8 shadow-sm border border-border/50 hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-3 mb-4 text-primary">
-                <Heart className="w-6 h-6" />
-                <h3 className="text-2xl font-heading font-bold">
-                  Nosso Compromisso
-                </h3>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                Ajudar você a construir um espaço interno mais leve, consciente
-                e possível. Acreditamos no cuidado contínuo, na escuta ética e
-                no fortalecimento da autonomia para que cada pessoa se torne
-                protagonista de sua própria história.
-              </p>
-            </div>
-
-            {/* Agende seu atendimento */}
-            <div className="bg-primary text-primary-foreground rounded-xl p-8 shadow-lg transform md:scale-105 border border-primary flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4 text-secondary">
-                <Calendar className="w-6 h-6 text-white" />
-                <h3 className="text-2xl font-heading font-bold text-white">
-                  Agende seu atendimento
-                </h3>
-              </div>
-              <p className="text-primary-foreground/90 leading-relaxed mb-8 text-lg">
-                Entre em contato para iniciar sua jornada de cuidado e
-                transformação.
-              </p>
+            <div className="md:w-1/2 flex flex-col items-center md:items-end gap-4">
               <Button
-                variant="secondary"
                 size="lg"
-                className="w-full text-white hover:bg-white hover:text-secondary font-bold"
-                onClick={() => navigate('/busca')}
+                className="w-full md:w-auto bg-primary hover:bg-primary/90 text-white rounded-full px-8 h-14 text-lg"
+                onClick={() => navigate('/cadastro')}
               >
-                Buscar Profissional
+                Cadastrar Perfil Profissional
+              </Button>
+              <Button
+                variant="link"
+                className="text-muted-foreground hover:text-primary"
+                onClick={() => navigate('/sobre-nos')}
+              >
+                Saiba mais sobre a plataforma
               </Button>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* The Path of Listening (Formerly "Como funciona") */}
-      <section
-        id="caminho-da-escuta"
-        className="py-24 bg-muted/30 relative overflow-hidden"
-      >
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl font-heading text-foreground mb-6">
-              O Caminho da Escuta
-            </h2>
-            <div className="w-24 h-1 bg-secondary mx-auto mb-6 rounded-full opacity-60"></div>
-            <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">
-              Simplificamos o encontro para que a transferência possa acontecer.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto relative">
-            {/* Connection Lines (Desktop) */}
-            <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 border-t-2 border-dashed border-primary/20 z-0" />
-
-            {/* Step 1 */}
-            <div className="flex flex-col items-center text-center group relative z-10 bg-background p-4 rounded-xl">
-              <div className="w-24 h-24 rounded-full bg-background border border-primary/20 flex items-center justify-center mb-8 text-primary transition-all duration-500 group-hover:bg-primary group-hover:text-white shadow-sm">
-                <Search className="w-10 h-10" />
-              </div>
-              <h3 className="text-2xl font-heading mb-4 text-foreground">
-                1. Busca
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Navegue pelos perfis e encontre o profissional cuja trajetória
-                ressoa com a sua demanda.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex flex-col items-center text-center group relative z-10 bg-background p-4 rounded-xl">
-              <div className="w-24 h-24 rounded-full bg-background border border-primary/20 flex items-center justify-center mb-8 text-primary transition-all duration-500 group-hover:bg-primary group-hover:text-white shadow-sm">
-                <Leaf className="w-10 h-10" />
-              </div>
-              <h3 className="text-2xl font-heading mb-4 text-foreground">
-                2. Escolha
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Conheça a formação, especialidades e o estilo de trabalho de
-                cada psicanalista.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex flex-col items-center text-center group relative z-10 bg-background p-4 rounded-xl">
-              <div className="w-24 h-24 rounded-full bg-background border border-primary/20 flex items-center justify-center mb-8 text-primary transition-all duration-500 group-hover:bg-primary group-hover:text-white shadow-sm">
-                <MessageCircle className="w-10 h-10" />
-              </div>
-              <h3 className="text-2xl font-heading mb-4 text-foreground">
-                3. Contato
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Inicie o diálogo diretamente. Agende sua sessão e comece seu
-                processo de análise.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Professionals */}
-      <section className="py-24 bg-white relative">
-        {/* Decorative Background Element */}
-        <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-muted/30 to-transparent opacity-50" />
-
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-            <div className="max-w-2xl">
-              <h2 className="text-4xl font-heading text-foreground mb-4">
-                Profissionais em Destaque
-              </h2>
-              <p className="text-lg text-muted-foreground font-light">
-                Analistas selecionados que compõem nossa rede de escuta.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              className="border-primary text-primary hover:bg-primary hover:text-white transition-all"
-              onClick={() => navigate('/busca')}
-            >
-              Ver Todos <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-          ) : featuredProfessionals.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-              {featuredProfessionals.map((pro) => (
-                <ProfessionalCard key={pro.id} professional={pro} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20 bg-muted/20 rounded-xl border border-dashed border-border">
-              <p className="text-muted-foreground text-lg mb-6">
-                Ainda não temos profissionais em destaque.
-              </p>
-              <Button onClick={() => navigate('/cadastro')}>
-                Cadastre-se como Profissional
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Call to Action - For Professionals */}
-      <section
-        id="para-profissionais"
-        className="py-24 bg-primary text-primary-foreground relative overflow-hidden"
-      >
-        <div className="absolute inset-0 opacity-10">
-          <img
-            src="https://img.usecurling.com/i?q=texture%20paper&color=white"
-            alt="Texture"
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-16 max-w-6xl mx-auto">
-            <div className="md:w-1/2 space-y-8">
-              <h2 className="text-4xl md:text-5xl font-heading font-medium leading-tight">
-                Faça parte da nossa <br />
-                <span className="text-secondary italic">Rede de Escuta</span>
-              </h2>
-              <p className="text-lg md:text-xl text-primary-foreground/90 font-light leading-relaxed">
-                Oferecemos uma plataforma ética e elegante para que você possa
-                apresentar sua prática clínica. Amplie seus horizontes e
-                conecte-se com pacientes que buscam profundidade.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button
-                  size="lg"
-                  className="bg-secondary text-white hover:bg-secondary/90 font-medium px-8 h-14 rounded-full text-lg shadow-lg hover:shadow-xl transition-all"
-                  onClick={() => navigate('/cadastro')}
-                >
-                  Cadastrar Perfil
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-white/10 h-14 rounded-full text-lg"
-                  onClick={() => navigate('/sobre-nos')}
-                >
-                  Saiba Mais
-                </Button>
-              </div>
-            </div>
-
-            <div className="md:w-1/2 flex justify-center">
-              <div className="relative w-full max-w-md aspect-square bg-white/5 rounded-full p-12 backdrop-blur-sm border border-white/10 shadow-2xl flex items-center justify-center animate-float">
-                <div className="absolute inset-0 border border-white/20 rounded-full scale-90"></div>
-                <div className="absolute inset-0 border border-white/10 rounded-full scale-110 opacity-50"></div>
-                <Users className="w-32 h-32 text-secondary opacity-90 drop-shadow-2xl" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Library / Content Teaser */}
-      <section className="py-24 bg-muted/10">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-heading text-foreground mb-4">
-              Palavras e Reflexões
-            </h2>
-            <p className="text-muted-foreground font-light">
-              Recursos para aprofundar seu entendimento sobre a psicanálise.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <a
-              href="#"
-              className="group flex gap-6 p-8 rounded-xl bg-background border border-transparent hover:border-primary/20 transition-all duration-300 hover:shadow-md"
-            >
-              <div className="shrink-0">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                  <BookOpen className="w-6 h-6" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-xl font-heading font-bold mb-2 group-hover:text-primary transition-colors">
-                  O que é Psicanálise?
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  Uma introdução aos conceitos fundamentais: inconsciente,
-                  transferência e a cura pela fala. Entenda como essa prática
-                  clínica pode transformar vidas.
-                </p>
-              </div>
-            </a>
-
-            <a
-              href="#"
-              className="group flex gap-6 p-8 rounded-xl bg-background border border-transparent hover:border-primary/20 transition-all duration-300 hover:shadow-md"
-            >
-              <div className="shrink-0">
-                <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-colors">
-                  <Feather className="w-6 h-6" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-xl font-heading font-bold mb-2 group-hover:text-secondary transition-colors">
-                  Por que fazer análise?
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  A análise não é apenas para tratar sintomas, mas uma
-                  investigação sobre o desejo e a própria história. Descubra os
-                  benefícios do autoconhecimento.
-                </p>
-              </div>
-            </a>
           </div>
         </div>
       </section>

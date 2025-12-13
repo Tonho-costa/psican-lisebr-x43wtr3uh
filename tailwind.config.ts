@@ -65,6 +65,12 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // EscutaPsi Palette
+        eucalyptus: '#8BAAAE',
+        moss: '#BFCFCB',
+        ice: '#F7F9F9',
+        graphite: '#4A4A4A',
+        sand: '#E9E3D5',
       },
       borderRadius: {
         lg: 'var(--radius)',
