@@ -387,6 +387,9 @@ export default function Index() {
                 apresenta como difícil — ou simplesmente aprofundar o próprio
                 conhecimento de si.
               </p>
+              <p className="text-muted-foreground leading-relaxed text-base font-light">
+                A transformação começa no instante em que você decide falar.
+              </p>
             </div>
           </div>
         </div>
