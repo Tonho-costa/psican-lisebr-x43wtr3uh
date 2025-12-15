@@ -69,7 +69,9 @@ export function ProfilePhotoUploader({
           photoUrl: url,
         })
 
+        // Force UI Update via onChange (important for parent form state)
         onChange(url)
+
         toast.success('Foto atualizada!', {
           id: toastId,
           description: 'Sua foto de perfil foi alterada com sucesso.',
