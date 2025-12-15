@@ -3,43 +3,85 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Enforce POST method for uploads
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   try {
+    // 1. Validate Authorization Header
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing Authorization header' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      )
+    }
+
+    // 2. Initialize Supabase Client with User Context to verify JWT
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       },
     )
 
-    // 1. Authenticate User
+    // 3. Authenticate User and derive user_id
     const {
       data: { user },
       error: authError,
     } = await supabaseClient.auth.getUser()
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', details: authError?.message }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      )
     }
 
-    // 2. Process File
+    // 4. Validate Content-Type
+    const contentType = req.headers.get('content-type') || ''
+    if (!contentType.includes('multipart/form-data')) {
+      return new Response(
+        JSON.stringify({ error: 'Content-Type must be multipart/form-data' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      )
+    }
+
+    // 5. Parse and Validate File
     const formData = await req.formData()
     const file = formData.get('file') as File
 
     if (!file) {
-      return new Response(JSON.stringify({ error: 'No file uploaded' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return new Response(
+        JSON.stringify({
+          error: 'No file uploaded. Field "file" is required.',
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      )
     }
 
     if (!file.type.startsWith('image/')) {
@@ -60,16 +102,16 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 3. Upload to Storage (Using Admin Client to bypass complex RLS for upload if needed, keeping it simple)
-    // Actually, we should use the service role key to ensure we can write to the bucket and update the profile
+    // 6. Initialize Admin Client for Storage Operations (Bypass RLS)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-    // Ensure we convert to a safe extension if needed, but keeping original or jpg is fine
-    const filePath = `${user.id}/profile.jpg` // Fixed path to overwrite
+    // 7. Upload File to Storage
+    // We use a consistent filename 'profile.jpg' to simplify overwrite logic.
+    // Modern browsers handle image rendering based on Content-Type header even if extension mismatches.
+    const filePath = `${user.id}/profile.jpg`
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from('avatars')
@@ -80,13 +122,19 @@ Deno.serve(async (req) => {
 
     if (uploadError) {
       console.error('Upload Error:', uploadError)
-      return new Response(JSON.stringify({ error: 'Failed to upload image' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to upload image',
+          details: uploadError.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      )
     }
 
-    // 4. Get Public URL
+    // 8. Get Public URL
     const {
       data: { publicUrl },
     } = supabaseAdmin.storage.from('avatars').getPublicUrl(filePath)
@@ -94,7 +142,7 @@ Deno.serve(async (req) => {
     // Add timestamp to bust cache
     const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`
 
-    // 5. Update Profile in Database
+    // 9. Update Profile in Database
     const { error: dbError } = await supabaseAdmin
       .from('profiles')
       .update({ avatar_url: urlWithTimestamp })
@@ -103,7 +151,10 @@ Deno.serve(async (req) => {
     if (dbError) {
       console.error('Database Update Error:', dbError)
       return new Response(
-        JSON.stringify({ error: 'Failed to update profile' }),
+        JSON.stringify({
+          error: 'Failed to update profile',
+          details: dbError.message,
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -117,9 +168,13 @@ Deno.serve(async (req) => {
     })
   } catch (err) {
     console.error('Unexpected Error:', err)
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    return new Response(
+      JSON.stringify({ error: 'Internal Server Error', details: errorMessage }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    )
   }
 })
