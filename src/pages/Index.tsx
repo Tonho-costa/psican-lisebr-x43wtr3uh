@@ -14,6 +14,11 @@ import {
   AlertCircle,
   Heart,
   Lightbulb,
+  Sparkles,
+  Activity,
+  Shield,
+  LifeBuoy,
+  UserPlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { profileService } from '@/services/profileService'
@@ -61,7 +66,7 @@ export default function Index() {
             </h1>
 
             <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-lg leading-relaxed font-heading italic">
-              "Quando alguém te escuta, algo em você se reorganiza."
+              “Quando alguém te escuta, algo em você se reorganiza.”
             </p>
 
             <Button
@@ -95,10 +100,12 @@ export default function Index() {
                 </h2>
                 <div className="w-16 h-0.5 bg-secondary/40 mb-8"></div>
                 <p className="text-muted-foreground leading-relaxed text-base font-light">
-                  A EscutaPsi nasce do desejo de criar pontes. Somos um coletivo
-                  dedicado à psicanálise e à saúde mental, acreditando que a
-                  fala tem poder curativo. Oferecemos um espaço seguro onde sua
-                  história é recebida com ética e profundidade.
+                  A EscutaPsi é um espaço dedicado à escuta ética, qualificada e
+                  respeitosa. Acreditamos que cada pessoa carrega uma história
+                  única, marcada por afetos, escolhas, desafios e
+                  possibilidades. Nosso propósito é oferecer um ambiente seguro
+                  e acolhedor — um lugar onde você possa falar livremente e ser
+                  escutado de forma profunda e sem julgamentos.
                 </p>
                 <div className="mt-6 flex items-center gap-2 text-secondary font-medium italic">
                   <Leaf className="w-5 h-5" />
@@ -131,61 +138,54 @@ export default function Index() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div className="prose prose-lg text-muted-foreground font-light">
                 <p>
-                  A psicanálise é uma prática clínica que aposta na
-                  singularidade de cada sujeito. Não buscamos apenas eliminar
-                  sintomas, mas compreender suas raízes na história de vida de
-                  cada um.
+                  A psicanálise é uma prática que valoriza a palavra, o silêncio
+                  e o tempo singular de cada sujeito. Por meio de uma escuta
+                  sensível, buscamos ajudar você a:
                 </p>
-                <p>
-                  Trabalhamos com o tempo de cada pessoa, respeitando seus
-                  silêncios e suas palavras, em um processo de construção
-                  conjunta.
-                </p>
+                <ul className="space-y-4 mt-6">
+                  {[
+                    'Entrar em contato com conflitos internos;',
+                    'Reconhecer padrões que se repetem;',
+                    'Compreender emoções e escolhas;',
+                    'Construir novos sentidos para sua vida e sua história.',
+                  ].map((item, index) => (
+                    <li key={index} className="flex gap-3 items-start">
+                      <div className="w-1.5 h-1.5 mt-2.5 rounded-full bg-primary shrink-0"></div>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-background border border-border flex items-center justify-center text-primary shrink-0">
-                    <Ear className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-bold text-xl mb-2 text-primary">
-                      Escuta Qualificada
-                    </h3>
-                    <p className="text-muted-foreground text-sm font-light">
-                      Atenção flutuante que capta o não-dito e os sentidos
-                      ocultos da fala.
-                    </p>
-                  </div>
+              <div className="bg-background/50 p-8 rounded-xl border border-border/50 shadow-sm space-y-6">
+                <div className="flex items-center gap-4 text-primary">
+                  <Shield className="w-8 h-8" />
+                  <h3 className="font-heading font-bold text-xl">
+                    Prática Responsável
+                  </h3>
                 </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-background border border-border flex items-center justify-center text-primary shrink-0">
-                    <Brain className="w-6 h-6" />
+                <p className="text-muted-foreground font-light leading-relaxed">
+                  Toda a prática é sustentada por responsabilidade clínica,
+                  sigilo absoluto e compromisso ético.
+                </p>
+                <div className="grid grid-cols-3 gap-4 pt-4">
+                  <div className="flex flex-col items-center gap-2 p-3 bg-white rounded border border-border/30 text-center">
+                    <Ear className="w-5 h-5 text-secondary" />
+                    <span className="text-xs text-muted-foreground">
+                      Escuta
+                    </span>
                   </div>
-                  <div>
-                    <h3 className="font-heading font-bold text-xl mb-2 text-primary">
-                      Inconsciente
-                    </h3>
-                    <p className="text-muted-foreground text-sm font-light">
-                      Investigação dos processos psíquicos que escapam à
-                      consciência.
-                    </p>
+                  <div className="flex flex-col items-center gap-2 p-3 bg-white rounded border border-border/30 text-center">
+                    <Brain className="w-5 h-5 text-secondary" />
+                    <span className="text-xs text-muted-foreground">
+                      Análise
+                    </span>
                   </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-background border border-border flex items-center justify-center text-primary shrink-0">
-                    <Heart className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-bold text-xl mb-2 text-primary">
-                      Transferência
-                    </h3>
-                    <p className="text-muted-foreground text-sm font-light">
-                      O vínculo de confiança que possibilita o trabalho
-                      analítico.
-                    </p>
+                  <div className="flex flex-col items-center gap-2 p-3 bg-white rounded border border-border/30 text-center">
+                    <Heart className="w-5 h-5 text-secondary" />
+                    <span className="text-xs text-muted-foreground">
+                      Acolher
+                    </span>
                   </div>
                 </div>
               </div>
@@ -201,52 +201,68 @@ export default function Index() {
             <h2 className="text-[28px] font-heading font-medium text-primary">
               Como Podemos Ajudar
             </h2>
-            <p className="text-muted-foreground mt-4 font-light">
-              Suporte especializado para diversas questões do sofrimento humano.
+            <p className="text-muted-foreground mt-4 font-light text-lg">
+              Oferecemos suporte para questões como:
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {[
               {
-                icon: <Feather className="w-8 h-8" />,
-                title: 'Angústia e Ansiedade',
-                desc: 'Espaço para elaborar medos, preocupações excessivas e sensações de desamparo.',
+                icon: <Feather className="w-5 h-5" />,
+                text: 'Ansiedade e preocupação excessiva',
               },
               {
-                icon: <Users className="w-8 h-8" />,
-                title: 'Conflitos Relacionais',
-                desc: 'Compreensão de padrões repetitivos em relacionamentos familiares e amorosos.',
+                icon: <CloudRain className="w-5 h-5" />,
+                text: 'Depressão e tristeza persistente',
               },
               {
-                icon: <Lightbulb className="w-8 h-8" />,
-                title: 'Autoconhecimento',
-                desc: 'Uma jornada para descobrir desejos próprios e construir novos caminhos de vida.',
+                icon: <BatteryLow className="w-5 h-5" />,
+                text: 'Burnout e esgotamento emocional',
+              },
+              {
+                icon: <HeartCrack className="w-5 h-5" />,
+                text: 'Luto e perdas afetivas',
+              },
+              {
+                icon: <CloudFog className="w-5 h-5" />,
+                text: 'Melancolia e sentimentos sem causa aparente',
+              },
+              {
+                icon: <Activity className="w-5 h-5" />,
+                text: 'Distimia e tristeza contínua',
+              },
+              {
+                icon: <Users className="w-5 h-5" />,
+                text: 'Conflitos afetivos, familiares e relacionais',
+              },
+              {
+                icon: <Sparkles className="w-5 h-5" />,
+                text: 'Baixa autoestima, inseguranças e dificuldades de autoconhecimento',
+              },
+              {
+                icon: <LifeBuoy className="w-5 h-5" />,
+                text: 'Pensamentos suicidas e sofrimento intenso',
               },
             ].map((item, index) => (
               <div
                 key={index}
-                className="bg-card border border-border/50 rounded-xl p-8 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center group"
+                className="bg-card border border-border/50 rounded-lg p-6 hover:shadow-md transition-all duration-300 flex items-start gap-4 group"
               >
-                <div className="mb-6 text-primary group-hover:text-secondary transition-colors">
+                <div className="mt-1 text-primary group-hover:text-secondary transition-colors shrink-0">
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-heading font-bold mb-4 text-primary">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed font-light">
-                  {item.desc}
+                <p className="text-muted-foreground text-sm font-light leading-relaxed">
+                  {item.text}
                 </p>
               </div>
             ))}
           </div>
 
           <div className="mt-12 text-center">
-            <div className="inline-flex items-center gap-2 text-sm text-secondary bg-secondary/10 px-4 py-2 rounded-full border border-secondary/20">
+            <div className="inline-flex items-center gap-2 text-sm text-secondary bg-secondary/10 px-6 py-3 rounded-full border border-secondary/20">
               <AlertCircle className="w-4 h-4" />
-              <span>
-                Em caso de emergência, procure ajuda imediatamente. Ligue 188.
-              </span>
+              <span>(Em caso de emergência, procure ajuda imediatamente.)</span>
             </div>
           </div>
         </div>
@@ -256,9 +272,11 @@ export default function Index() {
       <section className="py-20 bg-muted/10">
         <div className="container mx-auto px-4 text-center max-w-4xl">
           <Quote className="w-8 h-8 text-primary/30 mx-auto mb-6 rotate-180" />
-          <h2 className="text-3xl md:text-[36px] font-heading font-medium text-primary leading-tight mb-8">
-            "Nosso compromisso é com a ética do desejo e a dignidade de cada
-            sujeito que nos procura."
+          <h2 className="text-2xl md:text-3xl font-heading font-medium text-primary leading-tight mb-8">
+            Sustentar uma escuta ética, responsável e atenta ao que emerge no
+            percurso clínico. Nosso compromisso é ajudar você a construir um
+            espaço interno mais leve, consciente e possível — fortalecendo
+            autonomia, elaboração e presença na própria história.
           </h2>
           <div className="w-16 h-1 bg-primary mx-auto rounded-full opacity-60"></div>
         </div>
@@ -275,8 +293,8 @@ export default function Index() {
               Agende Seu Atendimento
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl font-light">
-              Dê o primeiro passo. Encontre o profissional ideal para sua
-              jornada.
+              Entre em contato e dê início à sua jornada de cuidado, escuta e
+              transformação.
             </p>
             <Button
               size="lg"
@@ -344,16 +362,14 @@ export default function Index() {
                 O que é Psicanálise?
               </h2>
               <p className="text-muted-foreground leading-relaxed text-base font-light">
-                Criada por Sigmund Freud, a psicanálise é um método de
-                investigação da mente humana e de tratamento dos sofrimentos
-                psíquicos. Ela parte do princípio de que muitos dos nossos
-                comportamentos e sentimentos são determinados por processos
-                inconscientes.
-              </p>
-              <p className="text-muted-foreground leading-relaxed text-base font-light">
-                Através da "cura pela fala", o analista ajuda o paciente a
-                trazer à tona esses conteúdos, permitindo novas formas de lidar
-                com o sofrimento.
+                A psicanálise é uma prática clínica fundada na escuta e na
+                investigação do inconsciente — lugar onde habitam desejos,
+                conflitos, memórias e modos de existir que nem sempre
+                reconhecemos de imediato. Ela compreende que aquilo que nos
+                afeta hoje está ligado à nossa história e à forma singular como
+                cada sujeito constrói sentido para o que vive. A psicanálise não
+                oferece respostas prontas; ela acompanha cada pessoa em seu
+                próprio processo de compreensão e transformação.
               </p>
             </div>
 
@@ -362,24 +378,15 @@ export default function Index() {
                 <Check className="w-6 h-6" />
               </div>
               <h2 className="text-[28px] font-heading font-medium text-primary">
-                Por que fazer Análise?
+                Por que Fazer Análise?
               </h2>
-              <ul className="space-y-4">
-                {[
-                  'Para lidar melhor com a angústia e sintomas persistentes.',
-                  'Para entender repetições em sua vida pessoal e profissional.',
-                  'Para fortalecer a autonomia diante das próprias escolhas.',
-                  'Para transformar a relação consigo mesmo e com os outros.',
-                ].map((item, idx) => (
-                  <li
-                    key={idx}
-                    className="flex gap-4 items-start text-muted-foreground text-base font-light"
-                  >
-                    <span className="w-2 h-2 mt-2.5 rounded-full bg-primary shrink-0"></span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-muted-foreground leading-relaxed text-base font-light">
+                Fazer análise é um gesto de cuidado consigo. É a oportunidade de
+                compreender sentimentos, reconhecer padrões, elaborar dores e
+                encontrar novas possibilidades para viver aquilo que se
+                apresenta como difícil — ou simplesmente aprofundar o próprio
+                conhecimento de si.
+              </p>
             </div>
           </div>
         </div>
@@ -396,12 +403,16 @@ export default function Index() {
               <h2 className="text-[28px] font-heading font-medium text-primary">
                 Faça Parte da Nossa Rede de Escuta
               </h2>
-              <p className="text-xl font-heading italic text-muted-foreground">
-                "Se você é psicanalista, junte-se à nossa rede de escuta."
+              <p className="text-muted-foreground font-light leading-relaxed">
+                Se você deseja contribuir com essa transformação social,
+                convidamos você a integrar a EscutaPsi. Participe de uma rede
+                comprometida em ampliar o acesso ao cuidado clínico e em
+                sustentar um trabalho ético, responsável e acolhedor. Venha
+                fazer parte dessa iniciativa e ajudar a construir pontes para
+                que mais pessoas encontrem um espaço de escuta e elaboração.
               </p>
-              <p className="text-muted-foreground font-light">
-                Oferecemos uma plataforma elegante e ética para você divulgar
-                seu trabalho e conectar-se com novos pacientes.
+              <p className="text-xl font-heading italic text-primary pt-2">
+                “A transformação começa no instante em que você decide falar.”
               </p>
             </div>
             <div className="md:w-1/2 flex flex-col items-center md:items-end gap-4">
@@ -424,5 +435,93 @@ export default function Index() {
         </div>
       </section>
     </div>
+  )
+}
+
+// Additional icons for the new features list
+function CloudRain(props: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+      <path d="M16 14v6" />
+      <path d="M8 14v6" />
+      <path d="M12 16v6" />
+    </svg>
+  )
+}
+
+function BatteryLow(props: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="16" height="10" x="2" y="7" rx="2" ry="2" />
+      <line x1="22" x2="22" y1="11" y2="13" />
+      <line x1="6" x2="6" y1="11" y2="13" />
+    </svg>
+  )
+}
+
+function HeartCrack(props: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M19 14c1.49-1.28 3.6-2.34 4.57-4.56.93-2.15.79-4.83-.52-6.49-1.63-2.07-5.37-2.33-7.53-.15L12 6l-3.52-3.2C6.31 1.07 2.57 1.33.94 3.4.78 3.58.63 3.77.5 3.97" />
+      <path d="M11.66 18H5a2 2 0 0 1-2-2V9" />
+      <path d="m3 9 2.45-1.45" />
+      <path d="M12 6 6.5 12.3c-.66.75-.27 2.15.69 2.5l1.64.58c.86.3 1.25 1.32.78 2.03L9.5 18" />
+      <path d="M22 22 2 2" />
+    </svg>
+  )
+}
+
+function CloudFog(props: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+      <path d="M16 17H7" />
+      <path d="M17 21H9" />
+    </svg>
   )
 }
