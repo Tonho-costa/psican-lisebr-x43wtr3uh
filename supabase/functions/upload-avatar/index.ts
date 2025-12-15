@@ -3,7 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
+  // 0. Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -16,8 +16,28 @@ Deno.serve(async (req) => {
     })
   }
 
+  console.log('Upload Avatar: Request received')
+
   try {
-    // 1. Validate Authorization Header
+    // 1. Validate Environment Variables
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing environment variables')
+      return new Response(
+        JSON.stringify({
+          error: 'Server configuration error: Missing env vars',
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      )
+    }
+
+    // 2. Validate Authorization Header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
@@ -29,24 +49,21 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 2. Initialize Supabase Client with User Context to verify JWT
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
+    // 3. Initialize Supabase Client with User Context to verify JWT
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: {
+        headers: { Authorization: authHeader },
       },
-    )
+    })
 
-    // 3. Authenticate User and derive user_id
+    // 4. Authenticate User and derive user_id
     const {
       data: { user },
       error: authError,
     } = await supabaseClient.auth.getUser()
 
     if (authError || !user) {
+      console.error('Auth Error:', authError)
       return new Response(
         JSON.stringify({ error: 'Unauthorized', details: authError?.message }),
         {
@@ -56,11 +73,16 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 4. Validate Content-Type
-    const contentType = req.headers.get('content-type') || ''
-    if (!contentType.includes('multipart/form-data')) {
+    console.log(`Upload Avatar: Authenticated user ${user.id}`)
+
+    // 5. Parse and Validate File
+    let formData: FormData
+    try {
+      formData = await req.formData()
+    } catch (e) {
+      console.error('FormData Parse Error:', e)
       return new Response(
-        JSON.stringify({ error: 'Content-Type must be multipart/form-data' }),
+        JSON.stringify({ error: 'Invalid Request Body. Expected FormData.' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -68,8 +90,6 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 5. Parse and Validate File
-    const formData = await req.formData()
     const file = formData.get('file') as File
 
     if (!file) {
@@ -103,15 +123,13 @@ Deno.serve(async (req) => {
     }
 
     // 6. Initialize Admin Client for Storage Operations (Bypass RLS)
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    )
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
     // 7. Upload File to Storage
-    // We use a consistent filename 'profile.jpg' to simplify overwrite logic.
-    // Modern browsers handle image rendering based on Content-Type header even if extension mismatches.
+    // Use a consistent filename 'profile.jpg' to simplify overwrite logic.
     const filePath = `${user.id}/profile.jpg`
+
+    console.log(`Upload Avatar: Uploading to ${filePath}, size: ${file.size}`)
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from('avatars')
@@ -121,10 +139,10 @@ Deno.serve(async (req) => {
       })
 
     if (uploadError) {
-      console.error('Upload Error:', uploadError)
+      console.error('Storage Upload Error:', uploadError)
       return new Response(
         JSON.stringify({
-          error: 'Failed to upload image',
+          error: 'Failed to upload image to storage',
           details: uploadError.message,
         }),
         {
@@ -152,7 +170,7 @@ Deno.serve(async (req) => {
       console.error('Database Update Error:', dbError)
       return new Response(
         JSON.stringify({
-          error: 'Failed to update profile',
+          error: 'Failed to update profile record',
           details: dbError.message,
         }),
         {
@@ -161,6 +179,8 @@ Deno.serve(async (req) => {
         },
       )
     }
+
+    console.log('Upload Avatar: Success')
 
     return new Response(JSON.stringify({ url: urlWithTimestamp }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

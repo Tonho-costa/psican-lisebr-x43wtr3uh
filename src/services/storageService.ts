@@ -29,10 +29,26 @@ export const storageService = {
         body: formData,
       })
 
-      if (error) throw error
+      if (error) {
+        // Try to extract detailed error message from response if available
+        let detailedMessage = error.message
+        if (error instanceof Error && 'context' in (error as any)) {
+          // Sometimes supabase-js puts the response body in context
+        }
+
+        // If the edge function returns a JSON error object, invoke might wrap it
+        if (typeof error === 'object' && error !== null && 'error' in error) {
+          detailedMessage = (error as any).error
+        }
+
+        console.error('Edge Function Error:', error)
+        throw new Error(
+          detailedMessage || 'Falha ao processar upload no servidor.',
+        )
+      }
 
       if (!data?.url) {
-        throw new Error('Resposta inválida do servidor.')
+        throw new Error('Resposta inválida do servidor: URL não encontrada.')
       }
 
       return { url: data.url, error: null }
@@ -46,10 +62,11 @@ export const storageService = {
 
       if (
         errorMessage.includes('Failed to fetch') ||
-        errorMessage.includes('NetworkError')
+        errorMessage.includes('NetworkError') ||
+        errorMessage.includes('Failed to send a request')
       ) {
         friendlyError = new Error(
-          'Erro de conexão com o servidor. Verifique sua internet ou tente novamente mais tarde.',
+          'Erro de conexão com o servidor. Verifique se o Edge Function "upload-avatar" está implantado e online.',
         )
       } else if (error.status === 413) {
         friendlyError = new Error('A imagem selecionada é muito grande.')
