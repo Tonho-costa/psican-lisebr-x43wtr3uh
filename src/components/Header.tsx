@@ -89,7 +89,7 @@ export function Header() {
               key={link.name}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className="text-sm font-medium text-primary/80 hover:text-primary transition-colors relative after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:w-0 after:h-[1px] after:bg-primary after:transition-all hover:after:w-full lowercase"
+              className="text-sm font-medium text-primary/80 hover:text-primary transition-colors relative after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:w-0 after:h-[1px] after:bg-primary after:transition-all hover:after:w-full"
             >
               {link.name}
             </a>
@@ -100,7 +100,7 @@ export function Header() {
               <Link to="/painel/perfil">
                 <Button
                   variant="ghost"
-                  className="gap-2 text-primary/80 hover:text-primary lowercase"
+                  className="gap-2 text-primary/80 hover:text-primary normal-case"
                 >
                   <UserCircle className="w-5 h-5" />
                   <span className="max-w-[100px] truncate">
@@ -111,7 +111,7 @@ export function Header() {
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="text-xs border-primary/20 hover:bg-primary/5 hover:text-primary lowercase"
+                className="text-xs border-primary/20 hover:bg-primary/5 hover:text-primary normal-case"
               >
                 Sair
               </Button>
@@ -121,13 +121,13 @@ export function Header() {
               <Link to="/entrar">
                 <Button
                   variant="ghost"
-                  className="text-primary/80 hover:text-primary hover:bg-transparent lowercase"
+                  className="text-primary/80 hover:text-primary hover:bg-transparent normal-case"
                 >
                   Entrar
                 </Button>
               </Link>
               <Link to="/cadastro">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 shadow-sm lowercase">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 shadow-sm normal-case">
                   Cadastre-se
                 </Button>
               </Link>
@@ -153,7 +153,7 @@ export function Header() {
                   <a
                     key={link.name}
                     href={link.href}
-                    className="text-lg font-medium text-primary hover:text-primary/80 transition-colors lowercase"
+                    className="text-lg font-medium text-primary hover:text-primary/80 transition-colors"
                     onClick={(e) => handleNavClick(e, link.href)}
                   >
                     {link.name}
@@ -164,7 +164,7 @@ export function Header() {
                   <>
                     <Link
                       to="/painel/perfil"
-                      className="text-lg font-medium text-primary hover:text-primary/80 lowercase"
+                      className="text-lg font-medium text-primary hover:text-primary/80"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Meu Painel
@@ -172,7 +172,7 @@ export function Header() {
                     <Button
                       variant="outline"
                       onClick={handleLogout}
-                      className="lowercase"
+                      className="normal-case"
                     >
                       Sair
                     </Button>
@@ -183,7 +183,7 @@ export function Header() {
                       to="/entrar"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Button variant="outline" className="w-full lowercase">
+                      <Button variant="outline" className="w-full normal-case">
                         Entrar
                       </Button>
                     </Link>
@@ -191,7 +191,7 @@ export function Header() {
                       to="/cadastro"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground lowercase">
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground normal-case">
                         Cadastre-se
                       </Button>
                     </Link>
