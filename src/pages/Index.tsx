@@ -69,7 +69,7 @@ export default function Index() {
 
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-10 h-14 text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 lowercase"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-10 h-14 text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 normal-case"
               onClick={() => navigate('/busca')}
             >
               Agendar Atendimento
@@ -296,7 +296,7 @@ export default function Index() {
             </p>
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-12 h-16 text-xl shadow-xl transition-transform hover:scale-105 lowercase"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-12 h-16 text-xl shadow-xl transition-transform hover:scale-105 normal-case"
               onClick={() => navigate('/busca')}
             >
               Entrar em Contato
@@ -416,7 +416,7 @@ export default function Index() {
             <div className="md:w-1/2 flex flex-col items-center md:items-end gap-4">
               <Button
                 size="lg"
-                className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-14 text-lg lowercase"
+                className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-14 text-lg normal-case"
                 onClick={() => navigate('/cadastro')}
               >
                 Cadastrar Perfil Profissional
