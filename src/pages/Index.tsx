@@ -272,7 +272,7 @@ export default function Index() {
       <section className="py-20 bg-muted/10">
         <div className="container mx-auto px-4 text-center max-w-4xl">
           <Quote className="w-8 h-8 text-primary/30 mx-auto mb-6 rotate-180" />
-          <h2 className="text-2xl md:text-3xl font-heading font-medium text-primary leading-tight mb-8">
+          <h2 className="text-2xl md:text-3xl font-body font-normal text-primary leading-tight mb-8">
             Sustentar uma escuta ética, responsável e atenta ao que emerge no
             percurso clínico. Nosso compromisso é ajudar você a construir um
             espaço interno mais leve, consciente e possível — fortalecendo
