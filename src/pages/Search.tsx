@@ -187,14 +187,16 @@ export default function SearchPage() {
       <div className="flex flex-col md:flex-row gap-6 lg:gap-8">
         {/* Desktop Filters */}
         <aside className="hidden md:block w-64 shrink-0 space-y-6 bg-card p-6 rounded-lg border border-border h-fit sticky top-24">
-          <h2 className="font-heading font-bold text-xl mb-4">Filtros</h2>
+          <h2 className="font-heading font-bold text-xl mb-4 text-primary">
+            Filtros
+          </h2>
           <SearchFilters {...filterProps} />
         </aside>
 
         {/* Mobile Filters & Results */}
         <div className="flex-grow">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-xl md:text-2xl font-heading font-bold">
+            <h1 className="text-[28px] font-heading font-bold text-primary">
               Profissionais Encontrados
             </h1>
             <div className="md:hidden">
@@ -203,7 +205,11 @@ export default function SearchPage() {
                 onOpenChange={setIsMobileFiltersOpen}
               >
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 lowercase"
+                  >
                     <Filter className="w-4 h-4" /> Filtros
                   </Button>
                 </SheetTrigger>
@@ -247,14 +253,18 @@ export default function SearchPage() {
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-bold mb-2">
+              <h3 className="text-lg font-bold mb-2 text-primary">
                 Nenhum profissional encontrado
               </h3>
               <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                 Tente ajustar seus filtros ou termos de busca para encontrar o
                 que procura.
               </p>
-              <Button variant="outline" onClick={clearFilters}>
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="lowercase"
+              >
                 Limpar todos os filtros
               </Button>
             </div>

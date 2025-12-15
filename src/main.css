@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,79 +7,78 @@
 @layer base {
   :root {
     /* 
-      EscutaPsi Palette:
-      Verde Eucalipto (Primary): #8BAAAE -> 174 18% 61%
-      Verde Musgo Claro (Muted/Alt): #BFCFCB -> 160 14% 82%
-      Branco Gelo (Background): #F7F9F9 -> 180 9% 97%
-      Cinza Grafite Suave (Foreground): #4A4A4A -> 0 0% 29%
-      Bege Areia (Secondary/Details): #E9E3D5 -> 42 30% 87%
-      Borda Box Quem Somos: #DDE5E5 -> 180 11% 88%
+      New Palette:
+      Background (Bege Claro): #F4F1EC -> 40 20% 94%
+      Primary (Azul Profundo): #0A1F44 -> 218 74% 15%
+      Secondary/Subtitle (Azul Acinzentado): #3A4F7A -> 220 35% 35%
+      Border (Cinza Claro): #D6D6D6 -> 0 0% 84%
+      Foreground (Cinza Escuro): #2E2E2E -> 0 0% 18%
     */
-    --background: 180 9% 97%;
-    --foreground: 0 0% 29%;
+    --background: 40 20% 94%;
+    --foreground: 0 0% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 29%;
+    --card-foreground: 0 0% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 29%;
+    --popover-foreground: 0 0% 18%;
 
-    --primary: 174 18% 61%;
-    --primary-foreground: 180 9% 97%;
+    --primary: 218 74% 15%;
+    --primary-foreground: 40 20% 94%;
 
-    --secondary: 42 30% 87%;
-    --secondary-foreground: 0 0% 29%;
+    --secondary: 220 35% 35%;
+    --secondary-foreground: 40 20% 94%;
 
-    --muted: 160 14% 82%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 0 0% 84%;
+    --muted-foreground: 220 35% 35%;
 
-    --accent: 42 30% 87%;
-    --accent-foreground: 0 0% 29%;
+    --accent: 40 20% 88%;
+    --accent-foreground: 218 74% 15%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 180 11% 88%;
-    --input: 180 11% 88%;
-    --ring: 174 18% 61%;
+    --border: 0 0% 84%;
+    --input: 0 0% 84%;
+    --ring: 218 74% 15%;
 
     --radius: 0.5rem;
 
-    --chart-1: 174 18% 61%;
-    --chart-2: 42 30% 87%;
-    --chart-3: 0 0% 29%;
-    --chart-4: 160 14% 82%;
-    --chart-5: 180 9% 97%;
+    --chart-1: 218 74% 15%;
+    --chart-2: 220 35% 35%;
+    --chart-3: 0 0% 18%;
+    --chart-4: 0 0% 84%;
+    --chart-5: 40 20% 94%;
   }
 
   .dark {
-    --background: 0 0% 10%;
-    --foreground: 180 9% 97%;
+    --background: 218 74% 10%;
+    --foreground: 40 20% 94%;
 
-    --card: 0 0% 15%;
-    --card-foreground: 180 9% 97%;
+    --card: 218 74% 12%;
+    --card-foreground: 40 20% 94%;
 
-    --popover: 0 0% 15%;
-    --popover-foreground: 180 9% 97%;
+    --popover: 218 74% 12%;
+    --popover-foreground: 40 20% 94%;
 
-    --primary: 174 18% 51%;
-    --primary-foreground: 180 9% 97%;
+    --primary: 218 74% 25%;
+    --primary-foreground: 40 20% 94%;
 
-    --secondary: 42 20% 30%;
-    --secondary-foreground: 180 9% 97%;
+    --secondary: 220 35% 45%;
+    --secondary-foreground: 40 20% 94%;
 
-    --muted: 160 10% 20%;
-    --muted-foreground: 160 10% 60%;
+    --muted: 218 74% 20%;
+    --muted-foreground: 220 35% 65%;
 
-    --accent: 42 20% 30%;
-    --accent-foreground: 180 9% 97%;
+    --accent: 218 74% 20%;
+    --accent-foreground: 40 20% 94%;
 
     --destructive: 0 62% 30%;
-    --destructive-foreground: 180 9% 97%;
+    --destructive-foreground: 40 20% 94%;
 
-    --border: 160 10% 20%;
-    --input: 160 10% 20%;
-    --ring: 174 18% 51%;
+    --border: 218 74% 20%;
+    --input: 218 74% 20%;
+    --ring: 218 74% 25%;
   }
 }
 
@@ -88,7 +87,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body text-base leading-[1.6];
   }
   h1,
   h2,
@@ -96,7 +95,13 @@
   h4,
   h5,
   h6 {
-    @apply font-heading;
+    @apply font-heading font-medium text-primary;
+  }
+  h1 {
+    @apply text-4xl; /* 36px */
+  }
+  h2 {
+    @apply text-[28px]; /* 28px */
   }
 }
 

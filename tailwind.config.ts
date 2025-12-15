@@ -26,10 +26,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Cormorant Garamond', 'serif'],
-        body: ['Lato', 'sans-serif'],
-        sans: ['Lato', 'sans-serif'],
-        serif: ['Cormorant Garamond', 'serif'],
+        heading: ['Playfair Display', 'serif'],
+        body: ['Inter', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -65,12 +65,6 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // EscutaPsi Palette
-        eucalyptus: '#8BAAAE',
-        moss: '#BFCFCB',
-        ice: '#F7F9F9',
-        graphite: '#4A4A4A',
-        sand: '#E9E3D5',
       },
       borderRadius: {
         lg: 'var(--radius)',

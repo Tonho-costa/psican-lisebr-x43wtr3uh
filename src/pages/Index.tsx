@@ -19,7 +19,6 @@ import { Button } from '@/components/ui/button'
 import { profileService } from '@/services/profileService'
 import { Professional } from '@/stores/useProfessionalStore'
 import { ProfessionalCard } from '@/components/ProfessionalCard'
-import { Separator } from '@/components/ui/separator'
 
 export default function Index() {
   const navigate = useNavigate()
@@ -44,9 +43,9 @@ export default function Index() {
   }, [])
 
   return (
-    <div className="flex flex-col w-full overflow-x-hidden font-body text-graphite bg-ice">
+    <div className="flex flex-col w-full overflow-x-hidden font-body text-foreground bg-background">
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-b from-ice to-white overflow-hidden py-20">
+      <section className="relative min-h-[90vh] flex items-center justify-center bg-background overflow-hidden py-20">
         <div className="absolute top-0 right-0 w-full h-full opacity-5 pointer-events-none z-0">
           <img
             src="https://img.usecurling.com/i?q=abstract%20minimalist%20lines&shape=outline&color=gray"
@@ -57,17 +56,17 @@ export default function Index() {
 
         <div className="container mx-auto px-4 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-8 animate-fade-in-up">
-            <h1 className="text-6xl md:text-8xl font-heading font-medium text-graphite tracking-tight leading-[1] relative">
-              Escuta<span className="text-primary italic">Psi</span>
+            <h1 className="font-heading font-medium text-primary tracking-tight leading-[1] relative text-4xl">
+              Escuta<span className="italic font-light">Psi</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-lg leading-relaxed font-serif italic">
+            <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-lg leading-relaxed font-heading italic">
               "Quando alguém te escuta, algo em você se reorganiza."
             </p>
 
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-white rounded-full px-10 h-14 text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-10 h-14 text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 lowercase"
               onClick={() => navigate('/busca')}
             >
               Agendar Atendimento
@@ -75,7 +74,7 @@ export default function Index() {
           </div>
 
           <div className="hidden md:flex justify-center items-center animate-fade-in-up delay-200">
-            <div className="relative w-[400px] h-[500px] bg-moss/20 rounded-full blur-3xl absolute -z-10"></div>
+            <div className="relative w-[400px] h-[500px] bg-secondary/10 rounded-full blur-3xl absolute -z-10"></div>
             <img
               src="https://img.usecurling.com/i?q=serene%20face%20outline&shape=outline&color=gray"
               alt="Minimalist Illustration"
@@ -86,22 +85,22 @@ export default function Index() {
       </section>
 
       {/* Quem Somos Section */}
-      <section id="quem-somos" className="py-24 bg-white">
+      <section id="quem-somos" className="py-24 bg-white/50">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-16 max-w-6xl mx-auto">
             <div className="md:w-1/2 relative">
-              <div className="border border-[#DDE5E5] p-8 md:p-12 rounded-sm relative z-10 bg-white/80 backdrop-blur-sm">
-                <h2 className="text-4xl font-heading font-medium mb-6 text-graphite">
+              <div className="border border-border p-8 md:p-12 rounded-sm relative z-10 bg-background/80 backdrop-blur-sm">
+                <h2 className="text-[28px] font-heading font-medium mb-6 text-primary">
                   Quem Somos
                 </h2>
-                <div className="w-16 h-0.5 bg-primary/40 mb-8"></div>
-                <p className="text-muted-foreground leading-relaxed text-lg font-light">
+                <div className="w-16 h-0.5 bg-secondary/40 mb-8"></div>
+                <p className="text-muted-foreground leading-relaxed text-base font-light">
                   A EscutaPsi nasce do desejo de criar pontes. Somos um coletivo
                   dedicado à psicanálise e à saúde mental, acreditando que a
                   fala tem poder curativo. Oferecemos um espaço seguro onde sua
                   história é recebida com ética e profundidade.
                 </p>
-                <div className="mt-6 flex items-center gap-2 text-primary font-medium italic">
+                <div className="mt-6 flex items-center gap-2 text-secondary font-medium italic">
                   <Leaf className="w-5 h-5" />
                   <span>Acolhimento e Ética</span>
                 </div>
@@ -109,7 +108,7 @@ export default function Index() {
             </div>
             <div className="md:w-1/2 flex justify-center">
               <img
-                src="https://img.usecurling.com/i?q=organic%20shapes%20lines&shape=outline&color=green"
+                src="https://img.usecurling.com/i?q=organic%20shapes%20lines&shape=outline&color=gray"
                 alt="Illustration"
                 className="w-full max-w-md object-contain opacity-70"
               />
@@ -119,18 +118,18 @@ export default function Index() {
       </section>
 
       {/* Nossa Abordagem Section */}
-      <section id="abordagem" className="py-24 bg-sand/30">
+      <section id="abordagem" className="py-24 bg-muted/20">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-heading font-medium text-graphite">
+              <h2 className="text-[28px] font-heading font-medium text-primary">
                 Nossa Abordagem
               </h2>
-              <div className="w-24 h-0.5 bg-primary/40 mx-auto mt-4"></div>
+              <div className="w-24 h-0.5 bg-secondary/40 mx-auto mt-4"></div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-              <div className="prose prose-lg text-muted-foreground">
+              <div className="prose prose-lg text-muted-foreground font-light">
                 <p>
                   A psicanálise é uma prática clínica que aposta na
                   singularidade de cada sujeito. Não buscamos apenas eliminar
@@ -146,14 +145,14 @@ export default function Index() {
 
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white border border-sand flex items-center justify-center text-primary shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-background border border-border flex items-center justify-center text-primary shrink-0">
                     <Ear className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-heading font-bold text-xl mb-2">
+                    <h3 className="font-heading font-bold text-xl mb-2 text-primary">
                       Escuta Qualificada
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm font-light">
                       Atenção flutuante que capta o não-dito e os sentidos
                       ocultos da fala.
                     </p>
@@ -161,14 +160,14 @@ export default function Index() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white border border-sand flex items-center justify-center text-primary shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-background border border-border flex items-center justify-center text-primary shrink-0">
                     <Brain className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-heading font-bold text-xl mb-2">
+                    <h3 className="font-heading font-bold text-xl mb-2 text-primary">
                       Inconsciente
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm font-light">
                       Investigação dos processos psíquicos que escapam à
                       consciência.
                     </p>
@@ -176,14 +175,14 @@ export default function Index() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white border border-sand flex items-center justify-center text-primary shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-background border border-border flex items-center justify-center text-primary shrink-0">
                     <Heart className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-heading font-bold text-xl mb-2">
+                    <h3 className="font-heading font-bold text-xl mb-2 text-primary">
                       Transferência
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm font-light">
                       O vínculo de confiança que possibilita o trabalho
                       analítico.
                     </p>
@@ -196,10 +195,10 @@ export default function Index() {
       </section>
 
       {/* Como Podemos Ajudar Section */}
-      <section id="como-ajudamos" className="py-24 bg-white">
+      <section id="como-ajudamos" className="py-24 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-heading font-medium text-graphite">
+            <h2 className="text-[28px] font-heading font-medium text-primary">
               Como Podemos Ajudar
             </h2>
             <p className="text-muted-foreground mt-4 font-light">
@@ -227,15 +226,15 @@ export default function Index() {
             ].map((item, index) => (
               <div
                 key={index}
-                className="bg-white border border-gray-100 rounded-xl p-8 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center group"
+                className="bg-card border border-border/50 rounded-xl p-8 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center group"
               >
-                <div className="mb-6 text-primary/80 group-hover:text-primary transition-colors">
+                <div className="mb-6 text-primary group-hover:text-secondary transition-colors">
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-heading font-bold mb-4">
+                <h3 className="text-xl font-heading font-bold mb-4 text-primary">
                   {item.title}
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed font-light">
                   {item.desc}
                 </p>
               </div>
@@ -243,7 +242,7 @@ export default function Index() {
           </div>
 
           <div className="mt-12 text-center">
-            <div className="inline-flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-4 py-2 rounded-full border border-amber-100">
+            <div className="inline-flex items-center gap-2 text-sm text-secondary bg-secondary/10 px-4 py-2 rounded-full border border-secondary/20">
               <AlertCircle className="w-4 h-4" />
               <span>
                 Em caso de emergência, procure ajuda imediatamente. Ligue 188.
@@ -254,10 +253,10 @@ export default function Index() {
       </section>
 
       {/* Nosso Compromisso Section */}
-      <section className="py-20 bg-ice">
+      <section className="py-20 bg-muted/10">
         <div className="container mx-auto px-4 text-center max-w-4xl">
           <Quote className="w-8 h-8 text-primary/30 mx-auto mb-6 rotate-180" />
-          <h2 className="text-3xl md:text-5xl font-heading font-medium text-graphite leading-tight mb-8">
+          <h2 className="text-3xl md:text-[36px] font-heading font-medium text-primary leading-tight mb-8">
             "Nosso compromisso é com a ética do desejo e a dignidade de cada
             sujeito que nos procura."
           </h2>
@@ -265,14 +264,14 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Agende Seu Atendimento Section (Includes Featured List functionality) */}
+      {/* Agende Seu Atendimento Section */}
       <section
         id="agende"
-        className="py-24 bg-moss/30 relative overflow-hidden"
+        className="py-24 bg-secondary/10 relative overflow-hidden"
       >
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col items-center text-center space-y-8 mb-16">
-            <h2 className="text-4xl md:text-5xl font-heading font-medium text-graphite">
+            <h2 className="text-[28px] md:text-4xl font-heading font-medium text-primary">
               Agende Seu Atendimento
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl font-light">
@@ -281,14 +280,13 @@ export default function Index() {
             </p>
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-white rounded-full px-12 h-16 text-xl shadow-xl transition-transform hover:scale-105"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-12 h-16 text-xl shadow-xl transition-transform hover:scale-105 lowercase"
               onClick={() => navigate('/busca')}
             >
               Entrar em Contato
             </Button>
           </div>
 
-          {/* Featured Professionals - Kept for functionality */}
           <div className="mt-16">
             <div className="flex items-center gap-4 mb-8">
               <div className="h-px bg-primary/20 flex-grow"></div>
@@ -323,7 +321,7 @@ export default function Index() {
             <div className="text-center mt-8">
               <Button
                 variant="link"
-                className="text-primary hover:text-primary/80"
+                className="text-primary hover:text-primary/80 lowercase"
                 onClick={() => navigate('/busca')}
               >
                 Ver todos os profissionais{' '}
@@ -335,24 +333,24 @@ export default function Index() {
       </section>
 
       {/* O que é Psicanálise / Por que fazer */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-background">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-6xl mx-auto">
             <div className="space-y-6">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <h2 className="text-3xl font-heading font-medium">
+              <h2 className="text-[28px] font-heading font-medium text-primary">
                 O que é Psicanálise?
               </h2>
-              <p className="text-muted-foreground leading-relaxed text-lg">
+              <p className="text-muted-foreground leading-relaxed text-base font-light">
                 Criada por Sigmund Freud, a psicanálise é um método de
                 investigação da mente humana e de tratamento dos sofrimentos
                 psíquicos. Ela parte do princípio de que muitos dos nossos
                 comportamentos e sentimentos são determinados por processos
                 inconscientes.
               </p>
-              <p className="text-muted-foreground leading-relaxed text-lg">
+              <p className="text-muted-foreground leading-relaxed text-base font-light">
                 Através da "cura pela fala", o analista ajuda o paciente a
                 trazer à tona esses conteúdos, permitindo novas formas de lidar
                 com o sofrimento.
@@ -360,10 +358,10 @@ export default function Index() {
             </div>
 
             <div className="space-y-6">
-              <div className="w-12 h-12 bg-sand rounded-full flex items-center justify-center text-graphite mb-4">
+              <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center text-secondary mb-4">
                 <Check className="w-6 h-6" />
               </div>
-              <h2 className="text-3xl font-heading font-medium">
+              <h2 className="text-[28px] font-heading font-medium text-primary">
                 Por que fazer Análise?
               </h2>
               <ul className="space-y-4">
@@ -375,7 +373,7 @@ export default function Index() {
                 ].map((item, idx) => (
                   <li
                     key={idx}
-                    className="flex gap-4 items-start text-muted-foreground text-lg"
+                    className="flex gap-4 items-start text-muted-foreground text-base font-light"
                   >
                     <span className="w-2 h-2 mt-2.5 rounded-full bg-primary shrink-0"></span>
                     <span>{item}</span>
@@ -388,17 +386,17 @@ export default function Index() {
       </section>
 
       {/* Rede de Escuta (Call to Professionals) */}
-      <section id="rede-escuta" className="py-24 bg-sand/40">
+      <section id="rede-escuta" className="py-24 bg-muted/20">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-12 max-w-5xl mx-auto bg-white p-10 md:p-16 rounded-2xl shadow-sm border border-sand">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-12 max-w-5xl mx-auto bg-card p-10 md:p-16 rounded-2xl shadow-sm border border-border">
             <div className="md:w-1/2 space-y-6">
               <div className="inline-flex p-3 bg-primary/10 rounded-full text-primary mb-2">
                 <MessageCircle className="w-8 h-8" />
               </div>
-              <h2 className="text-4xl font-heading font-medium text-graphite">
+              <h2 className="text-[28px] font-heading font-medium text-primary">
                 Faça Parte da Nossa Rede de Escuta
               </h2>
-              <p className="text-xl font-serif italic text-muted-foreground">
+              <p className="text-xl font-heading italic text-muted-foreground">
                 "Se você é psicanalista, junte-se à nossa rede de escuta."
               </p>
               <p className="text-muted-foreground font-light">
@@ -409,14 +407,14 @@ export default function Index() {
             <div className="md:w-1/2 flex flex-col items-center md:items-end gap-4">
               <Button
                 size="lg"
-                className="w-full md:w-auto bg-primary hover:bg-primary/90 text-white rounded-full px-8 h-14 text-lg"
+                className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-14 text-lg lowercase"
                 onClick={() => navigate('/cadastro')}
               >
                 Cadastrar Perfil Profissional
               </Button>
               <Button
                 variant="link"
-                className="text-muted-foreground hover:text-primary"
+                className="text-muted-foreground hover:text-primary lowercase"
                 onClick={() => navigate('/sobre-nos')}
               >
                 Saiba mais sobre a plataforma

@@ -17,7 +17,7 @@ export function ProfessionalCard({
   return (
     <Card
       className={cn(
-        'hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-border overflow-hidden flex flex-col h-full',
+        'hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-border overflow-hidden flex flex-col h-full bg-card',
         className,
       )}
     >
@@ -29,11 +29,11 @@ export function ProfessionalCard({
             className="w-full h-full object-cover"
           />
         </div>
-        <h3 className="font-heading font-bold text-lg text-foreground leading-tight">
+        <h3 className="font-heading font-bold text-lg text-primary leading-tight">
           {professional.name}
         </h3>
         {professional.occupation && (
-          <div className="flex items-center text-sm text-primary font-medium mt-1 gap-1">
+          <div className="flex items-center text-sm text-secondary font-medium mt-1 gap-1">
             <Briefcase className="w-3 h-3" />
             <span>{professional.occupation}</span>
           </div>
@@ -81,7 +81,7 @@ export function ProfessionalCard({
         <Link to={`/perfil/${professional.id}`} className="w-full">
           <Button
             variant="outline"
-            className="w-full border-primary text-primary hover:bg-primary hover:text-white"
+            className="w-full border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground lowercase"
           >
             Ver Perfil
           </Button>

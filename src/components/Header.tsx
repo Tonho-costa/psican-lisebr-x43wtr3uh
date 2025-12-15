@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, UserCircle, MessageCircle, Leaf } from 'lucide-react'
+import { Menu, UserCircle, Leaf } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { cn } from '@/lib/utils'
@@ -66,8 +66,10 @@ export function Header() {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white border-b border-border/50',
-        isScrolled ? 'shadow-sm h-[60px] md:h-[72px]' : 'h-[60px] md:h-[72px]',
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-primary/10',
+        isScrolled
+          ? 'bg-background shadow-sm h-[60px] md:h-[72px]'
+          : 'bg-background h-[60px] md:h-[72px]',
       )}
     >
       <div className="container mx-auto px-4 h-full flex items-center justify-between">
@@ -75,8 +77,8 @@ export function Header() {
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
             <Leaf className="w-5 h-5" />
           </div>
-          <span className="text-xl font-heading font-semibold text-foreground tracking-wide">
-            Escuta<span className="text-primary italic">Psi</span>
+          <span className="text-xl font-heading font-semibold text-primary tracking-wide">
+            Escuta<span className="italic font-light">Psi</span>
           </span>
         </Link>
 
@@ -87,18 +89,18 @@ export function Header() {
               key={link.name}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:w-0 after:h-[1px] after:bg-primary after:transition-all hover:after:w-full"
+              className="text-sm font-medium text-primary/80 hover:text-primary transition-colors relative after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:w-0 after:h-[1px] after:bg-primary after:transition-all hover:after:w-full lowercase"
             >
               {link.name}
             </a>
           ))}
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-4 ml-4 pl-4 border-l border-border">
+            <div className="flex items-center gap-4 ml-4 pl-4 border-l border-primary/20">
               <Link to="/painel/perfil">
                 <Button
                   variant="ghost"
-                  className="gap-2 text-foreground/80 hover:text-primary"
+                  className="gap-2 text-primary/80 hover:text-primary lowercase"
                 >
                   <UserCircle className="w-5 h-5" />
                   <span className="max-w-[100px] truncate">
@@ -109,23 +111,23 @@ export function Header() {
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="text-xs border-primary/20 hover:bg-primary/5 hover:text-primary"
+                className="text-xs border-primary/20 hover:bg-primary/5 hover:text-primary lowercase"
               >
                 Sair
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-4 ml-4 pl-4 border-l border-border">
+            <div className="flex items-center gap-4 ml-4 pl-4 border-l border-primary/20">
               <Link to="/entrar">
                 <Button
                   variant="ghost"
-                  className="text-foreground/80 hover:text-primary hover:bg-transparent"
+                  className="text-primary/80 hover:text-primary hover:bg-transparent lowercase"
                 >
                   Entrar
                 </Button>
               </Link>
               <Link to="/cadastro">
-                <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 shadow-sm">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 shadow-sm lowercase">
                   Cadastre-se
                 </Button>
               </Link>
@@ -137,34 +139,41 @@ export function Header() {
         <div className="lg:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-foreground">
+              <Button variant="ghost" size="icon" className="text-primary">
                 <Menu className="w-6 h-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+            <SheetContent
+              side="right"
+              className="w-[300px] sm:w-[400px] bg-background border-l border-primary/10"
+            >
               <SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
               <div className="flex flex-col gap-8 mt-8">
                 {navLinks.map((link) => (
                   <a
                     key={link.name}
                     href={link.href}
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    className="text-lg font-medium text-primary hover:text-primary/80 transition-colors lowercase"
                     onClick={(e) => handleNavClick(e, link.href)}
                   >
                     {link.name}
                   </a>
                 ))}
-                <div className="h-px bg-border my-2" />
+                <div className="h-px bg-primary/10 my-2" />
                 {isAuthenticated ? (
                   <>
                     <Link
                       to="/painel/perfil"
-                      className="text-lg font-medium text-foreground hover:text-primary"
+                      className="text-lg font-medium text-primary hover:text-primary/80 lowercase"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Meu Painel
                     </Link>
-                    <Button variant="outline" onClick={handleLogout}>
+                    <Button
+                      variant="outline"
+                      onClick={handleLogout}
+                      className="lowercase"
+                    >
                       Sair
                     </Button>
                   </>
@@ -174,7 +183,7 @@ export function Header() {
                       to="/entrar"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full lowercase">
                         Entrar
                       </Button>
                     </Link>
@@ -182,7 +191,7 @@ export function Header() {
                       to="/cadastro"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground lowercase">
                         Cadastre-se
                       </Button>
                     </Link>
