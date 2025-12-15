@@ -411,9 +411,6 @@ export default function Index() {
                 fazer parte dessa iniciativa e ajudar a construir pontes para
                 que mais pessoas encontrem um espaço de escuta e elaboração.
               </p>
-              <p className="text-xl font-heading italic text-primary pt-2">
-                “A transformação começa no instante em que você decide falar.”
-              </p>
             </div>
             <div className="md:w-1/2 flex flex-col items-center md:items-end gap-4">
               <Button
