@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
-import { User, Upload, Camera, ImageIcon, Loader2 } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { User, Upload, Camera, Loader2 } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -33,7 +32,7 @@ export function ProfilePhotoUploader({
   const [isLoading, setIsLoading] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { updateProfile } = useProfessionalStore()
+  const { setProfilePhoto } = useProfessionalStore()
 
   const handleFileProcess = async (file: File) => {
     // Client-side Validation
@@ -59,17 +58,16 @@ export function ProfilePhotoUploader({
       })
 
       try {
+        // Use the Edge Function to upload and update DB
         const { url, error } = await storageService.uploadAvatar(userId, file)
 
         if (error) throw error
         if (!url) throw new Error('Falha ao obter URL da imagem.')
 
-        // Update Profile in DB and Store
-        await updateProfile(userId, {
-          photoUrl: url,
-        })
+        // Update Local Store State (DB is already updated by Edge Function)
+        setProfilePhoto(url)
 
-        // Force UI Update via onChange (important for parent form state)
+        // Notify parent
         onChange(url)
 
         toast.success('Foto atualizada!', {
@@ -78,7 +76,6 @@ export function ProfilePhotoUploader({
         })
       } catch (error: any) {
         console.error('Upload handler error:', error)
-
         toast.error('Erro ao atualizar foto', {
           id: toastId,
           description:
@@ -110,9 +107,9 @@ export function ProfilePhotoUploader({
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 items-center md:items-start p-4 border rounded-lg bg-card shadow-sm">
+    <div className="flex flex-col md:flex-row gap-6 items-center md:items-start p-6 border rounded-xl bg-card shadow-sm">
       <div className="relative group">
-        <Avatar className="w-32 h-32 border-4 border-background shadow-sm shrink-0 transition-opacity">
+        <Avatar className="w-32 h-32 border-4 border-background shadow-md shrink-0">
           {isLoading ? (
             <div className="flex w-full h-full items-center justify-center bg-muted">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -136,7 +133,7 @@ export function ProfilePhotoUploader({
             <Button
               variant="secondary"
               size="icon"
-              className="absolute bottom-0 right-0 rounded-full shadow-md opacity-90 hover:opacity-100 transition-opacity"
+              className="absolute bottom-0 right-0 rounded-full shadow-lg opacity-90 hover:opacity-100 transition-all hover:scale-105"
               disabled={isLoading}
             >
               <Camera className="w-4 h-4" />
@@ -156,12 +153,12 @@ export function ProfilePhotoUploader({
         </DropdownMenu>
       </div>
 
-      <div className="flex-1 w-full space-y-4">
+      <div className="flex-1 w-full space-y-3">
         <div className="space-y-1 text-center md:text-left">
-          <Label className="text-base font-semibold">Foto de Perfil</Label>
-          <p className="text-sm text-muted-foreground">
+          <Label className="text-lg font-semibold">Foto de Perfil</Label>
+          <p className="text-sm text-muted-foreground max-w-sm">
             Escolha uma foto profissional e acolhedora. Isso ajuda a construir
-            confiança com seus pacientes.
+            confiança com seus pacientes e aumenta a visibilidade do seu perfil.
           </p>
         </div>
 
@@ -173,21 +170,6 @@ export function ProfilePhotoUploader({
           accept="image/jpeg,image/png,image/webp"
           onChange={handleFileSelect}
         />
-
-        {/* Fallback URL Input (Only for registration/dev/debug) */}
-        {!userId && (
-          <div className="relative max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <ImageIcon className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <Input
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder="Ou cole uma URL de imagem..."
-              className="pl-9 text-sm"
-            />
-          </div>
-        )}
       </div>
 
       <CameraCapture

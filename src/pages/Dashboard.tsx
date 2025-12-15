@@ -1,71 +1,127 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/hooks/use-auth'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
 import { ProfileForm } from '@/components/ProfileForm'
+import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { LogOut, Trash2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { useAuth } from '@/hooks/use-auth'
 
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuth()
   const {
     currentProfessional,
     fetchCurrentProfile,
-    isLoading: profileLoading,
+    isLoading,
+    updateProfile,
+    deleteAccount,
   } = useProfessionalStore()
-  const navigate = useNavigate()
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/entrar')
-    }
-  }, [user, authLoading, navigate])
-
-  useEffect(() => {
-    if (user && !currentProfessional) {
+    if (user?.id && !currentProfessional) {
       fetchCurrentProfile(user.id)
     }
   }, [user, currentProfessional, fetchCurrentProfile])
 
-  if (authLoading || (profileLoading && !currentProfessional)) {
+  if (isLoading || !currentProfessional) {
     return (
-      <div className="container py-10 space-y-8 animate-pulse">
-        <Skeleton className="h-12 w-48" />
-        <div className="space-y-6">
-          <Skeleton className="h-[200px] w-full" />
-          <Skeleton className="h-[400px] w-full" />
-        </div>
-      </div>
-    )
-  }
-
-  if (!currentProfessional) {
-    return (
-      <div className="container py-10">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erro</AlertTitle>
-          <AlertDescription>
-            Não foi possível carregar seu perfil. Tente recarregar a página.
-          </AlertDescription>
-        </Alert>
+      <div className="container max-w-4xl py-10 space-y-8">
+        <Skeleton className="h-48 w-full rounded-xl" />
+        <Skeleton className="h-96 w-full rounded-xl" />
       </div>
     )
   }
 
   return (
-    <div className="container py-10 max-w-4xl space-y-8 animate-fade-in">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Painel do Profissional
-        </h1>
-        <p className="text-muted-foreground">
-          Gerencie suas informações, foto de perfil e configurações de conta.
-        </p>
+    <div className="container max-w-4xl py-10 space-y-8 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Seu Perfil</h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie suas informações profissionais e foto de perfil.
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => signOut()}>
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair
+        </Button>
       </div>
 
-      <ProfileForm professional={currentProfessional} />
+      <div className="space-y-6">
+        <ProfilePhotoUploader
+          value={currentProfessional.photoUrl}
+          onChange={(url) => {
+            // Local state is already updated by the component via store action
+            console.log('New photo uploaded:', url)
+          }}
+          name={currentProfessional.name}
+          userId={currentProfessional.id}
+        />
+
+        <Separator />
+
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Informações Pessoais</h2>
+          <ProfileForm
+            professional={currentProfessional}
+            onSubmit={async (data) => {
+              await updateProfile(currentProfessional.id, data)
+            }}
+          />
+        </div>
+
+        <Separator />
+
+        <div className="pt-4">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6">
+            <h3 className="text-lg font-semibold text-destructive mb-2">
+              Zona de Perigo
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Ao excluir sua conta, todos os seus dados serão permanentemente
+              removidos. Esta ação não pode ser desfeita.
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir minha conta
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação é irreversível. Isso excluirá permanentemente sua
+                    conta e removerá seus dados de nossos servidores.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteAccount()}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    Excluir Conta
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

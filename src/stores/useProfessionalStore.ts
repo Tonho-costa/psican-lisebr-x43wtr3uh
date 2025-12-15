@@ -43,12 +43,12 @@ interface ProfessionalState {
     userId: string,
     data: Partial<Professional>,
   ) => Promise<Professional | null>
-  logout: () => Promise<void> // Resets store state and signs out
+  setProfilePhoto: (url: string) => void // New action for local update
+  logout: () => Promise<void>
   setSearchQuery: (query: Partial<ProfessionalState['searchQuery']>) => void
-  // Legacy/Auth actions
+  deleteAccount: () => Promise<void>
   login: (email: string) => boolean
   register: (data: any) => void
-  deleteAccount: () => Promise<void>
 }
 
 export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
@@ -94,7 +94,6 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
   },
 
   updateProfile: async (userId: string, data: Partial<Professional>) => {
-    // Avoid setting global isLoading to prevent UI flashing
     try {
       const { data: updated, error } = await profileService.updateProfile(
         userId,
@@ -117,6 +116,20 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     }
   },
 
+  // Updates the local state with the new photo URL without triggering a DB update
+  setProfilePhoto: (url: string) => {
+    set((state) => {
+      if (!state.currentProfessional) return state
+      const updated = { ...state.currentProfessional, photoUrl: url }
+      return {
+        currentProfessional: updated,
+        professionals: state.professionals.map((p) =>
+          p.id === updated.id ? updated : p,
+        ),
+      }
+    })
+  },
+
   logout: async () => {
     await supabase.auth.signOut()
     set({ currentProfessional: null, isAuthenticated: false })
@@ -129,8 +142,6 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     try {
       const { error } = await profileService.deleteAccount()
       if (error) throw error
-
-      // Perform logout logic
       await supabase.auth.signOut()
       set({ currentProfessional: null, isAuthenticated: false })
     } catch (error) {
@@ -139,7 +150,6 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     }
   },
 
-  // Deprecated/No-op actions
   login: () => {
     console.warn('Use useAuth().signIn instead')
     return false
