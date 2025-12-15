@@ -14,7 +14,6 @@ import { CameraCapture } from '@/components/CameraCapture'
 import { storageService } from '@/services/storageService'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 
 interface ProfilePhotoUploaderProps {
   value: string
@@ -37,26 +36,33 @@ export function ProfilePhotoUploader({
   const { updateProfile } = useProfessionalStore()
 
   const handleFileProcess = async (file: File) => {
-    // Validate file type
+    // Client-side Validation
     if (!file.type.startsWith('image/')) {
-      toast.error('Por favor, selecione um arquivo de imagem válido.')
+      toast.error('Formato inválido', {
+        description: 'Por favor, selecione um arquivo de imagem (JPG, PNG).',
+      })
       return
     }
 
-    // Validate size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('A imagem deve ter no máximo 5MB.')
+      toast.error('Arquivo muito grande', {
+        description: 'A imagem deve ter no máximo 5MB.',
+      })
       return
     }
 
-    // Mode 1: Immediate Upload (Dashboard)
+    // Mode 1: Immediate Upload (Dashboard / Profile Edit)
     if (userId) {
       setIsLoading(true)
+      const toastId = toast.loading('Enviando foto...', {
+        description: 'Aguarde enquanto processamos sua imagem.',
+      })
+
       try {
         const { url, error } = await storageService.uploadAvatar(userId, file)
 
         if (error) throw error
-        if (!url) throw new Error('Não foi possível gerar a URL da imagem.')
+        if (!url) throw new Error('Falha ao obter URL da imagem.')
 
         // Update Profile in DB and Store
         await updateProfile(userId, {
@@ -64,29 +70,23 @@ export function ProfilePhotoUploader({
         })
 
         onChange(url)
-        toast.success('Foto de perfil atualizada com sucesso!')
+        toast.success('Foto atualizada!', {
+          id: toastId,
+          description: 'Sua foto de perfil foi alterada com sucesso.',
+        })
       } catch (error: any) {
-        console.error(error)
-        let message = error.message || 'Erro desconhecido'
-
-        // Catch specific technical errors and show friendly message
-        if (
-          message.includes('Unexpected token') ||
-          message.includes('JSON') ||
-          message.includes('<!DOCTYPE html>')
-        ) {
-          message =
-            'Não foi possível conectar ao servidor. Verifique sua conexão.'
-        }
+        console.error('Upload handler error:', error)
 
         toast.error('Erro ao atualizar foto', {
-          description: message,
+          id: toastId,
+          description:
+            error.message || 'Ocorreu um erro inesperado. Tente novamente.',
         })
       } finally {
         setIsLoading(false)
       }
     }
-    // Mode 2: Deferred Upload (Register)
+    // Mode 2: Deferred Upload (Registration Flow)
     else {
       const previewUrl = URL.createObjectURL(file)
       onChange(previewUrl)
@@ -101,7 +101,7 @@ export function ProfilePhotoUploader({
     if (file) {
       handleFileProcess(file)
     }
-    // Reset input value to allow selecting same file again
+    // Reset input value to allow selecting same file again if needed
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -110,15 +110,15 @@ export function ProfilePhotoUploader({
   return (
     <div className="flex flex-col md:flex-row gap-6 items-center md:items-start p-4 border rounded-lg bg-card shadow-sm">
       <div className="relative group">
-        <Avatar className="w-32 h-32 border-4 border-background shadow-sm shrink-0">
+        <Avatar className="w-32 h-32 border-4 border-background shadow-sm shrink-0 transition-opacity">
           {isLoading ? (
             <div className="flex w-full h-full items-center justify-center bg-muted">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : (
             <>
               <AvatarImage src={value} className="object-cover" />
-              <AvatarFallback className="bg-muted text-muted-foreground text-3xl">
+              <AvatarFallback className="bg-muted text-muted-foreground text-3xl select-none">
                 {name ? (
                   name.charAt(0).toUpperCase()
                 ) : (
@@ -134,7 +134,7 @@ export function ProfilePhotoUploader({
             <Button
               variant="secondary"
               size="icon"
-              className="absolute bottom-0 right-0 rounded-full shadow-md opacity-90 hover:opacity-100"
+              className="absolute bottom-0 right-0 rounded-full shadow-md opacity-90 hover:opacity-100 transition-opacity"
               disabled={isLoading}
             >
               <Camera className="w-4 h-4" />
@@ -156,10 +156,10 @@ export function ProfilePhotoUploader({
 
       <div className="flex-1 w-full space-y-4">
         <div className="space-y-1 text-center md:text-left">
-          <Label className="text-base">Foto de Perfil</Label>
+          <Label className="text-base font-semibold">Foto de Perfil</Label>
           <p className="text-sm text-muted-foreground">
-            Escolha uma foto profissional. Isso ajuda a construir confiança com
-            seus pacientes.
+            Escolha uma foto profissional e acolhedora. Isso ajuda a construir
+            confiança com seus pacientes.
           </p>
         </div>
 
@@ -168,11 +168,11 @@ export function ProfilePhotoUploader({
           type="file"
           ref={fileInputRef}
           className="hidden"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleFileSelect}
         />
 
-        {/* URL Fallback Input (Optional, kept for backward compatibility if needed) */}
+        {/* Fallback URL Input (Only for registration/dev/debug) */}
         {!userId && (
           <div className="relative max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
