@@ -13,12 +13,10 @@ import {
   Users,
   AlertCircle,
   Heart,
-  Lightbulb,
   Sparkles,
   Activity,
   Shield,
   LifeBuoy,
-  UserPlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { profileService } from '@/services/profileService'
