@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CameraCapture } from '@/components/CameraCapture'
 import { storageService } from '@/services/storageService'
-import { profileService } from '@/services/profileService'
+import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -34,6 +34,7 @@ export function ProfilePhotoUploader({
   const [isLoading, setIsLoading] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { updateProfile } = useProfessionalStore()
 
   const handleFileProcess = async (file: File) => {
     // Validate file type
@@ -54,22 +55,33 @@ export function ProfilePhotoUploader({
       try {
         const { url, error } = await storageService.uploadAvatar(userId, file)
 
-        if (error || !url) throw error
+        if (error) throw error
+        if (!url) throw new Error('Não foi possível gerar a URL da imagem.')
 
-        // Update Profile in DB
-        const { error: dbError } = await profileService.updateProfile(userId, {
+        // Update Profile in DB and Store
+        await updateProfile(userId, {
           photoUrl: url,
         })
-
-        if (dbError) throw dbError
 
         onChange(url)
         toast.success('Foto de perfil atualizada com sucesso!')
       } catch (error: any) {
         console.error(error)
-        toast.error(
-          'Erro ao atualizar foto: ' + (error.message || 'Erro desconhecido'),
-        )
+        let message = error.message || 'Erro desconhecido'
+
+        // Catch specific technical errors and show friendly message
+        if (
+          message.includes('Unexpected token') ||
+          message.includes('JSON') ||
+          message.includes('<!DOCTYPE html>')
+        ) {
+          message =
+            'Não foi possível conectar ao servidor. Verifique sua conexão.'
+        }
+
+        toast.error('Erro ao atualizar foto', {
+          description: message,
+        })
       } finally {
         setIsLoading(false)
       }
