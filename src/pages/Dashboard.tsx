@@ -1,68 +1,70 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { ProfileForm } from '@/components/ProfileForm'
-import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 export default function Dashboard() {
-  const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
   const {
     currentProfessional,
     fetchCurrentProfile,
     isLoading: profileLoading,
   } = useProfessionalStore()
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/entrar')
-      return
     }
+  }, [user, authLoading, navigate])
 
-    if (user?.id) {
+  useEffect(() => {
+    if (user && !currentProfessional) {
       fetchCurrentProfile(user.id)
     }
-  }, [user, authLoading, navigate, fetchCurrentProfile])
+  }, [user, currentProfessional, fetchCurrentProfile])
 
-  // Show loading if auth is loading or if profile is loading and we don't have it yet
   if (authLoading || (profileLoading && !currentProfessional)) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="container py-10 space-y-8 animate-pulse">
+        <Skeleton className="h-12 w-48" />
+        <div className="space-y-6">
+          <Skeleton className="h-[200px] w-full" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
       </div>
     )
   }
 
   if (!currentProfessional) {
     return (
-      <div className="container max-w-4xl py-10">
-        <div className="rounded-lg border border-destructive/50 p-6 text-center">
-          <h2 className="text-lg font-semibold text-destructive">
-            Perfil não encontrado
-          </h2>
-          <p className="text-muted-foreground">
-            Não foi possível carregar as informações do seu perfil. Tente
-            recarregar a página ou entre em contato com o suporte.
-          </p>
-        </div>
+      <div className="container py-10">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>
+            Não foi possível carregar seu perfil. Tente recarregar a página.
+          </AlertDescription>
+        </Alert>
       </div>
     )
   }
 
   return (
-    <div className="container max-w-4xl py-10 space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight font-heading">
-          Configurações do Perfil
+    <div className="container py-10 max-w-4xl space-y-8 animate-fade-in">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Painel do Profissional
         </h1>
         <p className="text-muted-foreground">
-          Gerencie suas informações pessoais e profissionais para que os
-          pacientes possam te encontrar.
+          Gerencie suas informações, foto de perfil e configurações de conta.
         </p>
       </div>
-      <Separator />
+
       <ProfileForm professional={currentProfessional} />
     </div>
   )

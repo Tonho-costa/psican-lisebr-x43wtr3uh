@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react'
-import { Camera, RefreshCw, Circle } from 'lucide-react'
+import { Circle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
