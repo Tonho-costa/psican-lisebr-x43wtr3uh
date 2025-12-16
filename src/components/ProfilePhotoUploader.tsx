@@ -32,7 +32,8 @@ export function ProfilePhotoUploader({
   const [isLoading, setIsLoading] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  // Use setProfilePhoto for local state update, updateProfile is not needed for photo anymore
+
+  // Update local store state to reflect changes immediately
   const { setProfilePhoto } = useProfessionalStore()
 
   const handleFileProcess = async (file: File) => {
@@ -55,13 +56,13 @@ export function ProfilePhotoUploader({
     // Mode 1: Immediate Upload (Dashboard / Profile Edit)
     if (userId) {
       setIsLoading(true)
-      const toastId = toast.loading('Enviando foto...', {
-        description: 'Fazendo upload da sua nova foto de perfil.',
+      const toastId = toast.loading('Processando e enviando foto...', {
+        description: 'Convertendo e fazendo upload da sua nova foto de perfil.',
       })
 
       try {
-        // 1. Call Edge Function via storageService
-        // The Edge Function handles both Storage Upload and Database Update
+        // 1. Direct Upload via storageService
+        // This now performs direct storage upload and DB update (no edge function)
         const { url, error: uploadError } = await storageService.uploadAvatar(
           userId,
           file,
@@ -70,7 +71,7 @@ export function ProfilePhotoUploader({
         if (uploadError) throw uploadError
         if (!url) throw new Error('Falha ao obter URL da imagem.')
 
-        // 2. Update Local Store (DB is already updated by Edge Function)
+        // 2. Update Local Store (DB is already updated by Service)
         setProfilePhoto(url)
 
         // Notify parent to update local form state if needed
@@ -164,8 +165,8 @@ export function ProfilePhotoUploader({
         <div className="space-y-1 text-center md:text-left">
           <Label className="text-lg font-semibold">Foto de Perfil</Label>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Escolha uma foto profissional e acolhedora. Suportamos JPG, PNG e
-            WEBP.
+            Escolha uma foto profissional e acolhedora. A imagem será convertida
+            para PNG automaticamente.
           </p>
         </div>
 
