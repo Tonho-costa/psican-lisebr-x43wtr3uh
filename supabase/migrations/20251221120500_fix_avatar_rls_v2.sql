@@ -1,6 +1,5 @@
 -- Migration to fix Supabase Storage RLS policies for user avatars
--- Ensures authenticated users can manage files within their own folder {userId}/
--- and that all avatars are publicly accessible for reading.
+-- Retry without ALTER TABLE statement which caused permission errors on 'storage.objects'
 
 BEGIN;
 
@@ -11,7 +10,6 @@ ON CONFLICT (id) DO UPDATE
 SET public = true;
 
 -- 2. Clean up existing policies to prevent conflicts
--- We drop all known variations of policies for the avatars bucket
 DROP POLICY IF EXISTS "Public View" ON storage.objects;
 DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 DROP POLICY IF EXISTS "Public Read Access" ON storage.objects;
@@ -24,16 +22,13 @@ DROP POLICY IF EXISTS "Users can update their own avatars" ON storage.objects;
 DROP POLICY IF EXISTS "Users can delete their own avatars" ON storage.objects;
 DROP POLICY IF EXISTS "User Manage Own Folder" ON storage.objects;
 
--- 3. Enable RLS on storage.objects (good practice to ensure it's on)
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
--- 4. Create Policy: Public Read Access
+-- 3. Create Policy: Public Read Access
 -- Allows anyone (authenticated or anonymous) to view/download files in the 'avatars' bucket
 CREATE POLICY "Public Read Access"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'avatars');
 
--- 5. Create Policy: Authenticated User Management
+-- 4. Create Policy: Authenticated User Management
 -- Allows authenticated users to INSERT, UPDATE, DELETE, and SELECT files
 -- ONLY if the file path starts with their user ID (e.g., '{uid}/avatar.png')
 -- This prevents users from overwriting others' avatars
