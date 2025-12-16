@@ -34,6 +34,20 @@ export const storageService = {
         let detailedMessage = error.message
         if (error instanceof Error && 'context' in (error as any)) {
           // Sometimes supabase-js puts the response body in context
+          const ctx = (error as any).context
+          if (
+            ctx &&
+            typeof ctx === 'object' &&
+            'json' in ctx &&
+            typeof ctx.json === 'function'
+          ) {
+            try {
+              const body = await ctx.json()
+              if (body && body.error) detailedMessage = body.error
+            } catch {
+              // ignore
+            }
+          }
         }
 
         // If the edge function returns a JSON error object, invoke might wrap it
@@ -66,7 +80,7 @@ export const storageService = {
         errorMessage.includes('Failed to send a request')
       ) {
         friendlyError = new Error(
-          'Erro de conexão com o servidor. Verifique se o Edge Function "upload-avatar" está implantado e online.',
+          'Erro de conexão com o servidor. Verifique se o Edge Function "upload-avatar" está implantado e online. Tente novamente em alguns instantes.',
         )
       } else if (error.status === 413) {
         friendlyError = new Error('A imagem selecionada é muito grande.')

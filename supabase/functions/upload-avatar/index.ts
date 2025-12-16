@@ -1,5 +1,5 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js'
 import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req) => {
@@ -125,10 +125,32 @@ Deno.serve(async (req) => {
     // 6. Initialize Admin Client for Storage Operations (Bypass RLS)
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-    // 7. Upload File to Storage
-    // Use a consistent filename 'profile.jpg' to simplify overwrite logic.
-    const filePath = `${user.id}/profile.jpg`
+    // 7. Determine Filename and Cleanup
+    // Map mime types to extensions
+    const mimeMap: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+      'image/svg+xml': 'svg',
+    }
+    const fileExt = mimeMap[file.type] || file.name.split('.').pop() || 'jpg'
+    const fileName = `avatar.${fileExt}`
+    const filePath = `${user.id}/${fileName}`
 
+    console.log(`Upload Avatar: Cleaning up old avatars for ${user.id}`)
+
+    // List existing files in the user's folder to remove them (cleanup)
+    const { data: existingFiles } = await supabaseAdmin.storage
+      .from('avatars')
+      .list(user.id)
+
+    if (existingFiles && existingFiles.length > 0) {
+      const filesToRemove = existingFiles.map((f) => `${user.id}/${f.name}`)
+      await supabaseAdmin.storage.from('avatars').remove(filesToRemove)
+    }
+
+    // 8. Upload File to Storage
     console.log(`Upload Avatar: Uploading to ${filePath}, size: ${file.size}`)
 
     const { error: uploadError } = await supabaseAdmin.storage
@@ -152,7 +174,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 8. Get Public URL
+    // 9. Get Public URL
     const {
       data: { publicUrl },
     } = supabaseAdmin.storage.from('avatars').getPublicUrl(filePath)
@@ -160,7 +182,7 @@ Deno.serve(async (req) => {
     // Add timestamp to bust cache
     const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`
 
-    // 9. Update Profile in Database
+    // 10. Update Profile in Database
     const { error: dbError } = await supabaseAdmin
       .from('profiles')
       .update({ avatar_url: urlWithTimestamp })
