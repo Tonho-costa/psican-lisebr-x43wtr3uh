@@ -98,12 +98,13 @@ export default function Index() {
                 </h2>
                 <div className="w-16 h-0.5 bg-secondary/40 mb-8"></div>
                 <p className="text-muted-foreground leading-relaxed text-base font-light">
-                  A EscutaPsi é um espaço dedicado à escuta ética, qualificada e
-                  respeitosa. Acreditamos que cada pessoa carrega uma história
-                  única, marcada por afetos, escolhas, desafios e
-                  possibilidades. Nosso propósito é oferecer um ambiente seguro
-                  e acolhedor — um lugar onde você possa falar livremente e ser
-                  escutado de forma profunda e sem julgamentos.
+                  EscutaPsi é uma clínica social que oferece atendimento
+                  psicológico acessível, ético e humanizado. Acreditamos que
+                  cada pessoa carrega uma história única, marcada por afetos,
+                  escolhas, desafios e possibilidades. Nosso propósito é
+                  oferecer um ambiente seguro e acolhedor — um espaço onde seja
+                  possível falar livremente e ser escutado de forma profunda,
+                  com respeito e sem julgamentos.
                 </p>
                 <div className="mt-6 flex items-center gap-2 text-secondary font-medium italic">
                   <Leaf className="w-5 h-5" />
