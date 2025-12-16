@@ -121,7 +121,7 @@ export default function Dashboard() {
             <CardContent>
               <ProfilePhotoUploader
                 value={currentProfessional.photoUrl}
-                onChange={() => {}} // Local state update is handled in the component
+                onChange={() => {}} // Store handles updates via subscription
                 name={currentProfessional.name}
                 userId={currentProfessional.id}
               />

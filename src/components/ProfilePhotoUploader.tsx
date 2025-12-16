@@ -38,7 +38,8 @@ export function ProfilePhotoUploader({
     // Client-side Validation
     if (!file.type.startsWith('image/')) {
       toast.error('Formato inválido', {
-        description: 'Por favor, selecione um arquivo de imagem (JPG, PNG).',
+        description:
+          'Por favor, selecione um arquivo de imagem (JPG, PNG, etc).',
       })
       return
     }
@@ -53,12 +54,12 @@ export function ProfilePhotoUploader({
     // Mode 1: Immediate Upload (Dashboard / Profile Edit)
     if (userId) {
       setIsLoading(true)
-      const toastId = toast.loading('Enviando foto...', {
-        description: 'Aguarde enquanto processamos sua imagem.',
+      const toastId = toast.loading('Processando e enviando foto...', {
+        description: 'Estamos otimizando sua imagem para o perfil.',
       })
 
       try {
-        // 1. Upload to Supabase Storage
+        // 1. Upload to Supabase Storage (includes conversion to PNG)
         const { url, error: uploadError } = await storageService.uploadAvatar(
           userId,
           file,
@@ -90,6 +91,7 @@ export function ProfilePhotoUploader({
     }
     // Mode 2: Deferred Upload (Registration Flow)
     else {
+      // Create preview
       const previewUrl = URL.createObjectURL(file)
       onChange(previewUrl)
       if (onFileChange) {
@@ -160,8 +162,8 @@ export function ProfilePhotoUploader({
         <div className="space-y-1 text-center md:text-left">
           <Label className="text-lg font-semibold">Foto de Perfil</Label>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Escolha uma foto profissional e acolhedora. Isso ajuda a construir
-            confiança com seus pacientes e aumenta a visibilidade do seu perfil.
+            Escolha uma foto profissional e acolhedora. A imagem será otimizada
+            automaticamente para o melhor formato.
           </p>
         </div>
 
