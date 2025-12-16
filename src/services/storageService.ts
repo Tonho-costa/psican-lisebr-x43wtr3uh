@@ -56,7 +56,7 @@ export const storageService = {
    * Process:
    * 1. Validates file type and size.
    * 2. Converts the image to PNG format.
-   * 3. Uploads to 'avatars' bucket with name '{userId}/profile.png'.
+   * 3. Uploads to 'avatars' bucket with name '{userId}/avatar.png'.
    * 4. Updates the 'profiles' table with the new avatar URL.
    */
   async uploadAvatar(
@@ -82,10 +82,9 @@ export const storageService = {
       // 2. Convert to PNG
       const pngBlob = await convertToPng(file)
 
-      // Define path: Folder structure {uid}/profile.png
-      // Moving to a folder structure avoids root-level permission issues and organizes storage better
-      // This replaces the previous {uid}.png root-level strategy
-      const filePath = `${userId}/profile.png`
+      // Define path: Folder structure {uid}/avatar.png
+      // This matches the RLS policy: name LIKE (auth.uid() || '/%')
+      const filePath = `${userId}/avatar.png`
 
       // 3. Upload to Storage (Direct Client Upload)
       // Using upsert: true handles both initial upload and updates
