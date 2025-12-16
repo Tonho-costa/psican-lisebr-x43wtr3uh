@@ -12,12 +12,13 @@ async function convertToPng(file: File): Promise<Blob> {
       const img = new Image()
       img.onload = () => {
         const canvas = document.createElement('canvas')
-        canvas.width = img.width
-        canvas.height = img.height
+        // Use natural dimensions to avoid unintended resizing
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
 
         const ctx = canvas.getContext('2d')
         if (!ctx) {
-          reject(new Error('Failed to get canvas context'))
+          reject(new Error('Falha ao processar imagem (Contexto inválido)'))
           return
         }
 
@@ -30,7 +31,7 @@ async function convertToPng(file: File): Promise<Blob> {
             if (blob) {
               resolve(blob)
             } else {
-              reject(new Error('Failed to convert image to PNG'))
+              reject(new Error('Falha ao converter imagem para PNG'))
             }
           },
           'image/png',
@@ -39,11 +40,11 @@ async function convertToPng(file: File): Promise<Blob> {
       }
 
       img.onerror = () =>
-        reject(new Error('Failed to load image for conversion'))
+        reject(new Error('Falha ao carregar imagem para conversão'))
       img.src = event.target?.result as string
     }
 
-    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.onerror = () => reject(new Error('Falha ao ler arquivo'))
     reader.readAsDataURL(file)
   })
 }
@@ -86,18 +87,29 @@ export const storageService = {
       const filePath = fileName // Root of the bucket
 
       // 3. Upload to Storage (Direct Client Upload)
-      // Browser automatically handles Content-Type for FormData, but here we use Supabase SDK
-      // which uses Blob, so we can specify contentType.
+      // Using upsert: true handles both initial upload and updates
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, pngBlob, {
           contentType: 'image/png',
-          upsert: true, // Replace if exists
+          upsert: true,
+          cacheControl: '3600', // 1 hour cache
         })
 
       if (uploadError) {
         console.error('Supabase Storage Upload Error:', uploadError)
-        throw new Error('Falha ao enviar imagem para o armazenamento.')
+        // Handle specific RLS errors
+        if (
+          uploadError.message.includes('row-level security') ||
+          (uploadError as any).statusCode === '403'
+        ) {
+          throw new Error(
+            'Permissão negada. Você não tem permissão para alterar esta foto.',
+          )
+        }
+        throw new Error(
+          'Falha ao enviar imagem para o armazenamento. Tente novamente.',
+        )
       }
 
       // 4. Get Public URL
@@ -110,10 +122,11 @@ export const storageService = {
       }
 
       // Add timestamp to prevent caching issues immediately after upload
+      // This ensures the user sees the new image right away
       const finalUrl = `${publicUrl}?t=${new Date().getTime()}`
 
       // 5. Update Profile in Database
-      // We perform this update here to ensure consistency
+      // We perform this update here to ensure data consistency
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: finalUrl })
@@ -121,7 +134,9 @@ export const storageService = {
 
       if (updateError) {
         console.error('Database Update Error:', updateError)
-        throw new Error('Imagem enviada, mas falha ao atualizar perfil.')
+        throw new Error(
+          'Imagem enviada, mas falha ao atualizar o perfil no banco de dados.',
+        )
       }
 
       return { url: finalUrl, error: null }

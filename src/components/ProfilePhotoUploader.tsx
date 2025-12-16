@@ -56,13 +56,13 @@ export function ProfilePhotoUploader({
     // Mode 1: Immediate Upload (Dashboard / Profile Edit)
     if (userId) {
       setIsLoading(true)
-      const toastId = toast.loading('Processando e enviando foto...', {
+      const toastId = toast.loading('Processando foto...', {
         description: 'Convertendo e fazendo upload da sua nova foto de perfil.',
       })
 
       try {
         // 1. Direct Upload via storageService
-        // This now performs direct storage upload and DB update (no edge function)
+        // This performs conversion, direct storage upload, and DB update
         const { url, error: uploadError } = await storageService.uploadAvatar(
           userId,
           file,
@@ -124,7 +124,11 @@ export function ProfilePhotoUploader({
             </div>
           ) : (
             <>
-              <AvatarImage src={value} className="object-cover" />
+              <AvatarImage
+                src={value}
+                className="object-cover"
+                alt="Foto de perfil"
+              />
               <AvatarFallback className="bg-muted text-muted-foreground text-3xl select-none">
                 {name ? (
                   name.charAt(0).toUpperCase()
