@@ -32,7 +32,8 @@ export function ProfilePhotoUploader({
   const [isLoading, setIsLoading] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { updateProfile } = useProfessionalStore()
+  // Use setProfilePhoto for local state update, updateProfile is not needed for photo anymore
+  const { setProfilePhoto } = useProfessionalStore()
 
   const handleFileProcess = async (file: File) => {
     // Client-side Validation
@@ -59,7 +60,8 @@ export function ProfilePhotoUploader({
       })
 
       try {
-        // 1. Upload to Supabase Storage (original format)
+        // 1. Call Edge Function via storageService
+        // The Edge Function handles both Storage Upload and Database Update
         const { url, error: uploadError } = await storageService.uploadAvatar(
           userId,
           file,
@@ -68,10 +70,10 @@ export function ProfilePhotoUploader({
         if (uploadError) throw uploadError
         if (!url) throw new Error('Falha ao obter URL da imagem.')
 
-        // 2. Update Profile in Database and Store
-        await updateProfile(userId, { photoUrl: url })
+        // 2. Update Local Store (DB is already updated by Edge Function)
+        setProfilePhoto(url)
 
-        // Notify parent
+        // Notify parent to update local form state if needed
         onChange(url)
 
         toast.success('Foto atualizada!', {

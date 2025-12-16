@@ -2,17 +2,15 @@ import { supabase } from '@/lib/supabase/client'
 
 export const storageService = {
   /**
-   * Uploads an avatar image directly to Supabase Storage.
-   * Stores the file with its original extension (jpg, png, webp).
-   * Returns the public URL of the uploaded image.
+   * Uploads an avatar image using the 'update-profile-avatar' Edge Function.
+   * The Edge Function handles storage upload and profile database update.
    */
   async uploadAvatar(
-    userId: string,
+    userId: string, // Kept for interface compatibility, but derived from auth in Edge Function
     file: File,
   ): Promise<{ url: string | null; error: any }> {
     try {
-      // 1. Initial Validation (Client side check)
-      // Allow typical web image formats
+      // 1. Initial Validation (Client side check for better UX)
       if (!file.type.startsWith('image/')) {
         throw new Error(
           'O arquivo deve ser uma imagem válida (JPG, PNG, WEBP).',
@@ -27,47 +25,31 @@ export const storageService = {
         )
       }
 
-      // 3. Determine extension
-      // Try to get extension from filename first, then fallback to mime type logic
-      let extension = file.name.split('.').pop()?.toLowerCase()
+      // 3. Prepare FormData for Edge Function
+      const formData = new FormData()
+      formData.append('file', file)
 
-      const validExtensions = ['jpg', 'jpeg', 'png', 'webp']
+      // 4. Call Edge Function
+      const { data, error } = await supabase.functions.invoke(
+        'update-profile-avatar',
+        {
+          body: formData,
+        },
+      )
 
-      if (!extension || !validExtensions.includes(extension)) {
-        // Fallback mapping based on mime type
-        if (file.type === 'image/jpeg') extension = 'jpg'
-        else if (file.type === 'image/png') extension = 'png'
-        else if (file.type === 'image/webp') extension = 'webp'
-        else extension = 'png' // Default to png if unknown but starts with image/
+      if (error) {
+        throw error
       }
 
-      // Ensure we have a valid extension for the filename
-      const fileName = `avatars/${userId}.${extension}`
-
-      // 4. Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, {
-          upsert: true,
-          contentType: file.type,
-          cacheControl: '3600',
-        })
-
-      if (uploadError) {
-        throw uploadError
+      if (data?.error) {
+        throw new Error(data.error)
       }
 
-      // 5. Get Public URL
-      const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
-
-      if (!data?.publicUrl) {
-        throw new Error('Não foi possível obter a URL pública da imagem.')
+      if (!data?.url) {
+        throw new Error('Falha ao obter URL da imagem.')
       }
 
-      // Append timestamp to bust cache since the filename might be reused or replaced
-      const publicUrl = `${data.publicUrl}?t=${new Date().getTime()}`
-
-      return { url: publicUrl, error: null }
+      return { url: data.url, error: null }
     } catch (error: any) {
       console.error('Storage Service Error:', error)
       return { url: null, error }
