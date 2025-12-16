@@ -1,57 +1,9 @@
 import { supabase } from '@/lib/supabase/client'
 
-/**
- * Helper function to convert any image file to PNG format.
- * This ensures consistency and avoids format-related upload errors.
- */
-export const convertToPng = (file: File): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file)
-    const img = new Image()
-
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d')
-
-      if (!ctx) {
-        URL.revokeObjectURL(url)
-        reject(new Error('Falha ao obter contexto do canvas.'))
-        return
-      }
-
-      // Draw image on canvas
-      ctx.drawImage(img, 0, 0)
-
-      // Convert to PNG Blob
-      canvas.toBlob(
-        (blob) => {
-          URL.revokeObjectURL(url)
-          if (blob) {
-            resolve(blob)
-          } else {
-            reject(new Error('Falha ao converter imagem para PNG.'))
-          }
-        },
-        'image/png',
-        1.0,
-      )
-    }
-
-    img.onerror = (error) => {
-      URL.revokeObjectURL(url)
-      reject(error)
-    }
-
-    img.src = url
-  })
-}
-
 export const storageService = {
   /**
    * Uploads an avatar image directly to Supabase Storage.
-   * Automatically converts the image to PNG before uploading.
+   * Stores the file with its original extension (jpg, png, webp).
    * Returns the public URL of the uploaded image.
    */
   async uploadAvatar(
@@ -60,34 +12,44 @@ export const storageService = {
   ): Promise<{ url: string | null; error: any }> {
     try {
       // 1. Initial Validation (Client side check)
+      // Allow typical web image formats
       if (!file.type.startsWith('image/')) {
-        throw new Error('O arquivo deve ser uma imagem válida (JPG, PNG, etc).')
-      }
-
-      // 2. Convert Image to PNG
-      // This solves issues with file types not matching extensions or
-      // Supabase policies requiring specific formats.
-      const pngBlob = await convertToPng(file)
-
-      // 3. Size Validation (Post-conversion)
-      // Check if converted file is within limits (e.g. 5MB)
-      const maxSize = 5 * 1024 * 1024
-      if (pngBlob.size > maxSize) {
         throw new Error(
-          'A imagem processada excede o limite de 5MB. Tente uma imagem menor.',
+          'O arquivo deve ser uma imagem válida (JPG, PNG, WEBP).',
         )
       }
 
-      // 4. Prepare file name
-      // Always use .png extension since we converted it
-      const fileName = `avatars/${userId}.png`
+      // 2. Size Validation
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      if (file.size > maxSize) {
+        throw new Error(
+          'A imagem excede o limite de 5MB. Tente uma imagem menor.',
+        )
+      }
 
-      // 5. Upload to Supabase Storage
+      // 3. Determine extension
+      // Try to get extension from filename first, then fallback to mime type logic
+      let extension = file.name.split('.').pop()?.toLowerCase()
+
+      const validExtensions = ['jpg', 'jpeg', 'png', 'webp']
+
+      if (!extension || !validExtensions.includes(extension)) {
+        // Fallback mapping based on mime type
+        if (file.type === 'image/jpeg') extension = 'jpg'
+        else if (file.type === 'image/png') extension = 'png'
+        else if (file.type === 'image/webp') extension = 'webp'
+        else extension = 'png' // Default to png if unknown but starts with image/
+      }
+
+      // Ensure we have a valid extension for the filename
+      const fileName = `avatars/${userId}.${extension}`
+
+      // 4. Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, pngBlob, {
+        .upload(fileName, file, {
           upsert: true,
-          contentType: 'image/png',
+          contentType: file.type,
           cacheControl: '3600',
         })
 
@@ -95,14 +57,14 @@ export const storageService = {
         throw uploadError
       }
 
-      // 6. Get Public URL
+      // 5. Get Public URL
       const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
 
       if (!data?.publicUrl) {
         throw new Error('Não foi possível obter a URL pública da imagem.')
       }
 
-      // Append timestamp to bust cache since the filename is now static
+      // Append timestamp to bust cache since the filename might be reused or replaced
       const publicUrl = `${data.publicUrl}?t=${new Date().getTime()}`
 
       return { url: publicUrl, error: null }

@@ -39,7 +39,7 @@ export function ProfilePhotoUploader({
     if (!file.type.startsWith('image/')) {
       toast.error('Formato inválido', {
         description:
-          'Por favor, selecione um arquivo de imagem (JPG, PNG, etc).',
+          'Por favor, selecione um arquivo de imagem (JPG, PNG, WEBP).',
       })
       return
     }
@@ -54,12 +54,12 @@ export function ProfilePhotoUploader({
     // Mode 1: Immediate Upload (Dashboard / Profile Edit)
     if (userId) {
       setIsLoading(true)
-      const toastId = toast.loading('Processando e enviando foto...', {
-        description: 'Estamos otimizando sua imagem para o perfil.',
+      const toastId = toast.loading('Enviando foto...', {
+        description: 'Fazendo upload da sua nova foto de perfil.',
       })
 
       try {
-        // 1. Upload to Supabase Storage (includes conversion to PNG)
+        // 1. Upload to Supabase Storage (original format)
         const { url, error: uploadError } = await storageService.uploadAvatar(
           userId,
           file,
@@ -162,8 +162,8 @@ export function ProfilePhotoUploader({
         <div className="space-y-1 text-center md:text-left">
           <Label className="text-lg font-semibold">Foto de Perfil</Label>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Escolha uma foto profissional e acolhedora. A imagem será otimizada
-            automaticamente para o melhor formato.
+            Escolha uma foto profissional e acolhedora. Suportamos JPG, PNG e
+            WEBP.
           </p>
         </div>
 
@@ -172,7 +172,7 @@ export function ProfilePhotoUploader({
           type="file"
           ref={fileInputRef}
           className="hidden"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/jpg"
           onChange={handleFileSelect}
         />
       </div>
