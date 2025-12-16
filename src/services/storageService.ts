@@ -20,10 +20,9 @@ export const storageService = {
         throw new Error('A imagem deve ter no máximo 5MB.')
       }
 
-      // 2. Prepare unique file name
-      // Construct path: userId/timestamp.extension
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${userId}/${Date.now()}.${fileExt}`
+      // 2. Prepare file name
+      // Using fixed path: avatars/{user.id}.png as per requirements
+      const fileName = `avatars/${userId}.png`
 
       // 3. Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -44,7 +43,10 @@ export const storageService = {
         throw new Error('Não foi possível obter a URL pública da imagem.')
       }
 
-      return { url: data.publicUrl, error: null }
+      // Append timestamp to bust cache since the filename is now static
+      const publicUrl = `${data.publicUrl}?t=${new Date().getTime()}`
+
+      return { url: publicUrl, error: null }
     } catch (error: any) {
       console.error('Storage Service Error:', error)
       return { url: null, error }
