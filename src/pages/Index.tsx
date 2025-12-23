@@ -19,6 +19,13 @@ import {
   LifeBuoy,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { profileService } from '@/services/profileService'
 import { Professional } from '@/stores/useProfessionalStore'
 import { ProfessionalCard } from '@/components/ProfessionalCard'
@@ -295,6 +302,44 @@ export default function Index() {
               Entre em contato e dê início à sua jornada de cuidado, escuta e
               transformação.
             </p>
+
+            <Card className="w-full max-w-[340px] bg-background/60 backdrop-blur-md border-primary/20 shadow-md animate-fade-in-up">
+              <CardHeader className="pb-2 pt-6">
+                <CardTitle className="text-xl font-heading font-medium text-primary">
+                  Valores de consultas
+                </CardTitle>
+                <CardDescription className="text-muted-foreground font-light">
+                  Tempo de consulta 50 a 60 min.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-muted-foreground font-light">
+                      1 sessão
+                    </span>
+                    <span className="font-medium text-primary">R$60,00</span>
+                  </div>
+                  <div className="h-px bg-primary/10 w-full"></div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-muted-foreground font-light">
+                      2 sessões
+                    </span>
+                    <span className="font-medium text-primary">R$110,00</span>
+                  </div>
+                  <div className="h-px bg-primary/10 w-full"></div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-muted-foreground font-light">
+                      4 sessões
+                    </span>
+                    <span className="font-medium text-primary underline decoration-primary/30 underline-offset-4">
+                      R$200,00
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Button
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-12 h-16 text-xl shadow-xl transition-transform hover:scale-105 normal-case"
