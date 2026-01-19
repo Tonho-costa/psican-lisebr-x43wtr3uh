@@ -125,7 +125,7 @@ export function ProfilePhotoUploader({
           ) : (
             <>
               <AvatarImage
-                src={value}
+                src={value || undefined}
                 className="object-cover"
                 alt="Foto de perfil"
               />
