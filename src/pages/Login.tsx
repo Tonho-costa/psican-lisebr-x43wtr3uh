@@ -50,7 +50,25 @@ export default function Login() {
 
       if (error) {
         console.error('Erro de login:', error)
-        toast.error('E-mail ou senha incorretos. Por favor, tente novamente.')
+
+        // Identify "invalid_credentials" error
+        // Supabase returns status 400 and message "Invalid login credentials" usually.
+        // We check specific properties to ensure we catch the right error.
+        const isInvalidCredential =
+          error.message === 'Invalid login credentials' ||
+          (error as any).code === 'invalid_credentials' ||
+          (error as any).status === 400
+
+        if (isInvalidCredential) {
+          toast.error('E-mail ou senha incorretos. Por favor, tente novamente.')
+        } else {
+          toast.error(
+            error.message ||
+              'Ocorreu um erro ao realizar o login. Tente novamente.',
+          )
+        }
+
+        // Clear password and focus it for retry
         setValue('password', '')
         setFocus('password')
       } else {
