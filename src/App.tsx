@@ -4,6 +4,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from './components/Layout'
+import AdminLayout from './components/layouts/AdminLayout'
 import Index from './pages/Index'
 import SearchPage from './pages/Search'
 import Profile from './pages/Profile'
@@ -16,12 +17,11 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-import { AdminRoute } from '@/components/admin/AdminRoute'
-import AdminLayout from '@/components/admin/AdminLayout'
-import AdminDashboard from '@/pages/admin/AdminDashboard'
-import AdminUsers from '@/pages/admin/AdminUsers'
-import AdminTriage from '@/pages/admin/AdminTriage'
-import AdminLogs from '@/pages/admin/AdminLogs'
+
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard'
+import AdminProfiles from './pages/admin/Profiles'
+import AdminTriage from './pages/admin/Triage'
 
 const App = () => (
   <AuthProvider>
@@ -32,7 +32,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" richColors />
         <Routes>
-          {/* Public Layout Routes */}
+          {/* Public & User Routes */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/busca" element={<SearchPage />} />
@@ -49,19 +49,11 @@ const App = () => (
             <Route path="/politica-de-privacidade" element={<Privacy />} />
           </Route>
 
-          {/* Admin Protected Routes */}
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }
-          >
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
-            <Route path="triagem" element={<AdminTriage />} />
-            <Route path="usuarios" element={<AdminUsers />} />
-            <Route path="logs" element={<AdminLogs />} />
+            <Route path="profiles" element={<AdminProfiles />} />
+            <Route path="triage" element={<AdminTriage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

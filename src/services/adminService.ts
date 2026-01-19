@@ -1,296 +1,172 @@
 import { supabase } from '@/lib/supabase/client'
-import { profileService } from './profileService'
+import { Database } from '@/lib/supabase/types'
 import { Professional } from '@/stores/useProfessionalStore'
-import { TriageSubmission } from '@/services/triageService'
 
-export interface AdminStats {
-  totalUsers: number
-  activeUsers: number
-  blockedUsers: number
-  newUsersLast30Days: number
+type TriageSubmission =
+  Database['public']['Tables']['triage_submissions']['Row']
+
+export interface DashboardStats {
+  totalProfiles: number
+  activeProfessionals: number
   pendingTriage: number
-}
-
-export interface AdminLog {
-  id: string
-  admin_id: string
-  action: string
-  target_id: string
-  details: any
-  created_at: string
-  admin_email?: string // Joined field
+  totalUsers: number
 }
 
 export const adminService = {
-  /**
-   * Fetches all users for admin management.
-   */
-  async getAllUsers() {
+  async getDashboardStats(): Promise<DashboardStats> {
+    const { count: totalProfiles } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+
+    const { count: activeProfessionals } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('role', 'professional')
+      .eq('status', 'active') // Assuming 'active' is the status for verified pros
+
+    const { count: pendingTriage } = await supabase
+      .from('triage_submissions')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['pending', 'in_review'])
+
+    const { count: totalUsers } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('role', 'user')
+
+    return {
+      totalProfiles: totalProfiles || 0,
+      activeProfessionals: activeProfessionals || 0,
+      pendingTriage: pendingTriage || 0,
+      totalUsers: totalUsers || 0,
+    }
+  },
+
+  async getAllProfiles() {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('Admin: Error fetching all users', error)
-      return { data: [], error }
-    }
+    if (error) throw error
 
-    const mapped: Professional[] = (data || []).map((row) => ({
+    // Reuse mapping logic (duplicated to avoid circular deps or complex imports, keeping it simple)
+    return data.map((row) => ({
       id: row.id,
       name: row.full_name || '',
       email: row.email || '',
-      role: (row as any).role || 'user',
-      status: (row as any).status || 'pending',
+      role: row.role || 'user',
+      status: row.status || 'pending',
       createdAt: row.created_at,
-      occupation: row.occupation || '',
-      age: row.age || 0,
-      city: row.city || '',
-      state: row.state || '',
-      bio: row.description || '',
-      photoUrl: row.avatar_url || '',
-      serviceTypes: row.service_types || [],
-      specialties: row.specialties || [],
-      education: row.education || [],
-      courses: row.courses || [],
-      availability: row.availability || '',
-      phone: row.phone || '',
-      instagram: row.instagram || undefined,
-      facebook: row.facebook || undefined,
-      isVisible: row.is_visible ?? true,
+      avatarUrl: row.avatar_url,
     }))
-
-    return { data: mapped, error: null }
   },
 
-  /**
-   * Updates user status/role with mandatory justification.
-   */
-  async updateUserStatus(
+  async updateProfileStatus(
     adminId: string,
-    targetUserId: string,
-    updates: { status?: string; role?: string },
-    justification: string,
+    targetId: string,
+    status: string,
+    role: string,
+    reason: string,
   ) {
-    // 1. Update Profile
-    const { data, error } = await profileService.updateProfile(
-      targetUserId,
-      updates,
-    )
+    // Update Profile
+    const { error } = await supabase
+      .from('profiles')
+      .update({ status, role })
+      .eq('id', targetId)
 
-    if (error) return { data: null, error }
+    if (error) throw error
 
-    // 2. Log Action
-    await this.logAction(adminId, 'UPDATE_STATUS', targetUserId, {
-      updates,
-      justification,
+    // Log Action
+    await this.logAdminAction(adminId, 'UPDATE_PROFILE_STATUS', targetId, {
+      status,
+      role,
+      reason,
     })
-
-    // 3. Notify User
-    await this.notifyUser(targetUserId, 'status_update', {
-      status: updates.status,
-      message: justification,
-    })
-
-    return { data, error: null }
   },
 
-  /**
-   * Fetches pending triage submissions.
-   */
-  async getTriageSubmissions(status: string = 'pending') {
-    const { data, error } = await supabase
+  async getTriageSubmissions(statusFilter?: string) {
+    let query = supabase
       .from('triage_submissions')
       .select('*')
-      .eq('status', status)
       .order('created_at', { ascending: false })
 
-    if (error) return { data: [], error }
-    return { data: data as TriageSubmission[], error: null }
-  },
-
-  /**
-   * Approves a triage submission.
-   */
-  async approveTriage(
-    adminId: string,
-    submission: TriageSubmission,
-    justification: string,
-  ) {
-    if (!submission.user_id) {
-      return { error: { message: 'Submission has no linked user.' } }
+    if (statusFilter && statusFilter !== 'all') {
+      query = query.eq('status', statusFilter)
     }
 
-    // 1. Update Submission Status
-    const { error: subError } = await supabase
-      .from('triage_submissions')
-      .update({
-        status: 'approved',
-        processed_at: new Date().toISOString(),
-        processed_by: adminId,
-        admin_notes: justification,
-      })
-      .eq('id', submission.id)
-
-    if (subError) return { error: subError }
-
-    // 2. Update Profile to Approved/Active
-    const { error: profileError } = await profileService.updateProfile(
-      submission.user_id,
-      {
-        status: 'approved',
-        role: 'user', // Ensure they are a regular user/professional
-        // We could also map triage fields to profile here if they differ
-      },
-    )
-
-    if (profileError) return { error: profileError }
-
-    // 3. Log Action
-    await this.logAction(adminId, 'APPROVE_TRIAGE', submission.user_id, {
-      submissionId: submission.id,
-      justification,
-    })
-
-    // 4. Notify User
-    await this.notifyUser(submission.user_id, 'triage_approved', {
-      message: justification,
-    })
-
-    return { error: null }
+    const { data, error } = await query
+    if (error) throw error
+    return data as TriageSubmission[]
   },
 
-  /**
-   * Rejects a triage submission.
-   */
-  async rejectTriage(
+  async processTriage(
     adminId: string,
-    submission: TriageSubmission,
-    justification: string,
+    submissionId: string,
+    action: 'approve' | 'reject' | 'request_changes',
+    notes: string,
+    targetUserId?: string,
   ) {
-    // 1. Update Submission Status
-    const { error: subError } = await supabase
+    let newStatus = 'pending'
+    if (action === 'approve') newStatus = 'approved'
+    if (action === 'reject') newStatus = 'rejected'
+    if (action === 'request_changes') newStatus = 'changes_requested'
+
+    // 1. Update Triage Submission
+    const { error: triageError } = await supabase
       .from('triage_submissions')
       .update({
-        status: 'rejected',
+        status: newStatus,
+        admin_notes: notes,
         processed_at: new Date().toISOString(),
         processed_by: adminId,
-        admin_notes: justification,
       })
-      .eq('id', submission.id)
+      .eq('id', submissionId)
 
-    if (subError) return { error: subError }
+    if (triageError) throw triageError
 
-    // 2. Update Profile to Rejected (if user exists)
-    if (submission.user_id) {
-      await profileService.updateProfile(submission.user_id, {
-        status: 'rejected',
-      })
+    // 2. If Approved, Update Profile
+    if (action === 'approve' && targetUserId) {
+      await supabase
+        .from('profiles')
+        .update({ role: 'professional', status: 'verified' }) // Using 'verified' as active status
+        .eq('id', targetUserId)
     }
 
     // 3. Log Action
-    await this.logAction(
+    await this.logAdminAction(
       adminId,
-      'REJECT_TRIAGE',
-      submission.user_id || 'unknown',
+      `TRIAGE_${action.toUpperCase()}`,
+      submissionId,
       {
-        submissionId: submission.id,
-        justification,
+        notes,
+        targetUserId,
       },
     )
 
     // 4. Notify User
-    if (submission.user_id) {
-      await this.notifyUser(submission.user_id, 'triage_rejected', {
-        message: justification,
+    if (targetUserId) {
+      await supabase.functions.invoke('notify-user', {
+        body: {
+          userId: targetUserId,
+          type: `TRIAGE_${action.toUpperCase()}`,
+          message: notes,
+        },
       })
     }
-
-    return { error: null }
   },
 
-  /**
-   * Fetches audit logs.
-   */
-  async getLogs() {
-    const { data, error } = await supabase
-      .from('admin_logs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100)
-
-    if (error) return { data: [], error }
-    return { data: data as AdminLog[], error: null }
-  },
-
-  /**
-   * Logs an administrative action.
-   */
-  async logAction(
+  async logAdminAction(
     adminId: string,
     action: string,
     targetId: string,
     details: any,
   ) {
-    const { error } = await supabase.from('admin_logs').insert({
+    await supabase.from('admin_logs').insert({
       admin_id: adminId,
       action,
       target_id: targetId,
       details,
     })
-    if (error) console.error('Admin: Error logging action', error)
-  },
-
-  /**
-   * Triggers the notify-user edge function.
-   */
-  async notifyUser(userId: string, type: string, payload: any) {
-    try {
-      await supabase.functions.invoke('notify-user', {
-        body: { userId, type, payload },
-      })
-    } catch (e) {
-      console.error('Failed to notify user', e)
-    }
-  },
-
-  /**
-   * Get dashboard statistics.
-   */
-  async getStats(): Promise<{ data: AdminStats | null; error: any }> {
-    const { data: profiles, error } = await supabase
-      .from('profiles')
-      .select('status, created_at')
-
-    if (error) return { data: null, error }
-
-    const { count: pendingTriage } = await supabase
-      .from('triage_submissions')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
-
-    const totalUsers = profiles.length
-    const activeUsers = profiles.filter(
-      (p: any) => p.status === 'approved' || p.status === 'active',
-    ).length
-    const blockedUsers = profiles.filter(
-      (p: any) => p.status === 'blocked',
-    ).length
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    const newUsersLast30Days = profiles.filter(
-      (p) => new Date(p.created_at) >= thirtyDaysAgo,
-    ).length
-
-    return {
-      data: {
-        totalUsers,
-        activeUsers,
-        blockedUsers,
-        newUsersLast30Days,
-        pendingTriage: pendingTriage || 0,
-      },
-      error: null,
-    }
   },
 }

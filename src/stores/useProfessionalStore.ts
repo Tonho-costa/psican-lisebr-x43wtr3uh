@@ -21,9 +21,9 @@ export interface Professional {
   instagram?: string
   facebook?: string
   isVisible: boolean
-  role: 'admin' | 'moderator' | 'user'
-  status: 'active' | 'suspended' | 'blocked'
-  createdAt?: string
+  role: string
+  status: string
+  createdAt: string
 }
 
 interface ProfessionalState {
@@ -41,7 +41,7 @@ interface ProfessionalState {
   setProfessionals: (pros: Professional[]) => void
   setCurrentProfessional: (pro: Professional | null) => void
   fetchProfessionals: () => Promise<void>
-  fetchCurrentProfile: (userId: string) => Promise<Professional | null>
+  fetchCurrentProfile: (userId: string) => Promise<void>
   updateProfile: (
     userId: string,
     data: Partial<Professional>,
@@ -90,11 +90,9 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
         isAuthenticated: true,
         isLoading: false,
       })
-      return data
     } else {
       console.error('Failed to fetch current profile:', error)
       set({ isLoading: false })
-      return null
     }
   },
 
