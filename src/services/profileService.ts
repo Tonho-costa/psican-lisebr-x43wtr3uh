@@ -138,6 +138,22 @@ export const profileService = {
   },
 
   /**
+   * Fetches all profiles for admin dashboard (unfiltered).
+   */
+  async getAdminProfiles() {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching admin profiles:', error)
+      return { data: null, error }
+    }
+    return { data: (data || []).map(mapToProfessional), error: null }
+  },
+
+  /**
    * Searches/Filters profiles.
    */
   async searchProfiles(_filters?: any) {

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Table,
   TableBody,
@@ -15,150 +14,149 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { adminService, Profile } from '@/services/adminService'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Loader2,
+  MoreHorizontal,
+  Search,
+  CheckCircle2,
+  XCircle,
+  Shield,
+  ExternalLink,
+} from 'lucide-react'
+import { profileService } from '@/services/profileService'
+import { Professional } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
-import { Loader2, Check, X, Ban, Eye } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Link } from 'react-router-dom'
 
 export default function AdminProfessionals() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const statusFilter = searchParams.get('status') || 'all'
-
-  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [professionals, setProfessionals] = useState<Professional[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [rejectId, setRejectId] = useState<string | null>(null)
-  const [rejectReason, setRejectReason] = useState('')
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async () => {
     setIsLoading(true)
-    const { data, error } = await adminService.getProfiles(statusFilter)
-    if (!error && data) {
-      setProfiles(data)
-    } else {
+    try {
+      const { data, error } = await profileService.getAdminProfiles()
+      if (error) {
+        throw error
+      }
+      if (data) {
+        setProfessionals(data)
+      }
+    } catch (error) {
+      console.error('Error fetching professionals:', error)
       toast.error('Erro ao carregar profissionais')
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
-  }
+  }, [])
 
   useEffect(() => {
     fetchProfiles()
-  }, [statusFilter])
+  }, [fetchProfiles])
 
-  const handleStatusFilterChange = (value: string) => {
-    setSearchParams({ status: value })
-  }
+  const handleToggleVisibility = async (professional: Professional) => {
+    try {
+      const { data, error } = await profileService.updateProfile(
+        professional.id,
+        {
+          isVisible: !professional.isVisible,
+        },
+      )
 
-  const handleApprove = async (id: string) => {
-    if (!confirm('Tem certeza que deseja aprovar este profissional?')) return
+      if (error) throw error
 
-    setIsProcessing(true)
-    const { error } = await adminService.approveProfessional(id)
-    setIsProcessing(false)
-
-    if (error) {
-      toast.error('Erro ao aprovar: ' + error.message)
-    } else {
-      toast.success('Profissional aprovado com sucesso!')
-      fetchProfiles()
-    }
-  }
-
-  const handleBlock = async (id: string) => {
-    if (!confirm('Tem certeza que deseja bloquear este usuário?')) return
-
-    setIsProcessing(true)
-    const { error } = await adminService.blockUser(id)
-    setIsProcessing(false)
-
-    if (error) {
-      toast.error('Erro ao bloquear: ' + error.message)
-    } else {
-      toast.success('Usuário bloqueado com sucesso!')
-      fetchProfiles()
-    }
-  }
-
-  const handleRejectSubmit = async () => {
-    if (!rejectId || !rejectReason.trim()) return
-
-    setIsProcessing(true)
-    const { error } = await adminService.rejectProfessional(
-      rejectId,
-      rejectReason,
-    )
-    setIsProcessing(false)
-
-    if (error) {
-      toast.error('Erro ao reprovar: ' + error.message)
-    } else {
-      toast.success('Profissional reprovado.')
-      setRejectId(null)
-      setRejectReason('')
-      fetchProfiles()
-    }
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return <Badge className="bg-green-600 hover:bg-green-700">Ativo</Badge>
-      case 'analise':
-        return (
-          <Badge className="bg-yellow-600 hover:bg-yellow-700">
-            Em Análise
-          </Badge>
+      if (data) {
+        setProfessionals((prev) =>
+          prev.map((p) => (p.id === data.id ? data : p)),
         )
-      case 'reprovado':
-        return <Badge variant="destructive">Reprovado</Badge>
-      case 'bloqueado':
-        return <Badge variant="secondary">Bloqueado</Badge>
-      default:
-        return <Badge variant="outline">{status || 'Pendente'}</Badge>
+        toast.success(
+          `Perfil ${data.isVisible ? 'visível' : 'oculto'} com sucesso`,
+        )
+      }
+    } catch (error) {
+      console.error('Error toggling visibility:', error)
+      toast.error('Erro ao atualizar visibilidade')
     }
   }
+
+  const filteredProfessionals = professionals.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.email.toLowerCase().includes(search.toLowerCase())
+
+    if (!matchesSearch) return false
+
+    if (statusFilter === 'visible') return p.isVisible
+    if (statusFilter === 'hidden') return !p.isVisible
+    if (statusFilter === 'admin') return p.role === 'admin'
+
+    return true
+  })
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-heading font-bold">
-          Gestão de Profissionais
-        </h1>
-        <div className="w-full sm:w-64">
-          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrar por status" />
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Usuários</h2>
+          <p className="text-muted-foreground mt-1">
+            Gerencie todos os usuários cadastrados na plataforma.
+          </p>
+        </div>
+        <Button onClick={fetchProfiles} variant="outline" size="sm">
+          Atualizar Lista
+        </Button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        <div className="w-full sm:w-auto flex items-center gap-2">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            Filtrar por:
+          </span>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="analise">Em Análise</SelectItem>
-              <SelectItem value="ativo">Ativos</SelectItem>
-              <SelectItem value="reprovado">Reprovados</SelectItem>
-              <SelectItem value="bloqueado">Bloqueados</SelectItem>
+              <SelectItem value="visible">Visíveis</SelectItem>
+              <SelectItem value="hidden">Ocultos</SelectItem>
+              <SelectItem value="admin">Administradores</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      <div className="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+      <div className="bg-card rounded-md border shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">Foto</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>CRP</TableHead>
+              <TableHead>Função</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -166,94 +164,102 @@ export default function AdminProfessionals() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  <div className="flex justify-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <TableCell colSpan={6} className="h-24 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Carregando dados...
                   </div>
                 </TableCell>
               </TableRow>
-            ) : profiles.length === 0 ? (
+            ) : filteredProfessionals.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  Nenhum profissional encontrado.
+                <TableCell colSpan={6} className="h-24 text-center">
+                  Nenhum usuário encontrado.
                 </TableCell>
               </TableRow>
             ) : (
-              profiles.map((profile) => (
-                <TableRow key={profile.id}>
-                  <TableCell className="font-medium">
+              filteredProfessionals.map((pro) => (
+                <TableRow key={pro.id}>
+                  <TableCell>
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={pro.photoUrl} alt={pro.name} />
+                      <AvatarFallback>
+                        {pro.name?.[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-col">
-                      <span>{profile.full_name}</span>
-                      <span className="text-xs text-muted-foreground sm:hidden">
-                        {profile.email}
+                      <span className="font-medium">{pro.name}</span>
+                      <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                        {pro.occupation}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    {profile.email}
-                  </TableCell>
-                  <TableCell>{profile.crp_status || '-'}</TableCell>
+                  <TableCell className="text-sm">{pro.email}</TableCell>
                   <TableCell>
-                    {getStatusBadge(profile.status || 'pendente')}
+                    {pro.role === 'admin' ? (
+                      <Badge
+                        variant="default"
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Shield className="w-3 h-3 mr-1" /> Admin
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">Usuário</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {pro.isVisible ? (
+                      <Badge
+                        variant="outline"
+                        className="text-green-600 border-green-200 bg-green-50"
+                      >
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Visível
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="text-amber-600 border-amber-200 bg-amber-50"
+                      >
+                        <XCircle className="w-3 h-3 mr-1" /> Oculto
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Ver Detalhes"
-                        asChild
-                      >
-                        <a
-                          href={`/perfil/${profile.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </a>
-                      </Button>
-
-                      {profile.status === 'analise' && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={() => handleApprove(profile.id)}
-                            disabled={isProcessing}
-                            title="Aprovar"
-                          >
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => setRejectId(profile.id)}
-                            disabled={isProcessing}
-                            title="Reprovar"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-
-                      {profile.status === 'ativo' && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => handleBlock(profile.id)}
-                          disabled={isProcessing}
-                          title="Bloquear"
-                        >
-                          <Ban className="w-4 h-4" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem asChild>
+                          <Link to={`/perfil/${pro.id}`} target="_blank">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Ver Perfil Público
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleToggleVisibility(pro)}
+                        >
+                          {pro.isVisible ? (
+                            <>
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Ocultar Perfil
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="mr-2 h-4 w-4" />
+                              Publicar Perfil
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
@@ -261,51 +267,10 @@ export default function AdminProfessionals() {
           </TableBody>
         </Table>
       </div>
-
-      <Dialog
-        open={!!rejectId}
-        onOpenChange={(open) => !open && setRejectId(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reprovar Profissional</DialogTitle>
-            <DialogDescription>
-              Por favor, informe o motivo da reprovação. Isso será registrado
-              nos logs.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="reason">Motivo</Label>
-              <Textarea
-                id="reason"
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Ex: Documentação incompleta..."
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRejectId(null)}
-              disabled={isProcessing}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRejectSubmit}
-              disabled={isProcessing || !rejectReason.trim()}
-            >
-              {isProcessing && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              )}
-              Confirmar Reprovação
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <div className="text-xs text-muted-foreground text-center">
+        Mostrando {filteredProfessionals.length} de {professionals.length}{' '}
+        usuários
+      </div>
     </div>
   )
 }

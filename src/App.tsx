@@ -19,6 +19,7 @@ import ResetPassword from './pages/ResetPassword'
 import { AdminRoute } from '@/components/AdminRoute'
 import { AdminLayout } from '@/components/AdminLayout'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
+import AdminProfessionals from '@/pages/admin/AdminProfessionals'
 
 const App = () => (
   <AuthProvider>
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/admin" element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="usuarios" element={<AdminProfessionals />} />
               {/* Future admin routes can be added here */}
               <Route path="*" element={<NotFound />} />
             </Route>
