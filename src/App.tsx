@@ -20,6 +20,8 @@ import { AdminRoute } from '@/components/admin/AdminRoute'
 import AdminLayout from '@/components/admin/AdminLayout'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
 import AdminUsers from '@/pages/admin/AdminUsers'
+import AdminTriage from '@/pages/admin/AdminTriage'
+import AdminLogs from '@/pages/admin/AdminLogs'
 
 const App = () => (
   <AuthProvider>
@@ -57,7 +59,9 @@ const App = () => (
             }
           >
             <Route index element={<AdminDashboard />} />
+            <Route path="triagem" element={<AdminTriage />} />
             <Route path="usuarios" element={<AdminUsers />} />
+            <Route path="logs" element={<AdminLogs />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

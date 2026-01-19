@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -33,9 +33,12 @@ import {
 } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { triageService } from '@/services/triageService'
+import { useAuth } from '@/hooks/use-auth'
 
 const formSchema = z
   .object({
+    email: z.string().email('Email inválido'),
+    password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
     fullName: z.string().min(3, 'Nome completo é obrigatório'),
     phone: z.string().min(5, 'Telefone/WhatsApp é obrigatório'),
     profileUrl: z.string().optional(),
@@ -90,9 +93,14 @@ type FormValues = z.infer<typeof formSchema>
 
 export default function Register() {
   const [isSuccess, setIsSuccess] = useState(false)
+  const { signUp, user } = useAuth()
+  const navigate = useNavigate()
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      email: '',
+      password: '',
       fullName: '',
       phone: '',
       profileUrl: '',
@@ -112,6 +120,28 @@ export default function Register() {
 
   const onSubmit = async (data: FormValues) => {
     try {
+      let userId = user?.id
+
+      // If user is not logged in, sign up first
+      if (!userId) {
+        const { data: authData, error: authError } = await signUp(
+          data.email,
+          data.password,
+          {
+            full_name: data.fullName,
+          },
+        )
+
+        if (authError) {
+          toast.error('Erro ao criar conta: ' + authError.message)
+          return
+        }
+
+        if (authData?.user) {
+          userId = authData.user.id
+        }
+      }
+
       const finalEducation =
         data.education === 'Outra' ? data.educationOther! : data.education
       const finalApproach =
@@ -119,6 +149,7 @@ export default function Register() {
 
       const submissionData = {
         full_name: data.fullName,
+        email: data.email,
         phone: data.phone,
         profile_url: data.profileUrl,
         service_mode: data.serviceMode,
@@ -130,6 +161,8 @@ export default function Register() {
         accepts_social_value: data.socialValue === 'Sim',
         agrees_to_ethics: data.ethicsAgreement === 'Sim',
         agrees_to_terms: data.termsAgreement,
+        user_id: userId,
+        status: 'pending',
       }
 
       const { error } = await triageService.submitTriage(submissionData)
@@ -158,18 +191,17 @@ export default function Register() {
               Cadastro Recebido!
             </CardTitle>
             <CardDescription className="text-xl text-foreground/80 max-w-lg mx-auto leading-relaxed">
-              Agradecemos seu interesse. Os cadastros serão analisados e
-              entraremos em contato caso haja compatibilidade com a proposta da
-              Rede EscutaPsi.
+              Sua conta foi criada e seus dados de triagem enviados. Nossa
+              equipe analisará seu perfil e você será notificado em breve.
             </CardDescription>
           </CardHeader>
           <CardContent className="pb-12">
             <Button
-              asChild
+              onClick={() => navigate('/entrar')}
               className="mt-6 rounded-full px-8"
               variant="outline"
             >
-              <Link to="/">Voltar para a página inicial</Link>
+              Ir para o Login
             </Button>
           </CardContent>
         </Card>
@@ -182,19 +214,60 @@ export default function Register() {
       <Card className="border-border shadow-md">
         <CardHeader className="space-y-4 text-center pb-8 border-b">
           <CardTitle className="text-3xl font-heading font-bold text-primary">
-            Cadastro de Triagem – Rede EscutaPsi
+            Cadastro Profissional
           </CardTitle>
           <CardDescription className="text-base max-w-2xl mx-auto">
-            Este formulário tem como finalidade realizar a triagem inicial de
-            profissionais interessados em integrar a Rede EscutaPsi. As
-            informações serão analisadas internamente e não garantem ingresso
-            automático na rede.
+            Crie sua conta e preencha a triagem para integrar a Rede EscutaPsi.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="pt-8">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              {!user && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-primary border-b pb-2">
+                    Dados de Acesso
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="seu@email.com"
+                              type="email"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Senha</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="******"
+                              type="password"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Personal Info */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-primary border-b pb-2">
@@ -206,7 +279,7 @@ export default function Register() {
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>1. Nome completo</FormLabel>
+                      <FormLabel>Nome completo</FormLabel>
                       <FormControl>
                         <Input placeholder="Seu nome completo" {...field} />
                       </FormControl>
@@ -220,7 +293,7 @@ export default function Register() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>2. Telefone / WhatsApp</FormLabel>
+                      <FormLabel>Telefone / WhatsApp</FormLabel>
                       <FormControl>
                         <Input placeholder="(DDD) 99999-9999" {...field} />
                       </FormControl>
@@ -235,7 +308,7 @@ export default function Register() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        3. Perfil profissional{' '}
+                        Perfil profissional{' '}
                         <span className="text-muted-foreground font-normal">
                           (Opcional)
                         </span>
@@ -263,7 +336,7 @@ export default function Register() {
                   name="serviceMode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>4. Modalidade de atendimento</FormLabel>
+                      <FormLabel>Modalidade de atendimento</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -306,7 +379,7 @@ export default function Register() {
                   name="education"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>5. Formação</FormLabel>
+                      <FormLabel>Formação</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -361,9 +434,7 @@ export default function Register() {
                   name="crpStatus"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        6. Possui registro profissional (CRP)?
-                      </FormLabel>
+                      <FormLabel>Possui registro profissional (CRP)?</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -406,7 +477,7 @@ export default function Register() {
                   name="approach"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>7. Abordagem teórica principal</FormLabel>
+                      <FormLabel>Abordagem teórica principal</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -458,7 +529,7 @@ export default function Register() {
                   name="experience"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>8. Tempo de experiência clínica</FormLabel>
+                      <FormLabel>Tempo de experiência clínica</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -489,7 +560,7 @@ export default function Register() {
                   name="availability"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>9. Disponibilidade média semanal</FormLabel>
+                      <FormLabel>Disponibilidade média semanal</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -522,7 +593,7 @@ export default function Register() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        10. Está disposto(a) a praticar valor social por sessão?
+                        Está disposto(a) a praticar valor social por sessão?
                       </FormLabel>
                       <FormControl>
                         <RadioGroup
@@ -566,8 +637,8 @@ export default function Register() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        11. Você concorda com os princípios éticos e com os
-                        fluxos de atendimento?
+                        Você concorda com os princípios éticos e com os fluxos
+                        de atendimento?
                       </FormLabel>
                       <FormControl>
                         <RadioGroup
@@ -611,8 +682,8 @@ export default function Register() {
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          12. Declaro que li e estou de acordo com o Termo de
-                          Adesão à Rede EscutaPsi
+                          Declaro que li e estou de acordo com o Termo de Adesão
+                          à Rede EscutaPsi
                         </FormLabel>
                         <FormDescription>
                           <Link
@@ -640,10 +711,10 @@ export default function Register() {
                   {form.formState.isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Enviando...
+                      Processando...
                     </>
                   ) : (
-                    'Enviar Cadastro'
+                    'Criar Conta e Enviar Cadastro'
                   )}
                 </Button>
               </div>

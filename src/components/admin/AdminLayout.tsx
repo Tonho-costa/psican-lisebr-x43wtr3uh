@@ -7,6 +7,8 @@ import {
   Menu,
   X,
   ShieldCheck,
+  ClipboardList,
+  ScrollText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
@@ -30,9 +32,19 @@ export default function AdminLayout() {
       icon: <LayoutDashboard className="w-5 h-5" />,
     },
     {
+      label: 'Triagem',
+      href: '/admin/triagem',
+      icon: <ClipboardList className="w-5 h-5" />,
+    },
+    {
       label: 'Usuários',
       href: '/admin/usuarios',
       icon: <Users className="w-5 h-5" />,
+    },
+    {
+      label: 'Logs de Auditoria',
+      href: '/admin/logs',
+      icon: <ScrollText className="w-5 h-5" />,
     },
   ]
 
@@ -72,10 +84,7 @@ export default function AdminLayout() {
 
           <div className="flex-1 py-6 px-4 space-y-2">
             {navItems.map((item) => {
-              const isActive =
-                location.pathname === item.href ||
-                (item.href !== '/admin' &&
-                  location.pathname.startsWith(item.href))
+              const isActive = location.pathname === item.href
               return (
                 <Link
                   key={item.href}

@@ -7,6 +7,8 @@ import {
   ShieldAlert,
   Shield,
   User,
+  Power,
+  Ban,
 } from 'lucide-react'
 import {
   Table,
@@ -34,26 +36,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { useAdminStore } from '@/stores/useAdminStore'
 import {
   useProfessionalStore,
   Professional,
 } from '@/stores/useProfessionalStore'
 import { UserEditSheet } from '@/components/admin/UserEditSheet'
+import { StatusChangeDialog } from '@/components/admin/StatusChangeDialog'
 import { toast } from 'sonner'
 
 export default function AdminUsers() {
-  const { users, fetchUsers, isLoading, deleteUser } = useAdminStore()
+  const { users, fetchUsers, isLoading, updateUserStatus } = useAdminStore()
   const { currentProfessional } = useProfessionalStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
@@ -63,9 +56,12 @@ export default function AdminUsers() {
   const [editingUser, setEditingUser] = useState<Professional | null>(null)
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
 
-  // Delete State
-  const [deletingUser, setDeletingUser] = useState<Professional | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  // Status Change State
+  const [targetUser, setTargetUser] = useState<Professional | null>(null)
+  const [statusAction, setStatusAction] = useState<
+    'activate' | 'suspend' | 'block' | null
+  >(null)
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -90,22 +86,38 @@ export default function AdminUsers() {
     setIsEditSheetOpen(true)
   }
 
-  const handleDeleteClick = (user: Professional) => {
-    setDeletingUser(user)
-    setIsDeleteDialogOpen(true)
+  const handleStatusChange = (
+    user: Professional,
+    action: 'activate' | 'suspend' | 'block',
+  ) => {
+    setTargetUser(user)
+    setStatusAction(action)
+    setIsStatusDialogOpen(true)
   }
 
-  const handleConfirmDelete = async () => {
-    if (!deletingUser || !currentProfessional) return
+  const confirmStatusChange = async (justification: string) => {
+    if (!targetUser || !currentProfessional || !statusAction) return
 
-    const success = await deleteUser(currentProfessional.id, deletingUser.id)
+    let newStatus = ''
+    if (statusAction === 'activate') newStatus = 'approved'
+    if (statusAction === 'suspend') newStatus = 'suspended'
+    if (statusAction === 'block') newStatus = 'blocked'
+
+    const success = await updateUserStatus(
+      currentProfessional.id,
+      targetUser.id,
+      { status: newStatus },
+      justification,
+    )
+
     if (success) {
-      toast.success('Usuário removido com sucesso')
+      toast.success(`Status alterado para ${newStatus}`)
+      setIsStatusDialogOpen(false)
+      setTargetUser(null)
+      setStatusAction(null)
     } else {
-      toast.error('Erro ao remover usuário')
+      toast.error('Erro ao alterar status')
     }
-    setIsDeleteDialogOpen(false)
-    setDeletingUser(null)
   }
 
   const getRoleBadge = (role: string) => {
@@ -124,13 +136,25 @@ export default function AdminUsers() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-600 hover:bg-green-700">Ativo</Badge>
+      case 'approved':
+        return (
+          <Badge className="bg-green-600 hover:bg-green-700">Aprovado</Badge>
+        )
       case 'suspended':
         return (
           <Badge className="bg-yellow-600 hover:bg-yellow-700">Suspenso</Badge>
         )
       case 'blocked':
         return <Badge variant="destructive">Bloqueado</Badge>
+      case 'pending':
+        return (
+          <Badge
+            variant="outline"
+            className="text-orange-500 border-orange-500"
+          >
+            Em Análise
+          </Badge>
+        )
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -140,10 +164,10 @@ export default function AdminUsers() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-heading font-bold text-foreground">
-          Gerenciamento de Usuários
+          Gestão de Usuários
         </h1>
         <p className="text-muted-foreground">
-          Visualize, edite e gerencie o acesso de todos os usuários.
+          Governança completa de perfis e acessos.
         </p>
       </div>
 
@@ -175,7 +199,8 @@ export default function AdminUsers() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos Status</SelectItem>
-              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="approved">Aprovado</SelectItem>
+              <SelectItem value="pending">Em Análise</SelectItem>
               <SelectItem value="suspended">Suspenso</SelectItem>
               <SelectItem value="blocked">Bloqueado</SelectItem>
             </SelectContent>
@@ -209,7 +234,7 @@ export default function AdminUsers() {
                   colSpan={5}
                   className="text-center py-10 text-muted-foreground"
                 >
-                  Nenhum usuário encontrado com os filtros atuais.
+                  Nenhum usuário encontrado.
                 </TableCell>
               </TableRow>
             ) : (
@@ -242,16 +267,37 @@ export default function AdminUsers() {
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleEdit(user)}>
                           <Pencil className="mr-2 h-4 w-4" />
-                          Editar
+                          Detalhes / Editar
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => handleDeleteClick(user)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
+                        {user.status !== 'approved' &&
+                          user.status !== 'active' && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleStatusChange(user, 'activate')
+                              }
+                            >
+                              <Power className="mr-2 h-4 w-4 text-green-600" />
+                              Aprovar / Ativar
+                            </DropdownMenuItem>
+                          )}
+                        {user.status !== 'suspended' && (
+                          <DropdownMenuItem
+                            onClick={() => handleStatusChange(user, 'suspend')}
+                          >
+                            <ShieldAlert className="mr-2 h-4 w-4 text-yellow-600" />
+                            Suspender
+                          </DropdownMenuItem>
+                        )}
+                        {user.status !== 'blocked' && (
+                          <DropdownMenuItem
+                            onClick={() => handleStatusChange(user, 'block')}
+                            className="text-destructive"
+                          >
+                            <Ban className="mr-2 h-4 w-4" />
+                            Bloquear
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -268,33 +314,15 @@ export default function AdminUsers() {
         onOpenChange={setIsEditSheetOpen}
       />
 
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente a
-              conta de{' '}
-              <span className="font-bold text-foreground">
-                {deletingUser?.name}
-              </span>{' '}
-              e removerá todos os seus dados de nossos servidores.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Confirmar Exclusão
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <StatusChangeDialog
+        isOpen={isStatusDialogOpen}
+        onClose={() => setIsStatusDialogOpen(false)}
+        onConfirm={confirmStatusChange}
+        isLoading={isLoading}
+        title={`Alterar Status para ${statusAction?.toUpperCase()}`}
+        description={`Você está prestes a alterar o status de ${targetUser?.name}. Esta ação requer uma justificativa obrigatória.`}
+        actionLabel="Confirmar Alteração"
+      />
     </div>
   )
 }

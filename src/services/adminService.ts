@@ -1,17 +1,29 @@
 import { supabase } from '@/lib/supabase/client'
 import { profileService } from './profileService'
 import { Professional } from '@/stores/useProfessionalStore'
+import { TriageSubmission } from '@/services/triageService'
 
 export interface AdminStats {
   totalUsers: number
   activeUsers: number
   blockedUsers: number
   newUsersLast30Days: number
+  pendingTriage: number
+}
+
+export interface AdminLog {
+  id: string
+  admin_id: string
+  action: string
+  target_id: string
+  details: any
+  created_at: string
+  admin_email?: string // Joined field
 }
 
 export const adminService = {
   /**
-   * Fetches all users for admin management (includes non-visible and non-active).
+   * Fetches all users for admin management.
    */
   async getAllUsers() {
     const { data, error } = await supabase
@@ -24,48 +36,41 @@ export const adminService = {
       return { data: [], error }
     }
 
-    // Reuse mapper from profileService but we know it returns extended Professional
-    // We need to access private method or duplicate logic?
-    // Let's just use the public getProfile logic but mapped here or modify profileService.
-    // Ideally we duplicate the map logic slightly or export it. For now, we manually map to Professional.
-    // However, profileService.getAllProfiles maps it correctly including role/status now.
-    // So we can assume the data structure is correct, we just needed the query without 'is_visible'.
-
-    // @ts-expect-error accessing mapped data
     const mapped: Professional[] = (data || []).map((row) => ({
       id: row.id,
       name: row.full_name || '',
       email: row.email || '',
       role: (row as any).role || 'user',
-      status: (row as any).status || 'active',
+      status: (row as any).status || 'pending',
       createdAt: row.created_at,
       occupation: row.occupation || '',
-      age: row.age,
-      city: row.city,
-      state: row.state,
-      bio: row.description,
-      photoUrl: row.avatar_url,
+      age: row.age || 0,
+      city: row.city || '',
+      state: row.state || '',
+      bio: row.description || '',
+      photoUrl: row.avatar_url || '',
       serviceTypes: row.service_types || [],
       specialties: row.specialties || [],
       education: row.education || [],
       courses: row.courses || [],
-      availability: row.availability,
-      phone: row.phone,
-      instagram: row.instagram,
-      facebook: row.facebook,
-      isVisible: row.is_visible,
+      availability: row.availability || '',
+      phone: row.phone || '',
+      instagram: row.instagram || undefined,
+      facebook: row.facebook || undefined,
+      isVisible: row.is_visible ?? true,
     }))
 
     return { data: mapped, error: null }
   },
 
   /**
-   * Updates user role, status or other details as admin.
+   * Updates user status/role with mandatory justification.
    */
-  async updateUserAsAdmin(
+  async updateUserStatus(
     adminId: string,
     targetUserId: string,
-    updates: Partial<Professional>,
+    updates: { status?: string; role?: string },
+    justification: string,
   ) {
     // 1. Update Profile
     const { data, error } = await profileService.updateProfile(
@@ -76,44 +81,146 @@ export const adminService = {
     if (error) return { data: null, error }
 
     // 2. Log Action
-    await this.logAction(
-      adminId,
-      'UPDATE_USER',
-      targetUserId,
-      updates as unknown as Record<string, any>,
-    )
+    await this.logAction(adminId, 'UPDATE_STATUS', targetUserId, {
+      updates,
+      justification,
+    })
+
+    // 3. Notify User
+    await this.notifyUser(targetUserId, 'status_update', {
+      status: updates.status,
+      message: justification,
+    })
 
     return { data, error: null }
   },
 
   /**
-   * Deletes a user as admin.
+   * Fetches pending triage submissions.
    */
-  async deleteUserAsAdmin(adminId: string, targetUserId: string) {
-    // We use the edge function or direct delete if RLS allows (usually deleting auth user is tricky from client)
-    // Assuming we have an edge function or RLS allows delete on profiles which triggers auth delete (unlikely)
-    // Actually, usually admin deletes profile and a trigger deletes auth, or calls an admin-function.
-    // For now, let's use the 'delete-account' function but passed with a target user ID if supported,
-    // OR just soft delete by setting status to 'blocked' if we can't fully delete auth.
-    // The requirement says "Profile Deletion".
-    // Let's assume we implement it by deleting the profile row and letting Supabase handle auth sync if setup,
-    // OR we use the edge function but that might be for "delete MY account".
-    // Let's rely on updating status to 'blocked' or deleting the row from 'profiles' if RLS allows admins.
+  async getTriageSubmissions(status: string = 'pending') {
+    const { data, error } = await supabase
+      .from('triage_submissions')
+      .select('*')
+      .eq('status', status)
+      .order('created_at', { ascending: false })
 
-    // Let's try deleting from profiles.
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', targetUserId)
+    if (error) return { data: [], error }
+    return { data: data as TriageSubmission[], error: null }
+  },
 
-    if (error) {
-      console.error('Admin: Error deleting user', error)
-      return { error }
+  /**
+   * Approves a triage submission.
+   */
+  async approveTriage(
+    adminId: string,
+    submission: TriageSubmission,
+    justification: string,
+  ) {
+    if (!submission.user_id) {
+      return { error: { message: 'Submission has no linked user.' } }
     }
 
-    // Log it
-    await this.logAction(adminId, 'DELETE_USER', targetUserId, {})
+    // 1. Update Submission Status
+    const { error: subError } = await supabase
+      .from('triage_submissions')
+      .update({
+        status: 'approved',
+        processed_at: new Date().toISOString(),
+        processed_by: adminId,
+        admin_notes: justification,
+      })
+      .eq('id', submission.id)
+
+    if (subError) return { error: subError }
+
+    // 2. Update Profile to Approved/Active
+    const { error: profileError } = await profileService.updateProfile(
+      submission.user_id,
+      {
+        status: 'approved',
+        role: 'user', // Ensure they are a regular user/professional
+        // We could also map triage fields to profile here if they differ
+      },
+    )
+
+    if (profileError) return { error: profileError }
+
+    // 3. Log Action
+    await this.logAction(adminId, 'APPROVE_TRIAGE', submission.user_id, {
+      submissionId: submission.id,
+      justification,
+    })
+
+    // 4. Notify User
+    await this.notifyUser(submission.user_id, 'triage_approved', {
+      message: justification,
+    })
+
     return { error: null }
+  },
+
+  /**
+   * Rejects a triage submission.
+   */
+  async rejectTriage(
+    adminId: string,
+    submission: TriageSubmission,
+    justification: string,
+  ) {
+    // 1. Update Submission Status
+    const { error: subError } = await supabase
+      .from('triage_submissions')
+      .update({
+        status: 'rejected',
+        processed_at: new Date().toISOString(),
+        processed_by: adminId,
+        admin_notes: justification,
+      })
+      .eq('id', submission.id)
+
+    if (subError) return { error: subError }
+
+    // 2. Update Profile to Rejected (if user exists)
+    if (submission.user_id) {
+      await profileService.updateProfile(submission.user_id, {
+        status: 'rejected',
+      })
+    }
+
+    // 3. Log Action
+    await this.logAction(
+      adminId,
+      'REJECT_TRIAGE',
+      submission.user_id || 'unknown',
+      {
+        submissionId: submission.id,
+        justification,
+      },
+    )
+
+    // 4. Notify User
+    if (submission.user_id) {
+      await this.notifyUser(submission.user_id, 'triage_rejected', {
+        message: justification,
+      })
+    }
+
+    return { error: null }
+  },
+
+  /**
+   * Fetches audit logs.
+   */
+  async getLogs() {
+    const { data, error } = await supabase
+      .from('admin_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    if (error) return { data: [], error }
+    return { data: data as AdminLog[], error: null }
   },
 
   /**
@@ -122,8 +229,8 @@ export const adminService = {
   async logAction(
     adminId: string,
     action: string,
-    targetId?: string,
-    details?: Record<string, any>,
+    targetId: string,
+    details: any,
   ) {
     const { error } = await supabase.from('admin_logs').insert({
       admin_id: adminId,
@@ -132,6 +239,19 @@ export const adminService = {
       details,
     })
     if (error) console.error('Admin: Error logging action', error)
+  },
+
+  /**
+   * Triggers the notify-user edge function.
+   */
+  async notifyUser(userId: string, type: string, payload: any) {
+    try {
+      await supabase.functions.invoke('notify-user', {
+        body: { userId, type, payload },
+      })
+    } catch (e) {
+      console.error('Failed to notify user', e)
+    }
   },
 
   /**
@@ -144,9 +264,14 @@ export const adminService = {
 
     if (error) return { data: null, error }
 
+    const { count: pendingTriage } = await supabase
+      .from('triage_submissions')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending')
+
     const totalUsers = profiles.length
     const activeUsers = profiles.filter(
-      (p: any) => p.status === 'active',
+      (p: any) => p.status === 'approved' || p.status === 'active',
     ).length
     const blockedUsers = profiles.filter(
       (p: any) => p.status === 'blocked',
@@ -163,6 +288,7 @@ export const adminService = {
         activeUsers,
         blockedUsers,
         newUsersLast30Days,
+        pendingTriage: pendingTriage || 0,
       },
       error: null,
     }
