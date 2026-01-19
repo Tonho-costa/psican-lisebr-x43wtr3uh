@@ -16,13 +16,9 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-
-// Admin Components
-import AdminRoute from '@/components/AdminRoute'
-import AdminLayout from '@/components/AdminLayout'
+import { AdminRoute } from '@/components/AdminRoute'
+import { AdminLayout } from '@/components/AdminLayout'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
-import AdminProfessionals from '@/pages/admin/AdminProfessionals'
-import AdminLogs from '@/pages/admin/AdminLogs'
 
 const App = () => (
   <AuthProvider>
@@ -33,7 +29,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" richColors />
         <Routes>
-          {/* Public Routes */}
+          {/* Public & User Routes */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/busca" element={<SearchPage />} />
@@ -42,8 +38,6 @@ const App = () => (
             <Route path="/cadastro" element={<Register />} />
             <Route path="/recuperar-senha" element={<ForgotPassword />} />
             <Route path="/redefinir-senha" element={<ResetPassword />} />
-
-            {/* Authenticated Professional Routes */}
             <Route path="/painel/perfil" element={<Dashboard />} />
 
             {/* Static Pages */}
@@ -52,18 +46,20 @@ const App = () => (
             <Route path="/politica-de-privacidade" element={<Privacy />} />
           </Route>
 
-          {/* Admin Routes */}
-          <Route element={<AdminRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route
-                path="/admin/profissionais"
-                element={<AdminProfessionals />}
-              />
-              <Route path="/admin/logs" element={<AdminLogs />} />
-            </Route>
+          {/* Admin Routes - Protected */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            {/* Additional admin routes can be added here */}
           </Route>
 
+          {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

@@ -21,7 +21,7 @@ export interface Professional {
   instagram?: string
   facebook?: string
   isVisible: boolean
-  role: 'user' | 'admin'
+  role: string
 }
 
 interface ProfessionalState {
