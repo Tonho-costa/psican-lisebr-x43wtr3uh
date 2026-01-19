@@ -1,177 +1,145 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
-  LogOut,
-  Settings,
-  ShieldCheck,
   Users,
+  Settings,
+  LogOut,
+  Menu,
+  Shield,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarTrigger,
-  SidebarSeparator,
-} from '@/components/ui/sidebar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
-import { useAuth } from '@/hooks/use-auth'
-import { toast } from 'sonner'
-import { Separator } from '@/components/ui/separator'
 
 export function AdminLayout() {
-  const { currentProfessional } = useProfessionalStore()
-  const { signOut } = useAuth()
+  const { logout, currentProfessional } = useProfessionalStore()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
-    const { error } = await signOut()
-    if (!error) {
-      toast.success('Logout realizado com sucesso')
-      navigate('/entrar')
-    } else {
-      toast.error('Erro ao sair')
-    }
+    await logout()
+    navigate('/')
   }
 
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-muted/20">
-        <Sidebar collapsible="icon">
-          <SidebarHeader>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <div className="flex items-center gap-2 px-2 py-2">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    <ShieldCheck className="size-4" />
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                    <span className="truncate font-semibold">EscutaPsi</span>
-                    <span className="truncate text-xs">Admin</span>
-                  </div>
-                </div>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarHeader>
+  const navItems = [
+    {
+      label: 'Dashboard',
+      href: '/admin',
+      icon: <LayoutDashboard className="w-5 h-5" />,
+    },
+    {
+      label: 'Usuários',
+      href: '/admin/usuarios',
+      icon: <Users className="w-5 h-5" />,
+    },
+    {
+      label: 'Configurações',
+      href: '/admin/configuracoes',
+      icon: <Settings className="w-5 h-5" />,
+    },
+  ]
 
-          <SidebarSeparator />
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-slate-900 text-slate-100">
+      <div className="p-6 border-b border-slate-800 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
+          <Shield className="w-6 h-6" />
+        </div>
+        <div>
+          <h1 className="font-bold text-lg tracking-wide">Admin Panel</h1>
+          <p className="text-xs text-slate-400">Gerenciamento</p>
+        </div>
+      </div>
 
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>Geral</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild tooltip="Dashboard">
-                      <a href="/admin">
-                        <LayoutDashboard className="size-4" />
-                        <span>Dashboard</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild tooltip="Usuários">
-                      <a href="#">
-                        <Users className="size-4" />
-                        <span>Usuários</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+      <nav className="flex-grow p-4 space-y-2">
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            to={item.href}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={cn(
+              'flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group',
+              location.pathname === item.href
+                ? 'bg-primary text-primary-foreground font-medium shadow-md'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-white',
+            )}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
 
-            <SidebarGroup>
-              <SidebarGroupLabel>Sistema</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild tooltip="Configurações">
-                      <a href="#">
-                        <Settings className="size-4" />
-                        <span>Configurações</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-
-          <SidebarFooter>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      size="lg"
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                    >
-                      <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarImage
-                          src={currentProfessional?.photoUrl}
-                          alt={currentProfessional?.name}
-                        />
-                        <AvatarFallback className="rounded-lg">
-                          {currentProfessional?.name?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                        <span className="truncate font-semibold">
-                          {currentProfessional?.name}
-                        </span>
-                        <span className="truncate text-xs">
-                          {currentProfessional?.email}
-                        </span>
-                      </div>
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                    side="bottom"
-                    align="end"
-                    sideOffset={4}
-                  >
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 size-4" />
-                      Sair
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
-          <SidebarRail />
-        </Sidebar>
-
-        <main className="flex-1 overflow-auto">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <div className="flex-1">
-              {/* Header content like breadcrumbs can go here */}
-            </div>
-          </header>
-          <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-            <Outlet />
+      <div className="p-4 border-t border-slate-800">
+        <div className="flex items-center gap-3 px-4 py-3 mb-2">
+          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">
+            {currentProfessional?.name?.[0] || 'A'}
           </div>
+          <div className="overflow-hidden">
+            <p className="text-sm font-medium truncate">
+              {currentProfessional?.name}
+            </p>
+            <p className="text-xs text-slate-500">Administrador</p>
+          </div>
+        </div>
+        <Button
+          variant="destructive"
+          className="w-full gap-2 justify-start"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-4 h-4" />
+          Sair
+        </Button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen bg-slate-50/50 flex">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block w-72 shrink-0 border-r border-slate-200 shadow-sm fixed inset-y-0 z-40">
+        <SidebarContent />
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-0 lg:pl-72 transition-all duration-300">
+        <header className="h-16 bg-white border-b border-slate-200 px-4 flex items-center justify-between lg:justify-end sticky top-0 z-30 shadow-sm">
+          <div className="lg:hidden">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="-ml-2">
+                  <Menu className="w-6 h-6" />
+                  <span className="sr-only">Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-72 border-r-0">
+                <SheetTitle className="sr-only">Menu Admin</SheetTitle>
+                <SidebarContent />
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+              <Link to="/" target="_blank">
+                Ver Site
+              </Link>
+            </Button>
+          </div>
+        </header>
+
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+          <Outlet />
         </main>
       </div>
-    </SidebarProvider>
+    </div>
   )
 }

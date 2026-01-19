@@ -25,7 +25,7 @@ const mapToProfessional = (row: ProfileRow): Professional => ({
   instagram: row.instagram || undefined,
   facebook: row.facebook || undefined,
   isVisible: row.is_visible ?? true,
-  role: row.role || 'user',
+  role: (row.role as 'user' | 'moderator' | 'admin') || 'user',
 })
 
 // Maps Professional Interface to Database Update object

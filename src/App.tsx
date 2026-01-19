@@ -29,7 +29,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" richColors />
         <Routes>
-          {/* Public & User Routes */}
+          {/* Public Routes */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/busca" element={<SearchPage />} />
@@ -46,20 +46,15 @@ const App = () => (
             <Route path="/politica-de-privacidade" element={<Privacy />} />
           </Route>
 
-          {/* Admin Routes - Protected */}
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            {/* Additional admin routes can be added here */}
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              {/* Future admin routes can be added here */}
+              <Route path="*" element={<NotFound />} />
+            </Route>
           </Route>
 
-          {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

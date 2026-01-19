@@ -1,30 +1,56 @@
-import { ReactNode, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { profileService } from '@/services/profileService'
 import { toast } from 'sonner'
 
-interface AdminRouteProps {
-  children: ReactNode
-}
-
-export const AdminRoute = ({ children }: AdminRouteProps) => {
+export function AdminRoute() {
   const { user, loading: authLoading } = useAuth()
-  const {
-    currentProfessional,
-    fetchCurrentProfile,
-    isLoading: isProfileLoading,
-  } = useProfessionalStore()
+  const { currentProfessional, setCurrentProfessional } = useProfessionalStore()
+  const [isChecking, setIsChecking] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const location = useLocation()
 
   useEffect(() => {
-    if (user && !currentProfessional) {
-      fetchCurrentProfile(user.id)
-    }
-  }, [user, currentProfessional, fetchCurrentProfile])
+    const verifyRole = async () => {
+      if (authLoading) return
 
-  // Show loading while checking auth or fetching profile
-  if (authLoading || (user && !currentProfessional && isProfileLoading)) {
+      if (!user) {
+        setIsChecking(false)
+        return
+      }
+
+      // If we have the professional data and it matches current user
+      if (currentProfessional && currentProfessional.id === user.id) {
+        if (currentProfessional.role === 'admin') {
+          setIsAdmin(true)
+        }
+        setIsChecking(false)
+        return
+      }
+
+      // Fetch profile if not in store
+      try {
+        const { data, error } = await profileService.getProfile(user.id)
+        if (data && !error) {
+          setCurrentProfessional(data)
+          if (data.role === 'admin') {
+            setIsAdmin(true)
+          }
+        }
+      } catch (error) {
+        console.error('Error verifying admin role:', error)
+      } finally {
+        setIsChecking(false)
+      }
+    }
+
+    verifyRole()
+  }, [user, authLoading, currentProfessional, setCurrentProfessional])
+
+  if (authLoading || isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -32,24 +58,17 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     )
   }
 
-  // Not authenticated -> Redirect to login
   if (!user) {
-    return <Navigate to="/entrar" replace />
+    return <Navigate to="/entrar" state={{ from: location }} replace />
   }
 
-  // Authenticated but not admin -> Redirect to home
-  if (currentProfessional && currentProfessional.role !== 'admin') {
-    toast.error('Acesso não autorizado', {
-      description: 'Você não tem permissão para acessar esta área.',
+  if (!isAdmin) {
+    toast.error('Acesso negado', {
+      description:
+        'Você não tem permissão de administrador para acessar esta página.',
     })
     return <Navigate to="/" replace />
   }
 
-  // If we have a user but fetch failed or returned null (and not loading), it's safer to redirect
-  if (!isProfileLoading && !currentProfessional) {
-    return <Navigate to="/" replace />
-  }
-
-  // Access granted
-  return <>{children}</>
+  return <Outlet />
 }
