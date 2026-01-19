@@ -51,9 +51,7 @@ export default function AdminLogin() {
       const { error } = await signIn(data.email, data.password)
 
       if (error) {
-        toast.error('Falha na autenticação', {
-          description: 'Verifique suas credenciais e tente novamente.',
-        })
+        toast.error('Verifique suas credenciais e tente novamente.')
       } else {
         // Verify admin role
         const {
@@ -63,7 +61,7 @@ export default function AdminLogin() {
         if (user) {
           const profile = await fetchCurrentProfile(user.id)
           if (profile?.role === 'admin') {
-            toast.success('Bem-vindo, Administrador')
+            toast.success('Bem-vindo ao Painel Administrativo')
             navigate(from, { replace: true })
           } else {
             toast.error('Acesso Negado', {
@@ -71,11 +69,15 @@ export default function AdminLogin() {
             })
             await supabase.auth.signOut()
           }
+        } else {
+          toast.error('Erro ao verificar permissões', {
+            description: 'Não foi possível recuperar os dados do usuário.',
+          })
         }
       }
     } catch (err) {
       console.error(err)
-      toast.error('Erro inesperado')
+      toast.error('Ocorreu um erro inesperado')
     } finally {
       setIsLoading(false)
     }
@@ -134,9 +136,12 @@ export default function AdminLogin() {
               disabled={isLoading}
             >
               {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verificando...
+                </>
               ) : (
-                'Acessar Painel'
+                'Entrar'
               )}
             </Button>
           </form>
