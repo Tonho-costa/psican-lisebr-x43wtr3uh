@@ -15,6 +15,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
     currentProfessional,
     fetchCurrentProfile,
     error: profileError,
+    isLoading: profileLoading,
   } = useProfessionalStore()
   const location = useLocation()
   const hasNotified = useRef(false)
@@ -37,7 +38,9 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   // Determine if we are in a loading state
   const isLoading =
-    authLoading || (!!user && !currentProfessional && !profileError)
+    authLoading ||
+    (!!user && !currentProfessional && !profileError) ||
+    profileLoading
 
   if (isLoading) {
     return (
@@ -65,6 +68,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   // Case 3: Authenticated but not Admin
+  // We check the role explicitly
   if (!currentProfessional || currentProfessional.role !== 'admin') {
     if (!hasNotified.current) {
       toast.error('Acesso não autorizado. Área restrita a administradores.')

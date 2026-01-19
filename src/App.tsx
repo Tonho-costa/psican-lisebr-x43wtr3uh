@@ -4,7 +4,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from './components/Layout'
-import { AdminLayout } from './components/AdminLayout'
+import AdminLayout from './components/admin/AdminLayout'
 import { AdminRoute } from './components/AdminRoute'
 
 // Public Pages
@@ -54,10 +54,10 @@ const App = () => (
             <Route path="/politica-de-privacidade" element={<Privacy />} />
           </Route>
 
-          {/* Admin Login */}
+          {/* Admin Login - Separated from Layout */}
           <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* Admin Routes - Protected */}
+          {/* Admin Routes - Protected by AdminRoute Guard */}
           <Route
             path="/admin"
             element={
@@ -68,7 +68,9 @@ const App = () => (
           >
             <Route index element={<AdminDashboard />} />
             <Route path="submissoes" element={<AdminSubmissions />} />
-            <Route path="perfis" element={<AdminProfiles />} />
+            <Route path="profiles" element={<AdminProfiles />} />
+            <Route path="perfis" element={<AdminProfiles />} />{' '}
+            {/* Alias for compatibility */}
             <Route path="logs" element={<AdminLogs />} />
           </Route>
 
