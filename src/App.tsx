@@ -22,6 +22,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 
 // Admin Pages
+import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminSubmissions from './pages/admin/AdminSubmissions'
 import AdminProfiles from './pages/admin/AdminProfiles'
@@ -52,6 +53,9 @@ const App = () => (
             <Route path="/termos-de-uso" element={<Terms />} />
             <Route path="/politica-de-privacidade" element={<Privacy />} />
           </Route>
+
+          {/* Admin Login */}
+          <Route path="/admin/login" element={<AdminLogin />} />
 
           {/* Admin Routes */}
           <Route

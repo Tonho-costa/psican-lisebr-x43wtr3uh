@@ -1,63 +1,63 @@
 import { supabase } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
 
-type TriageSubmission =
-  Database['public']['Tables']['triage_submissions']['Row']
-type AdminLog = Database['public']['Tables']['admin_logs']['Row']
 type Profile = Database['public']['Tables']['profiles']['Row']
 
+export interface DashboardStats {
+  totalProfiles: number
+  activeProfiles: number
+  featuredProfiles: number
+}
+
 export const adminService = {
-  // --- Triage Submissions ---
+  // --- Dashboard Stats ---
+  async getDashboardStats(): Promise<DashboardStats> {
+    const { count: totalProfiles } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
 
-  async getSubmissions() {
-    const { data, error } = await supabase
-      .from('triage_submissions')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { count: activeProfiles } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_visible', true)
 
-    return { data, error }
-  },
+    const { count: featuredProfiles } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_featured', true)
 
-  async updateSubmissionStatus(
-    id: string,
-    status: string,
-    notes: string,
-    adminId: string,
-  ) {
-    // 1. Update the submission
-    const { data, error } = await supabase
-      .from('triage_submissions')
-      .update({
-        status,
-        admin_notes: notes,
-        processed_at: new Date().toISOString(),
-        processed_by: adminId,
-      })
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) return { data: null, error }
-
-    // 2. Log the action
-    await this.logAction(adminId, 'UPDATE_SUBMISSION_STATUS', id, {
-      status,
-      notes,
-    })
-
-    return { data, error: null }
+    return {
+      totalProfiles: totalProfiles || 0,
+      activeProfiles: activeProfiles || 0,
+      featuredProfiles: featuredProfiles || 0,
+    }
   },
 
   // --- Profiles Management ---
 
   async getAllProfiles() {
-    // Unlike profileService.getAllProfiles, this fetches ALL profiles (even hidden ones)
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false })
 
     return { data, error }
+  },
+
+  async updateProfile(id: string, updates: Partial<Profile>) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    return { data, error }
+  },
+
+  async deleteProfile(id: string) {
+    const { error } = await supabase.from('profiles').delete().eq('id', id)
+    return { error }
   },
 
   async toggleProfileVisibility(
@@ -102,28 +102,7 @@ export const adminService = {
     return { data, error }
   },
 
-  async updateProfileStatus(
-    adminId: string,
-    profileId: string,
-    status: string,
-  ) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ status: status })
-      .eq('id', profileId)
-      .select()
-      .single()
-
-    if (!error) {
-      await this.logAction(adminId, 'UPDATE_PROFILE_STATUS', profileId, {
-        status,
-      })
-    }
-
-    return { data, error }
-  },
-
-  // --- Admin Logs ---
+  // --- Logs ---
 
   async getLogs() {
     const { data, error } = await supabase
@@ -150,5 +129,15 @@ export const adminService = {
 
     if (error) console.error('Failed to create audit log:', error)
     return { error }
+  },
+
+  // --- Triage (Legacy/Existing) ---
+  async getSubmissions() {
+    const { data, error } = await supabase
+      .from('triage_submissions')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    return { data, error }
   },
 }

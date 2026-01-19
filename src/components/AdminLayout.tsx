@@ -22,9 +22,9 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { label: 'Visão Geral', href: '/admin', icon: LayoutDashboard },
+  { label: 'Gerenciar Perfis', href: '/admin/perfis', icon: Users },
   { label: 'Submissões', href: '/admin/submissoes', icon: ClipboardList },
-  { label: 'Perfis', href: '/admin/perfis', icon: Users },
   { label: 'Logs do Sistema', href: '/admin/logs', icon: FileText },
 ]
 
@@ -39,7 +39,7 @@ export function AdminLayout() {
 
   const handleLogout = async () => {
     await logout()
-    navigate('/')
+    navigate('/admin/login')
     toast.success('Logout realizado com sucesso.')
   }
 

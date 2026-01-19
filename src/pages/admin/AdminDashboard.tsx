@@ -1,118 +1,117 @@
 import { useEffect, useState } from 'react'
-import { Users, ClipboardList, AlertCircle, FileText } from 'lucide-react'
+import { adminService, DashboardStats } from '@/services/adminService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { adminService } from '@/services/adminService'
+import { Users, UserCheck, Star, Activity } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalProfiles: 0,
-    pendingSubmissions: 0,
-    totalLogs: 0,
-  })
-  const [isLoading, setIsLoading] = useState(true)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const loadStats = async () => {
-      setIsLoading(true)
+    async function loadStats() {
       try {
-        const [profiles, submissions, logs] = await Promise.all([
-          adminService.getAllProfiles(),
-          adminService.getSubmissions(),
-          adminService.getLogs(),
-        ])
-
-        setStats({
-          totalProfiles: profiles.data?.length || 0,
-          pendingSubmissions:
-            submissions.data?.filter((s) => s.status === 'Pending').length || 0,
-          totalLogs: logs.data?.length || 0,
-        })
+        const data = await adminService.getDashboardStats()
+        setStats(data)
       } catch (error) {
         console.error('Failed to load dashboard stats', error)
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
     loadStats()
   }, [])
 
-  const statCards = [
-    {
-      title: 'Submissões Pendentes',
-      value: stats.pendingSubmissions,
-      icon: ClipboardList,
-      description: 'Aguardando revisão',
-      color: 'text-orange-500',
-    },
-    {
-      title: 'Profissionais',
-      value: stats.totalProfiles,
-      icon: Users,
-      description: 'Cadastrados na plataforma',
-      color: 'text-blue-500',
-    },
-    {
-      title: 'Atividades Recentes',
-      value: stats.totalLogs,
-      icon: FileText,
-      description: 'Ações administrativas (últimas 100)',
-      color: 'text-green-500',
-    },
-  ]
+  const StatCard = ({
+    title,
+    value,
+    icon: Icon,
+    colorClass,
+    description,
+  }: {
+    title: string
+    value: string | number
+    icon: any
+    colorClass: string
+    description?: string
+  }) => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className={`h-4 w-4 ${colorClass}`} />
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <Skeleton className="h-8 w-16" />
+        ) : (
+          <>
+            <div className="text-2xl font-bold">{value}</div>
+            {description && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {description}
+              </p>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  )
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-heading font-bold text-foreground">
-          Visão Geral
-        </h2>
-        <p className="text-muted-foreground">
-          Bem-vindo ao painel administrativo do EscutaPsi.
+        <h1 className="text-3xl font-heading font-bold text-foreground">
+          Painel de Controle
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Visão geral da plataforma e métricas principais.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {statCards.map((stat, index) => (
-          <Card key={index} className="shadow-sm border-l-4 border-l-primary">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="h-8 w-24 bg-muted animate-pulse rounded" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stat.description}
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          title="Total de Perfis"
+          value={stats?.totalProfiles || 0}
+          icon={Users}
+          colorClass="text-blue-500"
+          description="Usuários cadastrados na plataforma"
+        />
+        <StatCard
+          title="Perfis Ativos (Visíveis)"
+          value={stats?.activeProfiles || 0}
+          icon={UserCheck}
+          colorClass="text-green-500"
+          description="Profissionais visíveis para o público"
+        />
+        <StatCard
+          title="Profissionais em Destaque"
+          value={stats?.featuredProfiles || 0}
+          icon={Star}
+          colorClass="text-yellow-500"
+          description="Exibidos na página inicial"
+        />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Dica de Gestão</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start gap-4">
-              <AlertCircle className="w-10 h-10 text-primary opacity-80" />
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Mantenha as submissões de triagem em dia para garantir que novos
-                pacientes sejam encaminhados rapidamente. Verifique também
-                periodicamente os perfis em destaque para garantir rotatividade.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="col-span-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="w-5 h-5 text-primary" />
+            Status do Sistema
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span className="text-sm font-medium text-green-700">
+              Todos os sistemas operacionais
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            O banco de dados Supabase e as funções de autenticação estão
+            respondendo normalmente.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }

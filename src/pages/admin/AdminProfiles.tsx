@@ -10,16 +10,47 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { adminService } from '@/services/adminService'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
-import { Loader2, Search, Star, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Search, Edit2, Trash2, Filter } from 'lucide-react'
+import { EditProfileSheet } from '@/components/admin/EditProfileSheet'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Database } from '@/lib/supabase/types'
+
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 export default function AdminProfiles() {
-  const [profiles, setProfiles] = useState<any[]>([])
-  const [filteredProfiles, setFilteredProfiles] = useState<any[]>([])
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [roleFilter, setRoleFilter] = useState('all')
+
+  const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
+
+  const [deletingProfile, setDeletingProfile] = useState<Profile | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
   const { currentProfessional } = useProfessionalStore()
 
   useEffect(() => {
@@ -27,22 +58,37 @@ export default function AdminProfiles() {
   }, [])
 
   useEffect(() => {
-    const lowerTerm = searchTerm.toLowerCase()
-    const filtered = profiles.filter(
-      (p) =>
-        p.full_name?.toLowerCase().includes(lowerTerm) ||
-        p.email?.toLowerCase().includes(lowerTerm) ||
-        p.occupation?.toLowerCase().includes(lowerTerm),
-    )
+    let filtered = profiles
+
+    // Search
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase()
+      filtered = filtered.filter(
+        (p) =>
+          p.full_name?.toLowerCase().includes(lower) ||
+          p.email?.toLowerCase().includes(lower) ||
+          p.occupation?.toLowerCase().includes(lower),
+      )
+    }
+
+    // Filter by Status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((p) => p.status === statusFilter)
+    }
+
+    // Filter by Role
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter((p) => p.role === roleFilter)
+    }
+
     setFilteredProfiles(filtered)
-  }, [searchTerm, profiles])
+  }, [searchTerm, statusFilter, roleFilter, profiles])
 
   const loadProfiles = async () => {
     setIsLoading(true)
     const { data, error } = await adminService.getAllProfiles()
     if (!error && data) {
       setProfiles(data)
-      setFilteredProfiles(data)
     } else {
       toast.error('Erro ao carregar perfis')
     }
@@ -55,7 +101,7 @@ export default function AdminProfiles() {
   ) => {
     if (!currentProfessional?.id) return
 
-    // Optimistic update
+    // Optimistic Update
     setProfiles((prev) =>
       prev.map((p) =>
         p.id === profileId ? { ...p, is_visible: !currentVal } : p,
@@ -70,10 +116,9 @@ export default function AdminProfiles() {
 
     if (error) {
       toast.error('Erro ao atualizar visibilidade')
-      // Revert on error
-      loadProfiles()
+      loadProfiles() // Revert
     } else {
-      toast.success(`Perfil ${!currentVal ? 'visível' : 'oculto'} com sucesso.`)
+      toast.success('Visibilidade atualizada')
     }
   }
 
@@ -83,6 +128,7 @@ export default function AdminProfiles() {
   ) => {
     if (!currentProfessional?.id) return
 
+    // Optimistic Update
     setProfiles((prev) =>
       prev.map((p) =>
         p.id === profileId ? { ...p, is_featured: !currentVal } : p,
@@ -97,32 +143,87 @@ export default function AdminProfiles() {
 
     if (error) {
       toast.error('Erro ao atualizar destaque')
-      loadProfiles()
+      loadProfiles() // Revert
     } else {
-      toast.success(
-        `Perfil ${!currentVal ? 'destacado' : 'removido do destaque'}.`,
-      )
+      toast.success('Destaque atualizado')
     }
+  }
+
+  const handleEditClick = (profile: Profile) => {
+    setEditingProfile(profile)
+    setIsEditSheetOpen(true)
+  }
+
+  const handleDeleteClick = (profile: Profile) => {
+    setDeletingProfile(profile)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!deletingProfile) return
+
+    const { error } = await adminService.deleteProfile(deletingProfile.id)
+
+    if (error) {
+      toast.error('Erro ao excluir perfil')
+    } else {
+      toast.success('Perfil excluído com sucesso')
+      // Update local state
+      setProfiles((prev) => prev.filter((p) => p.id !== deletingProfile.id))
+    }
+    setIsDeleteDialogOpen(false)
+    setDeletingProfile(null)
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-heading font-bold">Gerenciar Perfis</h2>
+          <h1 className="text-3xl font-heading font-bold">Gerenciar Perfis</h1>
           <p className="text-muted-foreground">
-            Controle de visibilidade e destaques.
+            Listagem completa de profissionais e usuários.
           </p>
         </div>
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Button onClick={() => loadProfiles()} variant="outline" size="sm">
+          <Loader2
+            className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`}
+          />
+          Atualizar Lista
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-card p-4 rounded-lg border">
+        <div className="relative md:col-span-2">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar profissional..."
+            placeholder="Buscar por nome, email ou ocupação..."
+            className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
           />
         </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos Status</SelectItem>
+            <SelectItem value="verified">Verificado</SelectItem>
+            <SelectItem value="pending">Pendente</SelectItem>
+            <SelectItem value="blocked">Bloqueado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Função" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Funções</SelectItem>
+            <SelectItem value="user">Usuário</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="bg-card rounded-md border shadow-sm overflow-hidden">
@@ -130,22 +231,23 @@ export default function AdminProfiles() {
           <TableHeader>
             <TableRow>
               <TableHead>Profissional</TableHead>
-              <TableHead>Ocupação</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-center">Visível</TableHead>
               <TableHead className="text-center">Destaque</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10">
+                <TableCell colSpan={6} className="text-center py-10">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
                 </TableCell>
               </TableRow>
             ) : filteredProfiles.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10">
+                <TableCell colSpan={6} className="text-center py-10">
                   Nenhum perfil encontrado.
                 </TableCell>
               </TableRow>
@@ -158,43 +260,73 @@ export default function AdminProfiles() {
                       <div className="text-xs text-muted-foreground">
                         {profile.email}
                       </div>
+                      <div className="text-xs text-muted-foreground italic">
+                        {profile.occupation || 'Sem ocupação'}
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell>{profile.occupation || '-'}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="capitalize">
+                      {profile.role || 'user'}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <Badge
-                      variant="secondary"
-                      className="uppercase text-[10px]"
+                      className={
+                        profile.status === 'verified'
+                          ? 'bg-green-100 text-green-800'
+                          : profile.status === 'blocked'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                      }
+                      variant="outline"
                     >
-                      {profile.status || 'Ativo'}
+                      {profile.status || 'pending'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
-                    <div className="flex justify-center items-center gap-2">
-                      {profile.is_visible ? (
-                        <Eye className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <EyeOff className="w-4 h-4 text-muted-foreground" />
-                      )}
+                    <div className="flex justify-center">
                       <Switch
-                        checked={profile.is_visible}
+                        checked={!!profile.is_visible}
                         onCheckedChange={() =>
-                          handleToggleVisibility(profile.id, profile.is_visible)
+                          handleToggleVisibility(
+                            profile.id,
+                            !!profile.is_visible,
+                          )
                         }
                       />
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <div className="flex justify-center items-center gap-2">
-                      <Star
-                        className={`w-4 h-4 ${profile.is_featured ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`}
-                      />
+                    <div className="flex justify-center">
                       <Switch
-                        checked={profile.is_featured}
+                        checked={!!profile.is_featured}
                         onCheckedChange={() =>
-                          handleToggleFeatured(profile.id, profile.is_featured)
+                          handleToggleFeatured(
+                            profile.id,
+                            !!profile.is_featured,
+                          )
                         }
                       />
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditClick(profile)}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteClick(profile)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -203,6 +335,38 @@ export default function AdminProfiles() {
           </TableBody>
         </Table>
       </div>
+
+      <EditProfileSheet
+        open={isEditSheetOpen}
+        onOpenChange={setIsEditSheetOpen}
+        profile={editingProfile}
+        onProfileUpdated={loadProfiles}
+      />
+
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o
+              perfil de <strong>{deletingProfile?.full_name}</strong> e todos os
+              dados associados do banco de dados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmDelete}
+            >
+              Excluir Perfil
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
