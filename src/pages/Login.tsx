@@ -56,8 +56,17 @@ export default function Login() {
           (error as any).code === 'invalid_credentials' ||
           (error as any).status === 400
 
+        // Identify Database/Schema errors
+        const isDatabaseError =
+          error.message.includes('Database error') ||
+          error.message.includes('schema')
+
         if (isInvalidCredential) {
           toast.error('Credenciais inválidas. Verifique seu e-mail e senha.')
+        } else if (isDatabaseError) {
+          toast.error(
+            'Erro de conexão com o banco de dados. Tente novamente em instantes.',
+          )
         } else {
           toast.error(
             error.message ||

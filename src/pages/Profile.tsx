@@ -51,6 +51,7 @@ const useProfileData = (id: string | undefined) => {
 
         if (isMounted) {
           if (error) {
+            console.error('Profile fetch error:', error)
             setProfile(null)
           } else {
             setProfile(data)
