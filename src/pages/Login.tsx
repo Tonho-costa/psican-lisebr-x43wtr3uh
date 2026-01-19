@@ -60,7 +60,7 @@ export default function Login() {
           (error as any).status === 400
 
         if (isInvalidCredential) {
-          toast.error('E-mail ou senha incorretos. Por favor, tente novamente.')
+          toast.error('Credenciais inválidas. Verifique seu e-mail e senha.')
         } else {
           toast.error(
             error.message ||
