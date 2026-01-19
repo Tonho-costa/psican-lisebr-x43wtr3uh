@@ -39,13 +39,8 @@ export default function Index() {
 
   useEffect(() => {
     const loadFeatured = async () => {
-      let { data } = await profileService.getFeaturedProfiles()
-      if (!data || data.length === 0) {
-        const { data: allData } = await profileService.getAllProfiles()
-        if (allData) {
-          data = allData.slice(0, 3)
-        }
-      }
+      // Fetch only visible and featured professionals
+      const { data } = await profileService.getFeaturedProfiles()
       setFeaturedProfessionals(data || [])
       setLoading(false)
     }

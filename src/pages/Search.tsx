@@ -71,11 +71,7 @@ export default function SearchPage() {
     fetchProfessionals()
   }, [fetchProfessionals])
 
-  // Filter visible professionals only - Reactive to store changes
-  const visibleProfessionals = useMemo(
-    () => professionals.filter((p) => p.isVisible !== false),
-    [professionals],
-  )
+  // professionals from store are already filtered by isVisible=true via API
 
   // Derived active filters from URL params
   const activeOccupation =
@@ -105,10 +101,10 @@ export default function SearchPage() {
   // Initialize filtered list based on current active filters
   const [filteredPros, setFilteredPros] = useState<Professional[]>([])
 
-  // Update list when visible professionals change OR when URL filters change
+  // Update list when professionals change OR when URL filters change
   useEffect(() => {
     const filtered = filterList(
-      visibleProfessionals,
+      professionals,
       activeOccupation,
       activeState,
       activeCity,
@@ -117,7 +113,7 @@ export default function SearchPage() {
     )
     setFilteredPros(filtered)
   }, [
-    visibleProfessionals,
+    professionals,
     activeOccupation,
     activeState,
     activeCity,
@@ -128,30 +124,28 @@ export default function SearchPage() {
   // Extract unique values for filters based on visible professionals
   const states = useMemo(
     () =>
-      Array.from(new Set(visibleProfessionals.map((p) => p.state)))
+      Array.from(new Set(professionals.map((p) => p.state)))
         .filter(Boolean)
         .sort(),
-    [visibleProfessionals],
+    [professionals],
   )
 
   const cities = useMemo(() => {
     const relevantPros =
       stateFilter && stateFilter !== 'all'
-        ? visibleProfessionals.filter((p) => p.state === stateFilter)
-        : visibleProfessionals
+        ? professionals.filter((p) => p.state === stateFilter)
+        : professionals
     return Array.from(new Set(relevantPros.map((p) => p.city)))
       .filter(Boolean)
       .sort()
-  }, [visibleProfessionals, stateFilter])
+  }, [professionals, stateFilter])
 
   const specialties = useMemo(
     () =>
-      Array.from(
-        new Set(visibleProfessionals.flatMap((p) => p.specialties || [])),
-      )
+      Array.from(new Set(professionals.flatMap((p) => p.specialties || [])))
         .filter(Boolean)
         .sort(),
-    [visibleProfessionals],
+    [professionals],
   )
 
   const applyFilters = () => {

@@ -3,7 +3,6 @@ import { Professional } from '@/stores/useProfessionalStore'
 import { Database } from '@/lib/supabase/types'
 
 // Define a local interface for the DB Row matching the migration
-// This is necessary because the generated types.ts might be outdated
 interface LocalProfileRow {
   id: string
   created_at?: string | null
@@ -32,7 +31,6 @@ interface LocalProfileRow {
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
 // Maps Database Row to Professional Interface
-// Ensures no crashes if fields are null
 const mapToProfessional = (row: any): Professional => {
   const r = row as LocalProfileRow
   return {
@@ -56,7 +54,7 @@ const mapToProfessional = (row: any): Professional => {
     phone: r.phone ?? '',
     instagram: r.instagram || undefined,
     facebook: r.facebook || undefined,
-    isVisible: r.is_visible ?? false,
+    isVisible: r.is_visible ?? true, // Default to true if null
     role: r.role ?? 'user',
   }
 }
@@ -112,7 +110,6 @@ export const profileService = {
 
   /**
    * Updates a profile.
-   * Returns the updated profile from the database to ensure UI consistency.
    */
   async updateProfile(userId: string, updates: Partial<Professional>) {
     try {
@@ -137,6 +134,7 @@ export const profileService = {
 
   /**
    * Fetches all visible profiles.
+   * Ensures only profiles with is_visible = true are returned.
    */
   async getAllProfiles() {
     try {
@@ -157,27 +155,26 @@ export const profileService = {
 
   /**
    * Fetches featured profiles.
+   * Ensures only profiles with is_featured = true AND is_visible = true are returned.
    */
   async getFeaturedProfiles() {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('is_featured', true)
-      .eq('is_visible', true)
-      .limit(3)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_featured', true)
+        .eq('is_visible', true)
+        .limit(3)
 
-    if (error) {
-      console.error('Error fetching featured profiles:', error)
+      if (error) {
+        console.error('Error fetching featured profiles:', error)
+        return { data: null, error }
+      }
+      return { data: (data || []).map(mapToProfessional), error: null }
+    } catch (error) {
+      console.error('Unexpected error fetching featured profiles:', error)
       return { data: null, error }
     }
-    return { data: (data || []).map(mapToProfessional), error: null }
-  },
-
-  /**
-   * Searches/Filters profiles.
-   */
-  async searchProfiles(_filters?: any) {
-    return this.getAllProfiles()
   },
 
   /**
