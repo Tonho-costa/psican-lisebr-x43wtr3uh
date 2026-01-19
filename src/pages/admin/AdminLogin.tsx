@@ -51,28 +51,44 @@ export default function AdminLogin() {
       const { error } = await signIn(data.email, data.password)
 
       if (error) {
-        toast.error('Verifique suas credenciais e tente novamente.')
+        console.error('Login Error:', error)
+        // Handle specific schema/database errors that might occur during auth handshake
+        if (error.message?.includes('Database error') || error.status === 500) {
+          toast.error('Erro interno do servidor', {
+            description:
+              'Ocorreu um problema ao conectar com o banco de dados. Tente novamente mais tarde.',
+          })
+        } else {
+          toast.error('Erro de Autenticação', {
+            description: 'Verifique suas credenciais e tente novamente.',
+          })
+        }
       } else {
         // Verify admin role
         const {
           data: { user },
+          error: userError,
         } = await supabase.auth.getUser()
 
-        if (user) {
-          const profile = await fetchCurrentProfile(user.id)
-          if (profile?.role === 'admin') {
-            toast.success('Bem-vindo ao Painel Administrativo')
-            navigate(from, { replace: true })
-          } else {
-            toast.error('Acesso Negado', {
-              description: 'Esta área é restrita a administradores.',
-            })
-            await supabase.auth.signOut()
-          }
-        } else {
+        if (userError || !user) {
+          console.error('User fetch error:', userError)
           toast.error('Erro ao verificar permissões', {
             description: 'Não foi possível recuperar os dados do usuário.',
           })
+          await supabase.auth.signOut()
+          setIsLoading(false)
+          return
+        }
+
+        const profile = await fetchCurrentProfile(user.id)
+        if (profile?.role === 'admin') {
+          toast.success('Bem-vindo ao Painel Administrativo')
+          navigate(from, { replace: true })
+        } else {
+          toast.error('Acesso Negado', {
+            description: 'Esta área é restrita a administradores.',
+          })
+          await supabase.auth.signOut()
         }
       }
     } catch (err) {
