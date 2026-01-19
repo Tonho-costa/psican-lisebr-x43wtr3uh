@@ -93,9 +93,20 @@ export default function Register() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      fullName: '',
+      phone: '',
       profileUrl: '',
+      serviceMode: undefined,
+      education: undefined,
       educationOther: '',
+      crpStatus: undefined,
+      approach: undefined,
       approachOther: '',
+      experience: undefined,
+      availability: undefined,
+      socialValue: undefined,
+      ethicsAgreement: undefined,
+      termsAgreement: false,
     },
   })
 
