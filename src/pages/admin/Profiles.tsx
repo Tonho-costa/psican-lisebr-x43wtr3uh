@@ -43,26 +43,21 @@ export default function AdminProfiles() {
   const { currentProfessional } = useProfessionalStore()
 
   useEffect(() => {
+    const loadProfiles = async () => {
+      try {
+        setLoading(true)
+        const data = await adminService.getAllProfiles()
+        setProfiles(data)
+      } catch (error) {
+        toast.error('Erro ao carregar perfis')
+      } finally {
+        setLoading(false)
+      }
+    }
     loadProfiles()
   }, [])
 
   useEffect(() => {
-    filterData()
-  }, [search, roleFilter, statusFilter, profiles])
-
-  const loadProfiles = async () => {
-    try {
-      setLoading(true)
-      const data = await adminService.getAllProfiles()
-      setProfiles(data)
-    } catch (error) {
-      toast.error('Erro ao carregar perfis')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const filterData = () => {
     let result = profiles
 
     if (search) {
@@ -83,7 +78,7 @@ export default function AdminProfiles() {
     }
 
     setFilteredProfiles(result)
-  }
+  }, [search, roleFilter, statusFilter, profiles])
 
   const handleStatusChange = async (
     targetId: string,
