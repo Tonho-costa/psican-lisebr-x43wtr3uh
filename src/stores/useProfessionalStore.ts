@@ -21,14 +21,9 @@ export interface Professional {
   instagram?: string
   facebook?: string
   isVisible: boolean
-  // New Screening Fields
-  crpStatus?: string
-  educationLevel?: string
-  theoreticalApproach?: string
-  experienceLevel?: string
-  networkAvailability?: string
-  acceptsSocialValue?: boolean
-  agreesToEthics?: boolean
+  role: 'admin' | 'moderator' | 'user'
+  status: 'active' | 'suspended' | 'blocked'
+  createdAt?: string
 }
 
 interface ProfessionalState {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, UserCircle, Leaf } from 'lucide-react'
+import { Menu, UserCircle, Leaf, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { cn } from '@/lib/utils'
@@ -63,6 +63,8 @@ export function Header() {
     }
   }
 
+  const isAdmin = currentProfessional?.role === 'admin'
+
   return (
     <header
       className={cn(
@@ -97,6 +99,18 @@ export function Header() {
 
           {isAuthenticated ? (
             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-primary/20">
+              {isAdmin && (
+                <Link to="/admin">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Admin
+                  </Button>
+                </Link>
+              )}
               <Link to="/painel/perfil">
                 <Button
                   variant="ghost"
@@ -162,6 +176,16 @@ export function Header() {
                 <div className="h-px bg-primary/10 my-2" />
                 {isAuthenticated ? (
                   <>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        className="text-lg font-medium text-purple-600 hover:text-purple-700 flex items-center gap-2"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <ShieldCheck className="w-5 h-5" />
+                        Admin Portal
+                      </Link>
+                    )}
                     <Link
                       to="/painel/perfil"
                       className="text-lg font-medium text-primary hover:text-primary/80"
