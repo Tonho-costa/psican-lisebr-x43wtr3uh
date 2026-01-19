@@ -36,8 +36,6 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }, [user, currentProfessional, profileError, fetchCurrentProfile])
 
   // Determine if we are in a loading state
-  // 1. Auth is still loading
-  // 2. User is authenticated but profile is not loaded yet (and no error occurred)
   const isLoading =
     authLoading || (!!user && !currentProfessional && !profileError)
 

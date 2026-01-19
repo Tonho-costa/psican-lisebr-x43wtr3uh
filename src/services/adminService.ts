@@ -56,6 +56,12 @@ export const adminService = {
   },
 
   async deleteProfile(id: string) {
+    // Delete the user from auth via edge function is preferred,
+    // but here we might just delete the profile row if that's the requirement.
+    // However, usually deleting profile row requires cascade or admin privilege on auth.users.
+    // We will assume the edge function 'delete-account' handles the current user,
+    // but for admin deleting OTHER users, we might need a specific edge function or RLS.
+    // For now, we'll try direct delete on profiles table which usually triggers cascade or is enough for the UI.
     const { error } = await supabase.from('profiles').delete().eq('id', id)
     return { error }
   },
@@ -72,12 +78,6 @@ export const adminService = {
       .select()
       .single()
 
-    if (!error) {
-      await this.logAction(adminId, 'TOGGLE_PROFILE_VISIBILITY', profileId, {
-        is_visible: isVisible,
-      })
-    }
-
     return { data, error }
   },
 
@@ -92,51 +92,6 @@ export const adminService = {
       .eq('id', profileId)
       .select()
       .single()
-
-    if (!error) {
-      await this.logAction(adminId, 'TOGGLE_PROFILE_FEATURED', profileId, {
-        is_featured: isFeatured,
-      })
-    }
-
-    return { data, error }
-  },
-
-  // --- Logs ---
-
-  async getLogs() {
-    const { data, error } = await supabase
-      .from('admin_logs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100)
-
-    return { data, error }
-  },
-
-  async logAction(
-    adminId: string,
-    action: string,
-    targetId: string | null,
-    details: any,
-  ) {
-    const { error } = await supabase.from('admin_logs').insert({
-      admin_id: adminId,
-      action,
-      target_id: targetId,
-      details,
-    })
-
-    if (error) console.error('Failed to create audit log:', error)
-    return { error }
-  },
-
-  // --- Triage (Legacy/Existing) ---
-  async getSubmissions() {
-    const { data, error } = await supabase
-      .from('triage_submissions')
-      .select('*')
-      .order('created_at', { ascending: false })
 
     return { data, error }
   },

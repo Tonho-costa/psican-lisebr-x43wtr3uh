@@ -95,13 +95,13 @@ export function AdminLayout() {
       <div className="px-6 mt-6">
         <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-            {currentProfessional?.name?.[0]}
+            {currentProfessional?.name?.[0]?.toUpperCase() || 'A'}
           </div>
           <div className="overflow-hidden">
             <p className="text-sm font-medium truncate">
-              {currentProfessional?.name}
+              {currentProfessional?.name || 'Administrador'}
             </p>
-            <p className="text-xs text-muted-foreground">Administrador</p>
+            <p className="text-xs text-muted-foreground">Admin</p>
           </div>
         </div>
       </div>

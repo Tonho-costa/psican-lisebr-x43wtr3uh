@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { adminService } from '@/services/adminService'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
-import { Loader2, Search, Edit2, Trash2, Filter } from 'lucide-react'
+import { Loader2, Search, Edit2, Trash2 } from 'lucide-react'
 import { EditProfileSheet } from '@/components/admin/EditProfileSheet'
 import {
   AlertDialog,
@@ -43,7 +43,6 @@ export default function AdminProfiles() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [roleFilter, setRoleFilter] = useState('all')
 
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
@@ -71,18 +70,17 @@ export default function AdminProfiles() {
       )
     }
 
-    // Filter by Status
+    // Filter by Visibility/Status
     if (statusFilter !== 'all') {
-      filtered = filtered.filter((p) => p.status === statusFilter)
-    }
-
-    // Filter by Role
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter((p) => p.role === roleFilter)
+      if (statusFilter === 'visible') {
+        filtered = filtered.filter((p) => p.is_visible)
+      } else if (statusFilter === 'hidden') {
+        filtered = filtered.filter((p) => !p.is_visible)
+      }
     }
 
     setFilteredProfiles(filtered)
-  }, [searchTerm, statusFilter, roleFilter, profiles])
+  }, [searchTerm, statusFilter, profiles])
 
   const loadProfiles = async () => {
     setIsLoading(true)
@@ -194,7 +192,7 @@ export default function AdminProfiles() {
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-card p-4 rounded-lg border">
-        <div className="relative md:col-span-2">
+        <div className="relative md:col-span-3">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome, email ou ocupação..."
@@ -205,23 +203,12 @@ export default function AdminProfiles() {
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger>
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="Visibilidade" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos Status</SelectItem>
-            <SelectItem value="verified">Verificado</SelectItem>
-            <SelectItem value="pending">Pendente</SelectItem>
-            <SelectItem value="blocked">Bloqueado</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Função" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas Funções</SelectItem>
-            <SelectItem value="user">Usuário</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="visible">Visíveis</SelectItem>
+            <SelectItem value="hidden">Ocultos</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -231,7 +218,6 @@ export default function AdminProfiles() {
           <TableHeader>
             <TableRow>
               <TableHead>Profissional</TableHead>
-              <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-center">Visível</TableHead>
               <TableHead className="text-center">Destaque</TableHead>
@@ -241,13 +227,13 @@ export default function AdminProfiles() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10">
+                <TableCell colSpan={5} className="text-center py-10">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
                 </TableCell>
               </TableRow>
             ) : filteredProfiles.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10">
+                <TableCell colSpan={5} className="text-center py-10">
                   Nenhum perfil encontrado.
                 </TableCell>
               </TableRow>
@@ -264,11 +250,6 @@ export default function AdminProfiles() {
                         {profile.occupation || 'Sem ocupação'}
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">
-                      {profile.role || 'user'}
-                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge
