@@ -63,8 +63,6 @@ export function Header() {
     }
   }
 
-  const isAdmin = currentProfessional?.role === 'admin'
-
   return (
     <header
       className={cn(
@@ -99,15 +97,15 @@ export function Header() {
 
           {isAuthenticated ? (
             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-primary/20">
-              {isAdmin && (
+              {currentProfessional?.role === 'admin' && (
                 <Link to="/admin">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                    className="gap-2 text-primary"
                   >
                     <ShieldCheck className="w-4 h-4" />
-                    Painel Admin
+                    Admin
                   </Button>
                 </Link>
               )}
@@ -176,10 +174,10 @@ export function Header() {
                 <div className="h-px bg-primary/10 my-2" />
                 {isAuthenticated ? (
                   <>
-                    {isAdmin && (
+                    {currentProfessional?.role === 'admin' && (
                       <Link
                         to="/admin"
-                        className="text-lg font-medium text-purple-600 hover:text-purple-700 flex items-center gap-2"
+                        className="text-lg font-medium text-primary hover:text-primary/80 flex items-center gap-2"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <ShieldCheck className="w-5 h-5" />

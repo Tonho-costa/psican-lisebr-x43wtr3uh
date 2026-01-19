@@ -4,7 +4,6 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from './components/Layout'
-import AdminLayout from './components/layouts/AdminLayout'
 import Index from './pages/Index'
 import SearchPage from './pages/Search'
 import Profile from './pages/Profile'
@@ -17,11 +16,11 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-
-// Admin Pages
-import AdminDashboard from './pages/admin/Dashboard'
-import AdminProfiles from './pages/admin/Profiles'
-import AdminTriage from './pages/admin/Triage'
+import { AdminRoute } from '@/components/AdminRoute'
+import { AdminLayout } from '@/components/AdminLayout'
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import AdminTriage from '@/pages/admin/AdminTriage'
+import AdminLogs from '@/pages/admin/AdminLogs'
 
 const App = () => (
   <AuthProvider>
@@ -32,7 +31,6 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" richColors />
         <Routes>
-          {/* Public & User Routes */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/busca" element={<SearchPage />} />
@@ -50,10 +48,12 @@ const App = () => (
           </Route>
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="profiles" element={<AdminProfiles />} />
-            <Route path="triage" element={<AdminTriage />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="triagem" element={<AdminTriage />} />
+              <Route path="logs" element={<AdminLogs />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<NotFound />} />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { adminService, TriageSubmission } from '@/services/adminService'
 import {
   Table,
   TableBody,
@@ -9,183 +10,144 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Eye, CheckCircle2 } from 'lucide-react'
-import { useAdminStore } from '@/stores/useAdminStore'
-import { useProfessionalStore } from '@/stores/useProfessionalStore'
-import { TriageDetailSheet } from '@/components/admin/TriageDetailSheet'
-import { StatusChangeDialog } from '@/components/admin/StatusChangeDialog'
-import { TriageSubmission } from '@/services/triageService'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Check, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { format } from 'date-fns'
 
 export default function AdminTriage() {
-  const {
-    triageSubmissions,
-    fetchTriage,
-    approveTriage,
-    rejectTriage,
-    isLoading,
-  } = useAdminStore()
-  const { currentProfessional } = useProfessionalStore()
+  const [submissions, setSubmissions] = useState<TriageSubmission[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [selectedSubmission, setSelectedSubmission] =
-    useState<TriageSubmission | null>(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(
-    null,
-  )
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const loadSubmissions = async () => {
+    setLoading(true)
+    const { data } = await adminService.getTriageSubmissions()
+    if (data) {
+      setSubmissions(data)
+    }
+    setLoading(false)
+  }
 
   useEffect(() => {
-    fetchTriage()
-  }, [fetchTriage])
+    loadSubmissions()
+  }, [])
 
-  const handleView = (submission: TriageSubmission) => {
-    setSelectedSubmission(submission)
-    setIsSheetOpen(true)
-  }
-
-  const handleActionClick = (
-    submission: TriageSubmission,
-    type: 'approve' | 'reject',
+  const handleStatusUpdate = async (
+    id: string,
+    status: 'approved' | 'rejected',
   ) => {
-    setSelectedSubmission(submission)
-    setActionType(type)
-    // Close sheet if open to show dialog clearly
-    setIsSheetOpen(false)
-    setIsDialogOpen(true)
-  }
-
-  const handleConfirmAction = async (justification: string) => {
-    if (!selectedSubmission || !currentProfessional || !actionType) return
-
-    let success = false
-    if (actionType === 'approve') {
-      success = await approveTriage(
-        currentProfessional.id,
-        selectedSubmission,
-        justification,
+    const { error } = await adminService.updateTriageStatus(id, status)
+    if (!error) {
+      toast.success(
+        `Triagem ${status === 'approved' ? 'aprovada' : 'rejeitada'} com sucesso.`,
       )
-      if (success) toast.success('Profissional aprovado com sucesso!')
+      loadSubmissions()
     } else {
-      success = await rejectTriage(
-        currentProfessional.id,
-        selectedSubmission,
-        justification,
-      )
-      if (success) toast.success('Solicitação rejeitada.')
-    }
-
-    if (success) {
-      setIsDialogOpen(false)
-      setSelectedSubmission(null)
-      setActionType(null)
-    } else {
-      toast.error('Ocorreu um erro ao processar a ação.')
+      toast.error('Erro ao atualizar status.')
     }
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-heading font-bold text-foreground">
-          Triagem de Profissionais
-        </h1>
-        <p className="text-muted-foreground">
-          Avalie e valide as solicitações de cadastro.
-        </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-heading font-bold">Triagem</h1>
+        <Button onClick={loadSubmissions} variant="outline" size="sm">
+          Atualizar
+        </Button>
       </div>
 
-      <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Formação</TableHead>
-              <TableHead>Status CRP</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-10">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : triageSubmissions.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-center py-10 text-muted-foreground"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <CheckCircle2 className="w-10 h-10 text-green-500/50" />
-                    <p>Tudo em dia! Nenhuma solicitação pendente.</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              triageSubmissions.map((sub) => (
-                <TableRow key={sub.id}>
-                  <TableCell className="font-medium">{sub.full_name}</TableCell>
-                  <TableCell>{sub.email || 'Não informado'}</TableCell>
-                  <TableCell>{sub.education}</TableCell>
-                  <TableCell>{sub.crp_status}</TableCell>
-                  <TableCell>
-                    {sub.created_at
-                      ? new Date(sub.created_at).toLocaleDateString()
-                      : '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleView(sub)}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Analisar
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <TriageDetailSheet
-        submission={selectedSubmission}
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        onApprove={(s) => handleActionClick(s, 'approve')}
-        onReject={(s) => handleActionClick(s, 'reject')}
-      />
-
-      <StatusChangeDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        onConfirm={handleConfirmAction}
-        isLoading={isLoading}
-        title={
-          actionType === 'approve'
-            ? 'Aprovar Profissional'
-            : 'Rejeitar Solicitação'
-        }
-        description={
-          actionType === 'approve'
-            ? 'Ao aprovar, o perfil será ativado e o profissional receberá acesso à plataforma. Justifique sua decisão.'
-            : 'Ao rejeitar, o cadastro será arquivado e o usuário notificado. Justifique o motivo.'
-        }
-        actionLabel={
-          actionType === 'approve'
-            ? 'Confirmar Aprovação'
-            : 'Confirmar Rejeição'
-        }
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Solicitações Recentes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <p className="text-muted-foreground text-center py-8">
+              Carregando...
+            </p>
+          ) : submissions.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              Nenhuma solicitação encontrada.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>CRP</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {submissions.map((sub) => (
+                    <TableRow key={sub.id}>
+                      <TableCell>
+                        {format(new Date(sub.created_at), 'dd/MM/yyyy HH:mm')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{sub.full_name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {sub.email}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{sub.crp_status}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            sub.status === 'pending'
+                              ? 'secondary'
+                              : sub.status === 'approved'
+                                ? 'default'
+                                : 'destructive'
+                          }
+                        >
+                          {sub.status === 'pending'
+                            ? 'Pendente'
+                            : sub.status === 'approved'
+                              ? 'Aprovado'
+                              : 'Rejeitado'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {sub.status === 'pending' && (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="h-8 w-8 p-0 bg-green-600 hover:bg-green-700"
+                              onClick={() =>
+                                handleStatusUpdate(sub.id, 'approved')
+                              }
+                              title="Aprovar"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="h-8 w-8 p-0"
+                              onClick={() =>
+                                handleStatusUpdate(sub.id, 'rejected')
+                              }
+                              title="Rejeitar"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

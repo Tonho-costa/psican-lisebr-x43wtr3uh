@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { adminService, AdminLog } from '@/services/adminService'
 import {
   Table,
   TableBody,
@@ -7,101 +8,71 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { useAdminStore } from '@/stores/useAdminStore'
-import { ScrollText } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { format } from 'date-fns'
 
 export default function AdminLogs() {
-  const { logs, fetchLogs, isLoading } = useAdminStore()
+  const [logs, setLogs] = useState<AdminLog[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchLogs()
-  }, [fetchLogs])
-
-  const formatAction = (action: string) => {
-    return action.replace('_', ' ')
-  }
-
-  const getBadgeVariant = (action: string) => {
-    if (action.includes('APPROVE') || action.includes('active'))
-      return 'default' // primary
-    if (action.includes('REJECT') || action.includes('blocked'))
-      return 'destructive'
-    return 'secondary'
-  }
+    async function loadLogs() {
+      const { data } = await adminService.getLogs()
+      if (data) {
+        setLogs(data)
+      }
+      setLoading(false)
+    }
+    loadLogs()
+  }, [])
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-heading font-bold text-foreground">
-          Logs de Auditoria
-        </h1>
-        <p className="text-muted-foreground">
-          Histórico de ações administrativas para segurança e compliance.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-heading font-bold">Logs do Sistema</h1>
 
-      <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Ação</TableHead>
-              <TableHead>Admin ID</TableHead>
-              <TableHead>Alvo ID</TableHead>
-              <TableHead>Detalhes (JSON)</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-10">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : logs.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center py-10 text-muted-foreground"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <ScrollText className="w-10 h-10 opacity-20" />
-                    <p>Nenhum registro encontrado.</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              logs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="whitespace-nowrap">
-                    {new Date(log.created_at).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={getBadgeVariant(log.action)}
-                      className="uppercase text-[10px]"
-                    >
-                      {formatAction(log.action)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    {log.admin_id?.slice(0, 8)}...
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    {log.target_id?.slice(0, 8)}...
-                  </TableCell>
-                  <TableCell className="max-w-[300px] truncate text-xs font-mono text-muted-foreground">
-                    {JSON.stringify(log.details)}
-                  </TableCell>
+      <Card>
+        <CardHeader>
+          <CardTitle>Últimas Atividades Administrativas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <p className="text-muted-foreground text-center py-8">
+              Carregando...
+            </p>
+          ) : logs.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              Nenhum log encontrado.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data/Hora</TableHead>
+                  <TableHead>Admin ID</TableHead>
+                  <TableHead>Ação</TableHead>
+                  <TableHead>Detalhes</TableHead>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>
+                      {format(new Date(log.created_at), 'dd/MM/yyyy HH:mm:ss')}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {log.admin_id}
+                    </TableCell>
+                    <TableCell className="font-medium">{log.action}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-xs truncate">
+                      {JSON.stringify(log.details)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

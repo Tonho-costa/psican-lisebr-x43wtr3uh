@@ -21,9 +21,7 @@ export interface Professional {
   instagram?: string
   facebook?: string
   isVisible: boolean
-  role: string
-  status: string
-  createdAt: string
+  role: 'user' | 'admin'
 }
 
 interface ProfessionalState {
@@ -41,12 +39,12 @@ interface ProfessionalState {
   setProfessionals: (pros: Professional[]) => void
   setCurrentProfessional: (pro: Professional | null) => void
   fetchProfessionals: () => Promise<void>
-  fetchCurrentProfile: (userId: string) => Promise<Professional | null>
+  fetchCurrentProfile: (userId: string) => Promise<void>
   updateProfile: (
     userId: string,
     data: Partial<Professional>,
   ) => Promise<Professional | null>
-  setProfilePhoto: (url: string) => void
+  setProfilePhoto: (url: string) => void // New action for local update
   logout: () => Promise<void>
   setSearchQuery: (query: Partial<ProfessionalState['searchQuery']>) => void
   deleteAccount: () => Promise<void>
@@ -90,11 +88,9 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
         isAuthenticated: true,
         isLoading: false,
       })
-      return data
     } else {
       console.error('Failed to fetch current profile:', error)
       set({ isLoading: false })
-      return null
     }
   },
 
@@ -121,6 +117,7 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     }
   },
 
+  // Updates the local state with the new photo URL without triggering a DB update
   setProfilePhoto: (url: string) => {
     set((state) => {
       if (!state.currentProfessional) return state
