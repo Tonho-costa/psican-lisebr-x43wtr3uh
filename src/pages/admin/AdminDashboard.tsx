@@ -1,98 +1,114 @@
-import { Users, Activity, MessageSquare, AlertTriangle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Users, ClipboardList, AlertCircle, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { adminService } from '@/services/adminService'
 
 export default function AdminDashboard() {
-  const { currentProfessional } = useProfessionalStore()
+  const [stats, setStats] = useState({
+    totalProfiles: 0,
+    pendingSubmissions: 0,
+    totalLogs: 0,
+  })
+  const [isLoading, setIsLoading] = useState(true)
 
-  const stats = [
+  useEffect(() => {
+    const loadStats = async () => {
+      setIsLoading(true)
+      try {
+        const [profiles, submissions, logs] = await Promise.all([
+          adminService.getAllProfiles(),
+          adminService.getSubmissions(),
+          adminService.getLogs(),
+        ])
+
+        setStats({
+          totalProfiles: profiles.data?.length || 0,
+          pendingSubmissions:
+            submissions.data?.filter((s) => s.status === 'Pending').length || 0,
+          totalLogs: logs.data?.length || 0,
+        })
+      } catch (error) {
+        console.error('Failed to load dashboard stats', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadStats()
+  }, [])
+
+  const statCards = [
     {
-      title: 'Usuários Ativos',
-      value: '1,248',
-      icon: <Users className="w-4 h-4 text-muted-foreground" />,
-      description: '+18% em relação ao mês passado',
+      title: 'Submissões Pendentes',
+      value: stats.pendingSubmissions,
+      icon: ClipboardList,
+      description: 'Aguardando revisão',
+      color: 'text-orange-500',
     },
     {
-      title: 'Novos Cadastros',
-      value: '132',
-      icon: <Activity className="w-4 h-4 text-muted-foreground" />,
-      description: '+5% na última semana',
+      title: 'Profissionais',
+      value: stats.totalProfiles,
+      icon: Users,
+      description: 'Cadastrados na plataforma',
+      color: 'text-blue-500',
     },
     {
-      title: 'Mensagens Trocadas',
-      value: '4,890',
-      icon: <MessageSquare className="w-4 h-4 text-muted-foreground" />,
-      description: 'Média de 4 por sessão',
-    },
-    {
-      title: 'Alertas Pendentes',
-      value: '12',
-      icon: <AlertTriangle className="w-4 h-4 text-destructive" />,
-      description: 'Requer atenção imediata',
+      title: 'Atividades Recentes',
+      value: stats.totalLogs,
+      icon: FileText,
+      description: 'Ações administrativas (últimas 100)',
+      color: 'text-green-500',
     },
   ]
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground mt-1">
-          Bem-vindo de volta, {currentProfessional?.name}. Aqui está o resumo da
-          plataforma.
+        <h2 className="text-3xl font-heading font-bold text-foreground">
+          Visão Geral
+        </h2>
+        <p className="text-muted-foreground">
+          Bem-vindo ao painel administrativo do EscutaPsi.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => (
-          <Card key={i}>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {statCards.map((stat, index) => (
+          <Card key={index} className="shadow-sm border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
-              {stat.icon}
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {stat.description}
-              </p>
+              {isLoading ? (
+                <div className="h-8 w-24 bg-muted animate-pulse rounded" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.description}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
           <CardHeader>
-            <CardTitle>Visão Geral</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[200px] w-full flex items-center justify-center text-muted-foreground bg-muted/20 rounded-md border border-dashed">
-              Gráfico de Atividade (Placeholder)
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Atividades Recentes</CardTitle>
+            <CardTitle className="text-lg">Dica de Gestão</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map((_, i) => (
-                <div key={i} className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      Novo cadastro profissional
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Há {i * 15 + 5} minutos
-                    </p>
-                  </div>
-                  <div className="ml-auto font-medium text-xs text-green-600">
-                    + Aprovado
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-start gap-4">
+              <AlertCircle className="w-10 h-10 text-primary opacity-80" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Mantenha as submissões de triagem em dia para garantir que novos
+                pacientes sejam encaminhados rapidamente. Verifique também
+                periodicamente os perfis em destaque para garantir rotatividade.
+              </p>
             </div>
           </CardContent>
         </Card>

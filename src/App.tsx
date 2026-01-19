@@ -4,6 +4,10 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from './components/Layout'
+import { AdminLayout } from './components/AdminLayout'
+import { AdminRoute } from './components/AdminRoute'
+
+// Public Pages
 import Index from './pages/Index'
 import SearchPage from './pages/Search'
 import Profile from './pages/Profile'
@@ -16,10 +20,12 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-import { AdminRoute } from '@/components/AdminRoute'
-import { AdminLayout } from '@/components/AdminLayout'
-import AdminDashboard from '@/pages/admin/AdminDashboard'
-import AdminProfessionals from '@/pages/admin/AdminProfessionals'
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminSubmissions from './pages/admin/AdminSubmissions'
+import AdminProfiles from './pages/admin/AdminProfiles'
+import AdminLogs from './pages/admin/AdminLogs'
 
 const App = () => (
   <AuthProvider>
@@ -48,15 +54,21 @@ const App = () => (
           </Route>
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="usuarios" element={<AdminProfessionals />} />
-              {/* Future admin routes can be added here */}
-              <Route path="*" element={<NotFound />} />
-            </Route>
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="submissoes" element={<AdminSubmissions />} />
+            <Route path="perfis" element={<AdminProfiles />} />
+            <Route path="logs" element={<AdminLogs />} />
           </Route>
 
+          {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

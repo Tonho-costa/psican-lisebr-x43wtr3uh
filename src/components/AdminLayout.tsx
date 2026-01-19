@@ -1,142 +1,142 @@
-import { useState } from 'react'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Users,
-  Settings,
+  ClipboardList,
+  FileText,
   LogOut,
+  Home,
   Menu,
-  Shield,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { cn } from '@/lib/utils'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+
+const NAV_ITEMS = [
+  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { label: 'Submissões', href: '/admin/submissoes', icon: ClipboardList },
+  { label: 'Perfis', href: '/admin/perfis', icon: Users },
+  { label: 'Logs do Sistema', href: '/admin/logs', icon: FileText },
+]
 
 export function AdminLayout() {
-  const { logout, currentProfessional } = useProfessionalStore()
+  const { pathname } = useLocation()
   const navigate = useNavigate()
-  const location = useLocation()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { logout, currentProfessional } = useProfessionalStore()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   const handleLogout = async () => {
     await logout()
     navigate('/')
+    toast.success('Logout realizado com sucesso.')
   }
 
-  const navItems = [
-    {
-      label: 'Dashboard',
-      href: '/admin',
-      icon: <LayoutDashboard className="w-5 h-5" />,
-    },
-    {
-      label: 'Usuários',
-      href: '/admin/usuarios',
-      icon: <Users className="w-5 h-5" />,
-    },
-    {
-      label: 'Configurações',
-      href: '/admin/configuracoes',
-      icon: <Settings className="w-5 h-5" />,
-    },
-  ]
-
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-slate-900 text-slate-100">
-      <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-          <Shield className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="font-bold text-lg tracking-wide">Admin Panel</h1>
-          <p className="text-xs text-slate-400">Gerenciamento</p>
-        </div>
+  const NavContent = () => (
+    <div className="flex flex-col h-full py-6">
+      <div className="px-6 mb-8">
+        <h1 className="text-2xl font-heading font-bold text-primary">
+          Admin<span className="font-light italic">Panel</span>
+        </h1>
+        <p className="text-xs text-muted-foreground mt-1">
+          Gerenciamento EscutaPSI
+        </p>
       </div>
 
-      <nav className="flex-grow p-4 space-y-2">
-        {navItems.map((item) => (
+      <nav className="flex-1 px-4 space-y-2">
+        {NAV_ITEMS.map((item) => (
           <Link
             key={item.href}
             to={item.href}
-            onClick={() => setIsMobileMenuOpen(false)}
             className={cn(
-              'flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group',
-              location.pathname === item.href
-                ? 'bg-primary text-primary-foreground font-medium shadow-md'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white',
+              'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-md transition-all',
+              pathname === item.href
+                ? 'bg-primary text-primary-foreground shadow-md'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             )}
           >
-            {item.icon}
-            <span>{item.label}</span>
+            <item.icon className="w-5 h-5" />
+            {item.label}
           </Link>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-slate-800">
-        <div className="flex items-center gap-3 px-4 py-3 mb-2">
-          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">
-            {currentProfessional?.name?.[0] || 'A'}
+      <div className="px-4 mt-auto space-y-2 border-t pt-6">
+        <Link to="/">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 text-muted-foreground"
+          >
+            <Home className="w-5 h-5" />
+            Voltar ao Site
+          </Button>
+        </Link>
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
+          className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          <LogOut className="w-5 h-5" />
+          Sair
+        </Button>
+      </div>
+
+      <div className="px-6 mt-6">
+        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+            {currentProfessional?.name?.[0]}
           </div>
           <div className="overflow-hidden">
             <p className="text-sm font-medium truncate">
               {currentProfessional?.name}
             </p>
-            <p className="text-xs text-slate-500">Administrador</p>
+            <p className="text-xs text-muted-foreground">Administrador</p>
           </div>
         </div>
-        <Button
-          variant="destructive"
-          className="w-full gap-2 justify-start"
-          onClick={handleLogout}
-        >
-          <LogOut className="w-4 h-4" />
-          Sair
-        </Button>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex">
+    <div className="flex min-h-screen bg-muted/20">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-72 shrink-0 border-r border-slate-200 shadow-sm fixed inset-y-0 z-40">
-        <SidebarContent />
+      <aside className="hidden md:block w-64 bg-card border-r border-border fixed inset-y-0 z-30">
+        <NavContent />
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0 lg:pl-72 transition-all duration-300">
-        <header className="h-16 bg-white border-b border-slate-200 px-4 flex items-center justify-between lg:justify-end sticky top-0 z-30 shadow-sm">
-          <div className="lg:hidden">
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="-ml-2">
-                  <Menu className="w-6 h-6" />
-                  <span className="sr-only">Menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-72 border-r-0">
-                <SheetTitle className="sr-only">Menu Admin</SheetTitle>
-                <SidebarContent />
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link to="/" target="_blank">
-                Ver Site
-              </Link>
-            </Button>
-          </div>
+      <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
+        <header className="md:hidden h-16 bg-card border-b border-border flex items-center justify-between px-4 sticky top-0 z-20">
+          <h1 className="font-heading font-bold text-lg text-primary">
+            Admin Panel
+          </h1>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="w-6 h-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Menu Admin</SheetTitle>
+              </SheetHeader>
+              <NavContent />
+            </SheetContent>
+          </Sheet>
         </header>
 
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
