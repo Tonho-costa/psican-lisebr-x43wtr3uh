@@ -25,6 +25,9 @@ const mapToProfessional = (row: ProfileRow): Professional => ({
   instagram: row.instagram || undefined,
   facebook: row.facebook || undefined,
   isVisible: row.is_visible ?? true,
+  role: row.role || 'user',
+  status: row.status || 'pending',
+  createdAt: row.created_at,
 })
 
 // Maps Professional Interface to Database Update object
@@ -54,13 +57,12 @@ const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
   if (professional.facebook !== undefined) db.facebook = professional.facebook
   if (professional.isVisible !== undefined)
     db.is_visible = professional.isVisible
+  if (professional.role !== undefined) db.role = professional.role
+  if (professional.status !== undefined) db.status = professional.status
   return db
 }
 
 export const profileService = {
-  /**
-   * Fetches a profile by its ID.
-   */
   async getProfile(userId: string) {
     const { data, error } = await supabase
       .from('profiles')
@@ -75,10 +77,6 @@ export const profileService = {
     return { data: mapToProfessional(data), error: null }
   },
 
-  /**
-   * Updates a profile.
-   * Returns the updated profile from the database to ensure UI consistency.
-   */
   async updateProfile(userId: string, updates: Partial<Professional>) {
     try {
       const dbUpdates = mapToDB(updates)
@@ -100,9 +98,6 @@ export const profileService = {
     }
   },
 
-  /**
-   * Fetches all visible profiles.
-   */
   async getAllProfiles() {
     const { data, error } = await supabase
       .from('profiles')
@@ -117,9 +112,6 @@ export const profileService = {
     return { data: (data || []).map(mapToProfessional), error: null }
   },
 
-  /**
-   * Fetches featured profiles.
-   */
   async getFeaturedProfiles() {
     const { data, error } = await supabase
       .from('profiles')
@@ -135,18 +127,10 @@ export const profileService = {
     return { data: (data || []).map(mapToProfessional), error: null }
   },
 
-  /**
-   * Searches/Filters profiles.
-   */
   async searchProfiles(_filters?: any) {
-    // Currently re-using getAllProfiles as filtering is done client-side in the store or component for now
-    // In a real app with many users, this should be a DB query
     return this.getAllProfiles()
   },
 
-  /**
-   * Deletes the current user account via edge function.
-   */
   async deleteAccount() {
     const { data, error } = await supabase.functions.invoke('delete-account', {
       method: 'POST',

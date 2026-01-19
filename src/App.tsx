@@ -4,6 +4,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from './components/Layout'
+import AdminLayout from './components/layouts/AdminLayout'
 import Index from './pages/Index'
 import SearchPage from './pages/Search'
 import Profile from './pages/Profile'
@@ -17,6 +18,11 @@ import Privacy from './pages/Privacy'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard'
+import AdminProfiles from './pages/admin/Profiles'
+import AdminTriage from './pages/admin/Triage'
+
 const App = () => (
   <AuthProvider>
     <BrowserRouter
@@ -26,6 +32,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" richColors />
         <Routes>
+          {/* Public & User Routes */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/busca" element={<SearchPage />} />
@@ -41,6 +48,14 @@ const App = () => (
             <Route path="/termos-de-uso" element={<Terms />} />
             <Route path="/politica-de-privacidade" element={<Privacy />} />
           </Route>
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="profiles" element={<AdminProfiles />} />
+            <Route path="triage" element={<AdminTriage />} />
+          </Route>
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

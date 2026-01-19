@@ -5,7 +5,7 @@ import {
   useState,
   ReactNode,
 } from 'react'
-import { User, Session } from '@supabase/supabase-js'
+import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
 
 interface AuthContextType {
@@ -16,7 +16,10 @@ interface AuthContextType {
     password: string,
     metaData?: any,
   ) => Promise<{ error: any; data: any }>
-  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: AuthError | null | any }>
   signOut: () => Promise<{ error: any }>
   resetPassword: (email: string) => Promise<{ data: any; error: any }>
   updatePassword: (password: string) => Promise<{ data: any; error: any }>
@@ -73,11 +76,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error }
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      return { error }
+    } catch (err: any) {
+      // Return error object even if an exception occurs to prevent crashes
+      // Create a structure compatible with AuthError
+      const error = {
+        message: err?.message || 'An unexpected error occurred',
+        name: err?.name || 'UnknownError',
+        status: err?.status || 500,
+      }
+      return { error }
+    }
   }
 
   const signOut = async () => {
