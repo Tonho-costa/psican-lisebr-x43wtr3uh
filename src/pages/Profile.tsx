@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   MapPin,
   Video,
@@ -12,6 +12,8 @@ import {
   Share2,
   CheckCircle2,
   Calendar,
+  Edit,
+  ShieldAlert,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,43 +22,76 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { profileService } from '@/services/profileService'
-import { Professional } from '@/stores/useProfessionalStore'
+import {
+  Professional,
+  useProfessionalStore,
+} from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/Icons'
+import { useAuth } from '@/hooks/use-auth'
 
-export default function Profile() {
-  const { id } = useParams<{ id: string }>()
-  const [professional, setProfessional] = useState<Professional | null>(null)
+// Custom hook to manage profile data state
+const useProfileData = (id: string | undefined) => {
+  const { user, loading: authLoading } = useAuth()
+  const [profile, setProfile] = useState<Professional | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function loadProfile() {
-      if (!id) return
+    let isMounted = true
+
+    const fetchProfile = async () => {
+      if (!id) {
+        if (isMounted) setLoading(false)
+        return
+      }
+
       setLoading(true)
-      setError(null)
       try {
         const { data, error } = await profileService.getProfile(id)
 
-        if (error) {
-          setError('Não foi possível carregar o perfil.')
-        } else {
-          setProfessional(data)
+        if (isMounted) {
+          if (error) {
+            setProfile(null)
+          } else {
+            setProfile(data)
+          }
         }
       } catch (err) {
-        setError('Ocorreu um erro inesperado.')
-        console.error(err)
+        if (isMounted) {
+          console.error('Unexpected error:', err)
+          setProfile(null)
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
-    loadProfile()
+
+    fetchProfile()
+
+    return () => {
+      isMounted = false
+    }
   }, [id])
+
+  const isLoading = authLoading || loading
+
+  return { user, profile, loading: isLoading }
+}
+
+export default function Profile() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { user, profile, loading } = useProfileData(id)
+  const { currentProfessional } = useProfessionalStore()
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href)
     toast.success('Link copiado para a área de transferência!')
   }
+
+  // Determine if current user is owner or admin
+  const isOwner = user && profile && user.id === profile.id
+  const isAdmin = currentProfessional?.role === 'admin'
 
   if (loading) {
     return (
@@ -77,7 +112,7 @@ export default function Profile() {
     )
   }
 
-  if (error || !professional) {
+  if (!profile) {
     return (
       <div className="container py-20 min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6">
         <div className="w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center animate-fade-in">
@@ -103,15 +138,15 @@ export default function Profile() {
   }
 
   // Safe check for phone to avoid crash
-  const rawPhone = professional.phone || ''
-  const message = `Olá, ${professional.name || 'doutor(a)'}. Encontrei seu perfil na EscutaPSI e gostaria de mais informações sobre atendimento.`
+  const rawPhone = profile.phone || ''
+  const message = `Olá, ${profile.name || 'doutor(a)'}. Encontrei seu perfil na EscutaPSI e gostaria de mais informações sobre atendimento.`
   const whatsappUrl = `https://wa.me/${rawPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
   const telUrl = `tel:${rawPhone.replace(/\D/g, '')}`
 
   return (
     <div className="container py-8 space-y-6 max-w-6xl animate-fade-in">
       {/* Navigation & Actions */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <Link to="/busca">
           <Button
             variant="ghost"
@@ -121,15 +156,42 @@ export default function Profile() {
             Voltar para busca
           </Button>
         </Link>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={handleShare}
-        >
-          <Share2 className="w-4 h-4" />
-          Compartilhar
-        </Button>
+
+        <div className="flex gap-2">
+          {isOwner && (
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-2"
+              onClick={() => navigate('/painel/perfil')}
+            >
+              <Edit className="w-4 h-4" />
+              Editar Perfil
+            </Button>
+          )}
+
+          {isAdmin && !isOwner && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="gap-2"
+              onClick={() => navigate('/admin/perfis')}
+            >
+              <ShieldAlert className="w-4 h-4" />
+              Gerenciar (Admin)
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={handleShare}
+          >
+            <Share2 className="w-4 h-4" />
+            Compartilhar
+          </Button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-12 gap-8">
@@ -141,50 +203,49 @@ export default function Profile() {
               <div className="relative w-40 h-40 mx-auto rounded-full p-1.5 bg-background shadow-lg">
                 <Avatar className="w-full h-full border-2 border-muted">
                   <AvatarImage
-                    src={professional.photoUrl || undefined}
+                    src={profile.photoUrl || undefined}
                     className="object-cover"
-                    alt={professional.name}
+                    alt={profile.name}
                   />
                   <AvatarFallback className="text-4xl bg-muted text-muted-foreground font-heading">
-                    {professional.name?.[0]?.toUpperCase() || '?'}
+                    {profile.name?.[0]?.toUpperCase() || '?'}
                   </AvatarFallback>
                 </Avatar>
               </div>
 
               <div>
                 <h1 className="text-2xl font-heading font-bold text-foreground leading-tight">
-                  {professional.name}
+                  {profile.name}
                 </h1>
                 <p className="text-primary font-medium mt-1 text-lg">
-                  {professional.occupation}
+                  {profile.occupation}
                 </p>
 
                 <div className="flex flex-col items-center gap-1 mt-3 text-muted-foreground text-sm">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-4 h-4 text-primary/70" />
                     <span>
-                      {professional.city || 'Cidade'},{' '}
-                      {professional.state || 'UF'}
+                      {profile.city || 'Cidade'}, {profile.state || 'UF'}
                     </span>
                   </div>
-                  {professional.age && professional.age > 0 && (
+                  {profile.age && profile.age > 0 && (
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4 text-primary/70" />
-                      <span>{professional.age} anos</span>
+                      <span>{profile.age} anos</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Social Media Links */}
-              {(professional.instagram || professional.facebook) && (
+              {(profile.instagram || profile.facebook) && (
                 <div className="flex items-center justify-center gap-3 pt-1">
-                  {professional.instagram && (
+                  {profile.instagram && (
                     <a
                       href={
-                        professional.instagram.startsWith('http')
-                          ? professional.instagram
-                          : `https://instagram.com/${professional.instagram.replace('@', '')}`
+                        profile.instagram.startsWith('http')
+                          ? profile.instagram
+                          : `https://instagram.com/${profile.instagram.replace('@', '')}`
                       }
                       target="_blank"
                       rel="noopener noreferrer"
@@ -194,12 +255,12 @@ export default function Profile() {
                       <InstagramIcon className="w-6 h-6" />
                     </a>
                   )}
-                  {professional.facebook && (
+                  {profile.facebook && (
                     <a
                       href={
-                        professional.facebook.startsWith('http')
-                          ? professional.facebook
-                          : `https://facebook.com/${professional.facebook}`
+                        profile.facebook.startsWith('http')
+                          ? profile.facebook
+                          : `https://facebook.com/${profile.facebook}`
                       }
                       target="_blank"
                       rel="noopener noreferrer"
@@ -215,7 +276,7 @@ export default function Profile() {
               <Separator />
 
               <div className="pt-2 w-full space-y-3">
-                {professional.phone && (
+                {profile.phone && (
                   <Button
                     className="w-full gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white shadow-sm font-semibold h-12 text-base transition-transform hover:scale-[1.02]"
                     size="lg"
@@ -232,26 +293,26 @@ export default function Profile() {
                   </Button>
                 )}
 
-                {professional.email && (
+                {profile.email && (
                   <Button
                     variant="outline"
                     className="w-full gap-2 h-11"
                     asChild
                   >
-                    <a href={`mailto:${professional.email}`}>
+                    <a href={`mailto:${profile.email}`}>
                       <Mail className="w-4 h-4" />
                       Enviar Email
                     </a>
                   </Button>
                 )}
 
-                {professional.phone && (
+                {profile.phone && (
                   <div className="text-center pt-1">
                     <a
                       href={telUrl}
                       className="text-xs text-muted-foreground hover:text-primary underline decoration-dotted underline-offset-4"
                     >
-                      Ligar para {professional.phone}
+                      Ligar para {profile.phone}
                     </a>
                   </div>
                 )}
@@ -274,7 +335,7 @@ export default function Profile() {
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {professional.serviceTypes?.includes('Online') && (
+                  {profile.serviceTypes?.includes('Online') && (
                     <Badge
                       variant="secondary"
                       className="gap-1.5 font-normal px-3 py-1 bg-green-100 text-green-800 hover:bg-green-200 border-transparent"
@@ -282,7 +343,7 @@ export default function Profile() {
                       <Video className="w-3.5 h-3.5" /> Online
                     </Badge>
                   )}
-                  {professional.serviceTypes?.includes('Presencial') && (
+                  {profile.serviceTypes?.includes('Presencial') && (
                     <Badge
                       variant="secondary"
                       className="gap-1.5 font-normal px-3 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200 border-transparent"
@@ -293,7 +354,7 @@ export default function Profile() {
                 </div>
               </div>
 
-              {professional.availability && (
+              {profile.availability && (
                 <>
                   <Separator />
                   <div className="text-sm">
@@ -301,7 +362,7 @@ export default function Profile() {
                       Horários de Atendimento:
                     </span>
                     <p className="font-medium text-foreground bg-muted/30 p-3 rounded-md border border-border/50">
-                      {professional.availability}
+                      {profile.availability}
                     </p>
                   </div>
                 </>
@@ -321,7 +382,7 @@ export default function Profile() {
             <Card className="border-border/60 shadow-sm bg-card/50">
               <CardContent className="pt-6">
                 <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground text-lg font-light text-justify">
-                  {professional.bio ||
+                  {profile.bio ||
                     'Este profissional ainda não adicionou uma biografia.'}
                 </p>
               </CardContent>
@@ -336,8 +397,8 @@ export default function Profile() {
             </h2>
             <div className="bg-background rounded-lg border border-border p-6 shadow-sm">
               <div className="flex flex-wrap gap-2.5">
-                {professional.specialties?.length > 0 ? (
-                  professional.specialties.map((specialty) => (
+                {profile.specialties?.length > 0 ? (
+                  profile.specialties.map((specialty) => (
                     <Badge
                       key={specialty}
                       variant="outline"
@@ -365,9 +426,9 @@ export default function Profile() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 flex-grow">
-                {professional.education && professional.education.length > 0 ? (
+                {profile.education && profile.education.length > 0 ? (
                   <ul className="space-y-4">
-                    {professional.education.map((edu, i) => (
+                    {profile.education.map((edu, i) => (
                       <li
                         key={i}
                         className="flex items-start gap-3 text-sm text-muted-foreground group"
@@ -393,9 +454,9 @@ export default function Profile() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 flex-grow">
-                {professional.courses && professional.courses.length > 0 ? (
+                {profile.courses && profile.courses.length > 0 ? (
                   <ul className="space-y-4">
-                    {professional.courses.map((course, i) => (
+                    {profile.courses.map((course, i) => (
                       <li
                         key={i}
                         className="flex items-start gap-3 text-sm text-muted-foreground group"
