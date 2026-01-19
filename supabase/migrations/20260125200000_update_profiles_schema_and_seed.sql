@@ -119,7 +119,23 @@ BEGIN
         (i <= 3), -- First 3 are featured
         'https://img.usecurling.com/ppl/medium?gender=' || genders[i] || '&seed=' || i,
         'verified'
-      );
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        occupation = EXCLUDED.occupation,
+        city = EXCLUDED.city,
+        state = EXCLUDED.state,
+        description = EXCLUDED.description,
+        phone = EXCLUDED.phone,
+        is_visible = EXCLUDED.is_visible,
+        role = EXCLUDED.role,
+        specialties = EXCLUDED.specialties,
+        service_types = EXCLUDED.service_types,
+        education = EXCLUDED.education,
+        availability = EXCLUDED.availability,
+        is_featured = EXCLUDED.is_featured,
+        avatar_url = EXCLUDED.avatar_url,
+        status = EXCLUDED.status;
     END IF;
   END LOOP;
 END $$;
