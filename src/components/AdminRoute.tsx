@@ -5,23 +5,43 @@ import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-export function AdminRoute({ children }: { children: React.ReactNode }) {
+interface AdminRouteProps {
+  children: React.ReactNode
+}
+
+export function AdminRoute({ children }: AdminRouteProps) {
   const { user, loading: authLoading } = useAuth()
   const {
     currentProfessional,
-    isLoading: profileLoading,
     fetchCurrentProfile,
+    error: profileError,
   } = useProfessionalStore()
   const location = useLocation()
   const hasNotified = useRef(false)
+  const isFetchingRef = useRef(false)
 
+  // Trigger profile fetch if user exists but profile is missing
   useEffect(() => {
-    if (user && !currentProfessional && !profileLoading) {
-      fetchCurrentProfile(user.id)
+    if (
+      user &&
+      !currentProfessional &&
+      !profileError &&
+      !isFetchingRef.current
+    ) {
+      isFetchingRef.current = true
+      fetchCurrentProfile(user.id).finally(() => {
+        isFetchingRef.current = false
+      })
     }
-  }, [user, currentProfessional, profileLoading, fetchCurrentProfile])
+  }, [user, currentProfessional, profileError, fetchCurrentProfile])
 
-  if (authLoading || (user && !currentProfessional && profileLoading)) {
+  // Determine if we are in a loading state
+  // 1. Auth is still loading
+  // 2. User is authenticated but profile is not loaded yet (and no error occurred)
+  const isLoading =
+    authLoading || (!!user && !currentProfessional && !profileError)
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -32,12 +52,21 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Not logged in
+  // Case 1: Not Authenticated
   if (!user) {
-    return <Navigate to="/entrar" state={{ from: location }} replace />
+    return <Navigate to="/admin/login" state={{ from: location }} replace />
   }
 
-  // Logged in but not admin
+  // Case 2: Authenticated but Profile Error (Fetch failed)
+  if (profileError) {
+    if (!hasNotified.current) {
+      toast.error('Erro ao verificar permissões de administrador.')
+      hasNotified.current = true
+    }
+    return <Navigate to="/" replace />
+  }
+
+  // Case 3: Authenticated but not Admin
   if (!currentProfessional || currentProfessional.role !== 'admin') {
     if (!hasNotified.current) {
       toast.error('Acesso não autorizado. Área restrita a administradores.')
@@ -46,6 +75,6 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/" replace />
   }
 
-  // Authorized
+  // Case 4: Authorized
   return <>{children}</>
 }

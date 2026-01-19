@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -30,8 +30,12 @@ type LoginForm = z.infer<typeof loginSchema>
 export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { signIn } = useAuth()
   const { fetchCurrentProfile } = useProfessionalStore()
+
+  // Get return url from location state or default to /admin
+  const from = location.state?.from?.pathname || '/admin'
 
   const {
     register,
@@ -55,11 +59,12 @@ export default function AdminLogin() {
         const {
           data: { user },
         } = await supabase.auth.getUser()
+
         if (user) {
           const profile = await fetchCurrentProfile(user.id)
           if (profile?.role === 'admin') {
             toast.success('Bem-vindo, Administrador')
-            navigate('/admin')
+            navigate(from, { replace: true })
           } else {
             toast.error('Acesso Negado', {
               description: 'Esta área é restrita a administradores.',
@@ -100,6 +105,7 @@ export default function AdminLogin() {
                 placeholder="admin@escutapsi.com"
                 {...register('email')}
                 className={errors.email ? 'border-destructive' : ''}
+                disabled={isLoading}
               />
               {errors.email && (
                 <p className="text-sm text-destructive">
@@ -114,6 +120,7 @@ export default function AdminLogin() {
                 type="password"
                 {...register('password')}
                 className={errors.password ? 'border-destructive' : ''}
+                disabled={isLoading}
               />
               {errors.password && (
                 <p className="text-sm text-destructive">
