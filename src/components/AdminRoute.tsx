@@ -1,46 +1,54 @@
-import { useEffect } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { useAuth } from '@/hooks/use-auth'
 import { Loader2 } from 'lucide-react'
 
-export function AdminRoute() {
+export default function AdminRoute() {
+  const { user, loading: authLoading } = useAuth()
   const {
     currentProfessional,
     fetchCurrentProfile,
-    isLoading: isStoreLoading,
+    isLoading: profileLoading,
   } = useProfessionalStore()
-  const { user, loading: isAuthLoading } = useAuth()
-  const navigate = useNavigate()
+  const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
-    if (user?.id && !currentProfessional) {
-      fetchCurrentProfile(user.id)
-    }
-  }, [user, currentProfessional, fetchCurrentProfile])
-
-  useEffect(() => {
-    // If auth is done and no user, or user is loaded but not admin, redirect
-    if (!isAuthLoading && !isStoreLoading) {
-      if (!user) {
-        navigate('/entrar')
-      } else if (currentProfessional && currentProfessional.role !== 'admin') {
-        navigate('/')
+    const checkAdmin = async () => {
+      if (user && !currentProfessional) {
+        await fetchCurrentProfile(user.id)
       }
+      setIsChecking(false)
     }
-  }, [user, currentProfessional, isAuthLoading, isStoreLoading, navigate])
 
-  if (isAuthLoading || (user && !currentProfessional) || isStoreLoading) {
+    if (!authLoading) {
+      checkAdmin()
+    }
+  }, [user, currentProfessional, fetchCurrentProfile, authLoading])
+
+  if (
+    authLoading ||
+    isChecking ||
+    (user && !currentProfessional && profileLoading)
+  ) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse">
+            Verificando permissões...
+          </p>
+        </div>
       </div>
     )
   }
 
-  // Double check before rendering outlet
-  if (!currentProfessional || currentProfessional.role !== 'admin') {
-    return null
+  if (!user) {
+    return <Navigate to="/entrar" replace />
+  }
+
+  if (currentProfessional?.role !== 'admin') {
+    return <Navigate to="/" replace />
   }
 
   return <Outlet />

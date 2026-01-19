@@ -16,10 +16,12 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-import { AdminRoute } from '@/components/AdminRoute'
-import { AdminLayout } from '@/components/AdminLayout'
+
+// Admin Components
+import AdminRoute from '@/components/AdminRoute'
+import AdminLayout from '@/components/AdminLayout'
 import AdminDashboard from '@/pages/admin/AdminDashboard'
-import AdminTriage from '@/pages/admin/AdminTriage'
+import AdminProfessionals from '@/pages/admin/AdminProfessionals'
 import AdminLogs from '@/pages/admin/AdminLogs'
 
 const App = () => (
@@ -31,6 +33,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" richColors />
         <Routes>
+          {/* Public Routes */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/busca" element={<SearchPage />} />
@@ -39,6 +42,8 @@ const App = () => (
             <Route path="/cadastro" element={<Register />} />
             <Route path="/recuperar-senha" element={<ForgotPassword />} />
             <Route path="/redefinir-senha" element={<ResetPassword />} />
+
+            {/* Authenticated Professional Routes */}
             <Route path="/painel/perfil" element={<Dashboard />} />
 
             {/* Static Pages */}
@@ -49,10 +54,13 @@ const App = () => (
 
           {/* Admin Routes */}
           <Route element={<AdminRoute />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="triagem" element={<AdminTriage />} />
-              <Route path="logs" element={<AdminLogs />} />
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route
+                path="/admin/profissionais"
+                element={<AdminProfessionals />}
+              />
+              <Route path="/admin/logs" element={<AdminLogs />} />
             </Route>
           </Route>
 
