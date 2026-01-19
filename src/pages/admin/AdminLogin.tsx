@@ -52,48 +52,55 @@ export default function AdminLogin() {
 
       if (error) {
         console.error('Login Error:', error)
-        // Handle specific schema/database errors that might occur during auth handshake
-        if (error.message?.includes('Database error') || error.status === 500) {
-          toast.error('Erro interno do servidor', {
-            description:
-              'Ocorreu um problema ao conectar com o banco de dados. Tente novamente mais tarde.',
-          })
+
+        // Handle specific errors based on Acceptance Criteria
+        const isDatabaseError =
+          error.message?.includes('Database error') ||
+          (error as any).status === 500 ||
+          (error as any).code === '500'
+
+        if (isDatabaseError) {
+          toast.error(
+            'Erro interno do servidor. Ocorreu um problema ao conectar com o banco de dados. Tente novamente mais tarde.',
+          )
+        } else if (
+          error.message?.includes('Invalid login credentials') ||
+          error.message?.includes('Invalid email or password')
+        ) {
+          toast.error('Verifique suas credenciais e tente novamente.')
         } else {
-          toast.error('Erro de Autenticação', {
-            description: 'Verifique suas credenciais e tente novamente.',
-          })
+          toast.error('Ocorreu um erro ao realizar o login. Tente novamente.')
         }
+        setIsLoading(false)
+        return
+      }
+
+      // Check user and profile for admin role
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        toast.error('Erro ao verificar usuário. Tente fazer login novamente.')
+        await supabase.auth.signOut()
+        setIsLoading(false)
+        return
+      }
+
+      // Fetch profile to verify role
+      const profile = await fetchCurrentProfile(user.id)
+
+      if (profile?.role === 'admin') {
+        toast.success('Bem-vindo ao Painel Administrativo')
+        navigate(from, { replace: true })
       } else {
-        // Verify admin role
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser()
-
-        if (userError || !user) {
-          console.error('User fetch error:', userError)
-          toast.error('Erro ao verificar permissões', {
-            description: 'Não foi possível recuperar os dados do usuário.',
-          })
-          await supabase.auth.signOut()
-          setIsLoading(false)
-          return
-        }
-
-        const profile = await fetchCurrentProfile(user.id)
-        if (profile?.role === 'admin') {
-          toast.success('Bem-vindo ao Painel Administrativo')
-          navigate(from, { replace: true })
-        } else {
-          toast.error('Acesso Negado', {
-            description: 'Esta área é restrita a administradores.',
-          })
-          await supabase.auth.signOut()
-        }
+        toast.error('Acesso Negado. Área restrita a administradores.')
+        await supabase.auth.signOut()
       }
     } catch (err) {
-      console.error(err)
-      toast.error('Ocorreu um erro inesperado')
+      console.error('Unexpected error:', err)
+      toast.error('Ocorreu um erro inesperado. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
@@ -101,7 +108,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/20 px-4">
-      <Card className="w-full max-w-md shadow-lg border-primary/20">
+      <Card className="w-full max-w-md shadow-lg border-primary/20 animate-in fade-in zoom-in-95 duration-300">
         <CardHeader className="space-y-2 text-center">
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-2">
             <ShieldCheck className="w-6 h-6" />
