@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth()
@@ -12,6 +13,7 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
     fetchCurrentProfile,
   } = useProfessionalStore()
   const location = useLocation()
+  const hasNotified = useRef(false)
 
   useEffect(() => {
     if (user && !currentProfessional && !profileLoading) {
@@ -21,11 +23,11 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
 
   if (authLoading || (user && !currentProfessional && profileLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-          <p className="text-muted-foreground">Verificando permissões...</p>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="text-muted-foreground animate-pulse">
+          Verificando permissões...
+        </p>
       </div>
     )
   }
@@ -36,7 +38,11 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   // Logged in but not admin
-  if (currentProfessional && currentProfessional.role !== 'admin') {
+  if (!currentProfessional || currentProfessional.role !== 'admin') {
+    if (!hasNotified.current) {
+      toast.error('Acesso não autorizado. Área restrita a administradores.')
+      hasNotified.current = true
+    }
     return <Navigate to="/" replace />
   }
 
