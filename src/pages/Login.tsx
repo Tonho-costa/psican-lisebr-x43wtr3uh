@@ -33,6 +33,8 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    setValue,
+    setFocus,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -40,14 +42,24 @@ export default function Login() {
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
-    const { error } = await signIn(data.email, data.password)
-    setIsLoading(false)
+    try {
+      const { error } = await signIn(data.email, data.password)
 
-    if (!error) {
-      toast.success('Login realizado com sucesso!')
-      navigate('/painel/perfil')
-    } else {
-      toast.error('Email ou senha incorretos.')
+      if (error) {
+        console.error('Erro de login:', error)
+        toast.error('E-mail ou senha incorretos. Por favor, tente novamente.')
+        setValue('password', '')
+        setFocus('password')
+      } else {
+        toast.success('Login realizado com sucesso!')
+        navigate('/painel/perfil')
+      }
+    } catch (error) {
+      console.error('Erro inesperado:', error)
+      toast.error('Ocorreu um erro inesperado. Tente novamente.')
+      setValue('password', '')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -72,6 +84,7 @@ export default function Login() {
                 placeholder="seu@email.com"
                 {...register('email')}
                 className={errors.email ? 'border-destructive' : ''}
+                disabled={isLoading}
               />
               {errors.email && (
                 <p className="text-sm text-destructive">
@@ -94,6 +107,7 @@ export default function Login() {
                 type="password"
                 {...register('password')}
                 className={errors.password ? 'border-destructive' : ''}
+                disabled={isLoading}
               />
               {errors.password && (
                 <p className="text-sm text-destructive">
@@ -107,7 +121,10 @@ export default function Login() {
               disabled={isLoading}
             >
               {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Entrando...
+                </>
               ) : (
                 'Entrar'
               )}
