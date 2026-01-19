@@ -2,8 +2,25 @@ import { supabase } from '@/lib/supabase/client'
 import { Professional } from '@/stores/useProfessionalStore'
 import { Database } from '@/lib/supabase/types'
 
-type ProfileRow = Database['public']['Tables']['profiles']['Row']
-type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
+type ProfileRow = Database['public']['Tables']['profiles']['Row'] & {
+  crp_status?: string
+  education_level?: string
+  theoretical_approach?: string
+  experience_level?: string
+  network_availability?: string
+  accepts_social_value?: boolean
+  agrees_to_ethics?: boolean
+}
+
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'] & {
+  crp_status?: string
+  education_level?: string
+  theoretical_approach?: string
+  experience_level?: string
+  network_availability?: string
+  accepts_social_value?: boolean
+  agrees_to_ethics?: boolean
+}
 
 // Maps Database Row to Professional Interface
 const mapToProfessional = (row: ProfileRow): Professional => ({
@@ -25,6 +42,14 @@ const mapToProfessional = (row: ProfileRow): Professional => ({
   instagram: row.instagram || undefined,
   facebook: row.facebook || undefined,
   isVisible: row.is_visible ?? true,
+  // New Screening Fields
+  crpStatus: row.crp_status,
+  educationLevel: row.education_level,
+  theoreticalApproach: row.theoretical_approach,
+  experienceLevel: row.experience_level,
+  networkAvailability: row.network_availability,
+  acceptsSocialValue: row.accepts_social_value,
+  agreesToEthics: row.agrees_to_ethics,
 })
 
 // Maps Professional Interface to Database Update object
@@ -54,13 +79,27 @@ const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
   if (professional.facebook !== undefined) db.facebook = professional.facebook
   if (professional.isVisible !== undefined)
     db.is_visible = professional.isVisible
+
+  // New Screening Fields
+  if (professional.crpStatus !== undefined)
+    db.crp_status = professional.crpStatus
+  if (professional.educationLevel !== undefined)
+    db.education_level = professional.educationLevel
+  if (professional.theoreticalApproach !== undefined)
+    db.theoretical_approach = professional.theoreticalApproach
+  if (professional.experienceLevel !== undefined)
+    db.experience_level = professional.experienceLevel
+  if (professional.networkAvailability !== undefined)
+    db.network_availability = professional.networkAvailability
+  if (professional.acceptsSocialValue !== undefined)
+    db.accepts_social_value = professional.acceptsSocialValue
+  if (professional.agreesToEthics !== undefined)
+    db.agrees_to_ethics = professional.agreesToEthics
+
   return db
 }
 
 export const profileService = {
-  /**
-   * Fetches a profile by its ID.
-   */
   async getProfile(userId: string) {
     const { data, error } = await supabase
       .from('profiles')
@@ -72,13 +111,10 @@ export const profileService = {
       console.error('Error fetching profile:', error)
       return { data: null, error }
     }
+    // @ts-expect-error - Supabase types are not yet updated with new columns in the project file but exist in DB via migration
     return { data: mapToProfessional(data), error: null }
   },
 
-  /**
-   * Updates a profile.
-   * Returns the updated profile from the database to ensure UI consistency.
-   */
   async updateProfile(userId: string, updates: Partial<Professional>) {
     try {
       const dbUpdates = mapToDB(updates)
@@ -93,6 +129,7 @@ export const profileService = {
         console.error('Error updating profile:', error)
         return { data: null, error }
       }
+      // @ts-expect-error
       return { data: mapToProfessional(data), error: null }
     } catch (err: any) {
       console.error('Unexpected error in updateProfile:', err)
@@ -100,9 +137,6 @@ export const profileService = {
     }
   },
 
-  /**
-   * Fetches all visible profiles.
-   */
   async getAllProfiles() {
     const { data, error } = await supabase
       .from('profiles')
@@ -114,12 +148,10 @@ export const profileService = {
       console.error('Error fetching all profiles:', error)
       return { data: null, error }
     }
+    // @ts-expect-error
     return { data: (data || []).map(mapToProfessional), error: null }
   },
 
-  /**
-   * Fetches featured profiles.
-   */
   async getFeaturedProfiles() {
     const { data, error } = await supabase
       .from('profiles')
@@ -132,21 +164,14 @@ export const profileService = {
       console.error('Error fetching featured profiles:', error)
       return { data: null, error }
     }
+    // @ts-expect-error
     return { data: (data || []).map(mapToProfessional), error: null }
   },
 
-  /**
-   * Searches/Filters profiles.
-   */
   async searchProfiles(_filters?: any) {
-    // Currently re-using getAllProfiles as filtering is done client-side in the store or component for now
-    // In a real app with many users, this should be a DB query
     return this.getAllProfiles()
   },
 
-  /**
-   * Deletes the current user account via edge function.
-   */
   async deleteAccount() {
     const { data, error } = await supabase.functions.invoke('delete-account', {
       method: 'POST',
