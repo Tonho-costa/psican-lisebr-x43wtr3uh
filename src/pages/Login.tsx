@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/card'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
+import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { supabase } from '@/lib/supabase/client'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -29,10 +31,13 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { signIn } = useAuth()
+  const { fetchCurrentProfile } = useProfessionalStore()
 
   const {
     register,
     handleSubmit,
+    setValue,
+    setFocus,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -40,14 +45,58 @@ export default function Login() {
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
-    const { error } = await signIn(data.email, data.password)
-    setIsLoading(false)
+    try {
+      const { error } = await signIn(data.email, data.password)
 
-    if (!error) {
-      toast.success('Login realizado com sucesso!')
-      navigate('/painel/perfil')
-    } else {
-      toast.error('Email ou senha incorretos.')
+      if (error) {
+        console.error('Erro de login:', error)
+
+        // Identify "invalid_credentials" error
+        // Supabase returns status 400 and message "Invalid login credentials" usually.
+        // We check specific properties to ensure we catch the right error.
+        const isInvalidCredential =
+          error.message === 'Invalid login credentials' ||
+          (error as any).code === 'invalid_credentials' ||
+          (error as any).status === 400
+
+        if (isInvalidCredential) {
+          toast.error('E-mail ou senha incorretos. Por favor, tente novamente.')
+        } else {
+          toast.error(
+            error.message ||
+              'Ocorreu um erro ao realizar o login. Tente novamente.',
+          )
+        }
+
+        // Clear password and focus it for retry
+        setValue('password', '')
+        setFocus('password')
+      } else {
+        toast.success('Login realizado com sucesso!')
+
+        // Fetch user ID to get profile immediately for role check
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (user) {
+          const profile = await fetchCurrentProfile(user.id)
+          if (profile?.role === 'admin') {
+            navigate('/admin')
+          } else {
+            navigate('/painel/perfil')
+          }
+        } else {
+          // Fallback if user retrieval fails (unlikely after successful sign in)
+          navigate('/painel/perfil')
+        }
+      }
+    } catch (error) {
+      console.error('Erro inesperado:', error)
+      toast.error('Ocorreu um erro inesperado. Tente novamente.')
+      setValue('password', '')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -72,6 +121,7 @@ export default function Login() {
                 placeholder="seu@email.com"
                 {...register('email')}
                 className={errors.email ? 'border-destructive' : ''}
+                disabled={isLoading}
               />
               {errors.email && (
                 <p className="text-sm text-destructive">
@@ -94,6 +144,7 @@ export default function Login() {
                 type="password"
                 {...register('password')}
                 className={errors.password ? 'border-destructive' : ''}
+                disabled={isLoading}
               />
               {errors.password && (
                 <p className="text-sm text-destructive">
@@ -107,7 +158,10 @@ export default function Login() {
               disabled={isLoading}
             >
               {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Entrando...
+                </>
               ) : (
                 'Entrar'
               )}

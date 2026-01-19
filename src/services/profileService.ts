@@ -6,30 +6,37 @@ type ProfileRow = Database['public']['Tables']['profiles']['Row']
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
 // Maps Database Row to Professional Interface
-const mapToProfessional = (row: ProfileRow): Professional => ({
-  id: row.id,
-  name: row.full_name || '',
-  occupation: row.occupation || '',
-  email: row.email || '',
-  age: row.age || 0,
-  city: row.city || '',
-  state: row.state || '',
-  bio: row.description || '',
-  photoUrl: row.avatar_url || '',
-  serviceTypes: (row.service_types as ('Online' | 'Presencial')[]) || [],
-  specialties: row.specialties || [],
-  education: row.education || [],
-  courses: row.courses || [],
-  availability: row.availability || '',
-  phone: row.phone || '',
-  instagram: row.instagram || undefined,
-  facebook: row.facebook || undefined,
-  isVisible: row.is_visible ?? true,
-})
+// Using "as any" to access columns that might not be in the generated types yet (role, status)
+const mapToProfessional = (row: ProfileRow): Professional => {
+  const r = row as any
+  return {
+    id: row.id,
+    name: row.full_name || '',
+    occupation: row.occupation || '',
+    email: row.email || '',
+    age: row.age || 0,
+    city: row.city || '',
+    state: row.state || '',
+    bio: row.description || '',
+    photoUrl: row.avatar_url || '',
+    serviceTypes: (row.service_types as ('Online' | 'Presencial')[]) || [],
+    specialties: row.specialties || [],
+    education: row.education || [],
+    courses: row.courses || [],
+    availability: row.availability || '',
+    phone: row.phone || '',
+    instagram: row.instagram || undefined,
+    facebook: row.facebook || undefined,
+    isVisible: row.is_visible ?? true,
+    role: r.role || 'user',
+    status: r.status || 'active',
+    createdAt: row.created_at,
+  }
+}
 
 // Maps Professional Interface to Database Update object
 const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
-  const db: ProfileUpdate = {}
+  const db: ProfileUpdate & { role?: string; status?: string } = {}
   if (professional.name !== undefined) db.full_name = professional.name
   if (professional.occupation !== undefined)
     db.occupation = professional.occupation
@@ -54,6 +61,9 @@ const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
   if (professional.facebook !== undefined) db.facebook = professional.facebook
   if (professional.isVisible !== undefined)
     db.is_visible = professional.isVisible
+  // Allow updating role and status if provided (admin operations)
+  if (professional.role !== undefined) db.role = professional.role
+  if (professional.status !== undefined) db.status = professional.status
   return db
 }
 
@@ -101,13 +111,14 @@ export const profileService = {
   },
 
   /**
-   * Fetches all visible profiles.
+   * Fetches all visible profiles (for public directory).
    */
   async getAllProfiles() {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('is_visible', true)
+      .eq('status', 'active') // Only show active profiles publicly
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -126,6 +137,7 @@ export const profileService = {
       .select('*')
       .eq('is_featured', true)
       .eq('is_visible', true)
+      .eq('status', 'active')
       .limit(3)
 
     if (error) {
@@ -139,8 +151,6 @@ export const profileService = {
    * Searches/Filters profiles.
    */
   async searchProfiles(_filters?: any) {
-    // Currently re-using getAllProfiles as filtering is done client-side in the store or component for now
-    // In a real app with many users, this should be a DB query
     return this.getAllProfiles()
   },
 
