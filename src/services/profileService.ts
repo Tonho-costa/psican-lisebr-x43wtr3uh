@@ -25,6 +25,7 @@ const mapToProfessional = (row: ProfileRow): Professional => ({
   instagram: row.instagram || undefined,
   facebook: row.facebook || undefined,
   isVisible: row.is_visible ?? true,
+  role: (row.role as 'user' | 'moderator' | 'admin') || 'user',
 })
 
 // Maps Professional Interface to Database Update object
@@ -54,6 +55,7 @@ const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
   if (professional.facebook !== undefined) db.facebook = professional.facebook
   if (professional.isVisible !== undefined)
     db.is_visible = professional.isVisible
+  if (professional.role !== undefined) db.role = professional.role
   return db
 }
 
@@ -130,6 +132,22 @@ export const profileService = {
 
     if (error) {
       console.error('Error fetching featured profiles:', error)
+      return { data: null, error }
+    }
+    return { data: (data || []).map(mapToProfessional), error: null }
+  },
+
+  /**
+   * Fetches all profiles for admin dashboard (unfiltered).
+   */
+  async getAdminProfiles() {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching admin profiles:', error)
       return { data: null, error }
     }
     return { data: (data || []).map(mapToProfessional), error: null }

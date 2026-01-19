@@ -16,6 +16,10 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import { AdminRoute } from '@/components/AdminRoute'
+import { AdminLayout } from '@/components/AdminLayout'
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import AdminProfessionals from '@/pages/admin/AdminProfessionals'
 
 const App = () => (
   <AuthProvider>
@@ -26,6 +30,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" richColors />
         <Routes>
+          {/* Public Routes */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/busca" element={<SearchPage />} />
@@ -41,6 +46,17 @@ const App = () => (
             <Route path="/termos-de-uso" element={<Terms />} />
             <Route path="/politica-de-privacidade" element={<Privacy />} />
           </Route>
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="usuarios" element={<AdminProfessionals />} />
+              {/* Future admin routes can be added here */}
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Route>
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>
