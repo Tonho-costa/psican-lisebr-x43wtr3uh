@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Table,
   TableBody,
@@ -14,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { adminService } from '@/services/adminService'
 import { useProfessionalStore } from '@/stores/useProfessionalStore'
 import { toast } from 'sonner'
-import { Loader2, Search, Edit2, Trash2 } from 'lucide-react'
+import { Loader2, Search, Edit2, Trash2, Eye } from 'lucide-react'
 import { EditProfileSheet } from '@/components/admin/EditProfileSheet'
 import {
   AlertDialog,
@@ -34,6 +35,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Database } from '@/lib/supabase/types'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -293,21 +299,52 @@ export default function AdminProfiles() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClick(profile)}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDeleteClick(profile)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            asChild
+                            className="text-muted-foreground hover:text-primary"
+                          >
+                            <Link
+                              to={`/perfil/${profile.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Ver Perfil Público</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(profile)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Editar Perfil</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteClick(profile)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Excluir Perfil</TooltipContent>
+                      </Tooltip>
                     </div>
                   </TableCell>
                 </TableRow>
