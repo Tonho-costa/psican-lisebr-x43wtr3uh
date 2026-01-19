@@ -21,6 +21,14 @@ export interface Professional {
   instagram?: string
   facebook?: string
   isVisible: boolean
+  // New Screening Fields
+  crpStatus?: string
+  educationLevel?: string
+  theoreticalApproach?: string
+  experienceLevel?: string
+  networkAvailability?: string
+  acceptsSocialValue?: boolean
+  agreesToEthics?: boolean
 }
 
 interface ProfessionalState {
@@ -43,7 +51,7 @@ interface ProfessionalState {
     userId: string,
     data: Partial<Professional>,
   ) => Promise<Professional | null>
-  setProfilePhoto: (url: string) => void // New action for local update
+  setProfilePhoto: (url: string) => void
   logout: () => Promise<void>
   setSearchQuery: (query: Partial<ProfessionalState['searchQuery']>) => void
   deleteAccount: () => Promise<void>
@@ -116,7 +124,6 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     }
   },
 
-  // Updates the local state with the new photo URL without triggering a DB update
   setProfilePhoto: (url: string) => {
     set((state) => {
       if (!state.currentProfessional) return state
