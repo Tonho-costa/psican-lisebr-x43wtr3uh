@@ -15,6 +15,12 @@ export function ProfessionalCard({
   professional,
   className,
 }: ProfessionalCardProps) {
+  // Ensure we have fallbacks for required display fields
+  const displayName = professional.name || 'Profissional'
+  const displayOccupation = professional.occupation || 'Especialista'
+  const specialties = professional.specialties || []
+  const serviceTypes = professional.serviceTypes || []
+
   return (
     <Card
       className={cn(
@@ -26,33 +32,33 @@ export function ProfessionalCard({
         <Avatar className="w-24 h-24 mb-4 border-2 border-muted shadow-sm">
           <AvatarImage
             src={professional.photoUrl || undefined}
-            alt={professional.name}
+            alt={displayName}
             className="object-cover"
           />
           <AvatarFallback className="text-2xl font-semibold text-muted-foreground bg-muted">
-            {professional.name?.[0]?.toUpperCase()}
+            {displayName[0]?.toUpperCase()}
           </AvatarFallback>
         </Avatar>
 
-        <h3 className="font-heading font-bold text-lg text-primary leading-tight">
-          {professional.name}
+        <h3 className="font-heading font-bold text-lg text-primary leading-tight line-clamp-2">
+          {displayName}
         </h3>
-        {professional.occupation && (
+        {displayOccupation && (
           <div className="flex items-center text-sm text-secondary font-medium mt-1 gap-1">
-            <Briefcase className="w-3 h-3" />
-            <span>{professional.occupation}</span>
+            <Briefcase className="w-3 h-3 flex-shrink-0" />
+            <span className="line-clamp-1">{displayOccupation}</span>
           </div>
         )}
         <div className="flex items-center text-sm text-muted-foreground mt-1 gap-1">
-          <MapPin className="w-3 h-3" />
-          <span>
-            {professional.city}, {professional.state}
+          <MapPin className="w-3 h-3 flex-shrink-0" />
+          <span className="line-clamp-1">
+            {professional.city || 'N/A'}, {professional.state || ''}
           </span>
         </div>
       </CardHeader>
       <CardContent className="flex-grow pb-2 text-center">
-        <div className="flex flex-wrap justify-center gap-1 mb-3">
-          {professional.specialties.slice(0, 3).map((spec, index) => (
+        <div className="flex flex-wrap justify-center gap-1 mb-3 h-14 content-start overflow-hidden">
+          {specialties.slice(0, 3).map((spec, index) => (
             <span
               key={index}
               className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full"
@@ -60,19 +66,19 @@ export function ProfessionalCard({
               {spec}
             </span>
           ))}
-          {professional.specialties.length > 3 && (
+          {specialties.length > 3 && (
             <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-              +{professional.specialties.length - 3}
+              +{specialties.length - 3}
             </span>
           )}
         </div>
         <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mt-2">
-          {professional.serviceTypes.includes('Online') && (
+          {serviceTypes.includes('Online') && (
             <div className="flex items-center gap-1" title="Atendimento Online">
               <Video className="w-3 h-3" /> <span>Online</span>
             </div>
           )}
-          {professional.serviceTypes.includes('Presencial') && (
+          {serviceTypes.includes('Presencial') && (
             <div
               className="flex items-center gap-1"
               title="Atendimento Presencial"

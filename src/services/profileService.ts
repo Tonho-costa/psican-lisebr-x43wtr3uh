@@ -2,35 +2,64 @@ import { supabase } from '@/lib/supabase/client'
 import { Professional } from '@/stores/useProfessionalStore'
 import { Database } from '@/lib/supabase/types'
 
-type ProfileRow = Database['public']['Tables']['profiles']['Row']
+// Define a local interface for the DB Row matching the migration
+// This is necessary because the generated types.ts might be outdated
+interface LocalProfileRow {
+  id: string
+  created_at?: string | null
+  email?: string | null
+  full_name?: string | null
+  occupation?: string | null
+  city?: string | null
+  state?: string | null
+  description?: string | null
+  avatar_url?: string | null
+  phone?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  availability?: string | null
+  age?: number | null
+  service_types?: string[] | null
+  specialties?: string[] | null
+  education?: string[] | null
+  courses?: string[] | null
+  is_visible?: boolean | null
+  is_featured?: boolean | null
+  role?: string | null
+  status?: string | null
+}
+
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
 // Maps Database Row to Professional Interface
-const mapToProfessional = (row: ProfileRow): Professional => ({
-  id: row.id,
-  name: row.full_name || '',
-  occupation: row.occupation || '',
-  email: row.email || '',
-  age: row.age || 0,
-  city: row.city || '',
-  state: row.state || '',
-  bio: row.description || '',
-  photoUrl: row.avatar_url || '',
-  serviceTypes: (row.service_types as ('Online' | 'Presencial')[]) || [],
-  specialties: row.specialties || [],
-  education: row.education || [],
-  courses: row.courses || [],
-  availability: row.availability || '',
-  phone: row.phone || '',
-  instagram: row.instagram || undefined,
-  facebook: row.facebook || undefined,
-  isVisible: row.is_visible ?? true,
-  role: row.role || 'user',
-})
+const mapToProfessional = (row: any): Professional => {
+  const r = row as LocalProfileRow
+  return {
+    id: r.id,
+    name: r.full_name || '',
+    occupation: r.occupation || '',
+    email: r.email || '',
+    age: r.age || 0,
+    city: r.city || '',
+    state: r.state || '',
+    bio: r.description || '',
+    photoUrl: r.avatar_url || '',
+    serviceTypes: (r.service_types as ('Online' | 'Presencial')[]) || [],
+    specialties: r.specialties || [],
+    education: r.education || [],
+    courses: r.courses || [],
+    availability: r.availability || '',
+    phone: r.phone || '',
+    instagram: r.instagram || undefined,
+    facebook: r.facebook || undefined,
+    isVisible: r.is_visible ?? true,
+    role: r.role || 'user',
+  }
+}
 
 // Maps Professional Interface to Database Update object
-const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
-  const db: ProfileUpdate = {}
+const mapToDB = (professional: Partial<Professional>): any => {
+  const db: any = {}
   if (professional.name !== undefined) db.full_name = professional.name
   if (professional.occupation !== undefined)
     db.occupation = professional.occupation
@@ -55,7 +84,7 @@ const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
   if (professional.facebook !== undefined) db.facebook = professional.facebook
   if (professional.isVisible !== undefined)
     db.is_visible = professional.isVisible
-  // role is usually not updatable via this service, but could be added if needed
+
   return db
 }
 
@@ -141,8 +170,6 @@ export const profileService = {
    * Searches/Filters profiles.
    */
   async searchProfiles(_filters?: any) {
-    // Currently re-using getAllProfiles as filtering is done client-side in the store or component for now
-    // In a real app with many users, this should be a DB query
     return this.getAllProfiles()
   },
 

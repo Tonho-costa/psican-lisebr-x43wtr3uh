@@ -57,9 +57,10 @@ export default function Profile() {
     )
   }
 
-  // Updated WhatsApp message without "Dr(a)." prefix
-  const message = `Olá, ${professional.name}. Encontrei seu perfil na EscutaPSI e gostaria de mais informações.`
-  const whatsappUrl = `https://wa.me/${professional.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
+  // Safe check for phone to avoid crash
+  const rawPhone = professional.phone || ''
+  const message = `Olá, ${professional.name || 'doutor(a)'}. Encontrei seu perfil na EscutaPSI e gostaria de mais informações.`
+  const whatsappUrl = `https://wa.me/${rawPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
 
   return (
     <div className="container py-8 space-y-6">
@@ -81,7 +82,9 @@ export default function Profile() {
                     className="object-cover"
                     alt={professional.name}
                   />
-                  <AvatarFallback>{professional.name[0]}</AvatarFallback>
+                  <AvatarFallback className="text-2xl">
+                    {professional.name?.[0] || '?'}
+                  </AvatarFallback>
                 </Avatar>
               </div>
 
@@ -95,7 +98,7 @@ export default function Profile() {
               <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
                 <MapPin className="w-4 h-4" />
                 <span>
-                  {professional.city}, {professional.state}
+                  {professional.city || 'Cidade'}, {professional.state || 'UF'}
                 </span>
               </div>
 
@@ -122,13 +125,13 @@ export default function Profile() {
               <CardTitle className="text-lg">Atendimento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {professional.serviceTypes.includes('Online') && (
+              {professional.serviceTypes?.includes('Online') && (
                 <div className="flex items-center gap-2">
                   <Video className="w-4 h-4 text-primary" />
                   <span>Online</span>
                 </div>
               )}
-              {professional.serviceTypes.includes('Presencial') && (
+              {professional.serviceTypes?.includes('Presencial') && (
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-primary" />
                   <span>Presencial</span>
@@ -165,39 +168,46 @@ export default function Profile() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {professional.specialties.map((specialty) => (
-                  <Badge key={specialty} variant="secondary">
-                    {specialty}
-                  </Badge>
-                ))}
+                {professional.specialties?.length > 0 ? (
+                  professional.specialties.map((specialty) => (
+                    <Badge key={specialty} variant="secondary">
+                      {specialty}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-muted-foreground text-sm">
+                    Nenhuma especialidade listada.
+                  </span>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {(professional.education.length > 0 ||
-            professional.courses.length > 0) && (
+          {((professional.education && professional.education.length > 0) ||
+            (professional.courses && professional.courses.length > 0)) && (
             <Card>
               <CardHeader>
                 <CardTitle>Formação e Cursos</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {professional.education.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 font-medium">
-                      <GraduationCap className="w-5 h-5 text-primary" />
-                      <h3>Formação Acadêmica</h3>
+                {professional.education &&
+                  professional.education.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 font-medium">
+                        <GraduationCap className="w-5 h-5 text-primary" />
+                        <h3>Formação Acadêmica</h3>
+                      </div>
+                      <ul className="space-y-2 ml-7 list-disc">
+                        {professional.education.map((edu, i) => (
+                          <li key={i} className="text-muted-foreground">
+                            {edu}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <ul className="space-y-2 ml-7 list-disc">
-                      {professional.education.map((edu, i) => (
-                        <li key={i} className="text-muted-foreground">
-                          {edu}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  )}
 
-                {professional.courses.length > 0 && (
+                {professional.courses && professional.courses.length > 0 && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 font-medium">
                       <Award className="w-5 h-5 text-primary" />

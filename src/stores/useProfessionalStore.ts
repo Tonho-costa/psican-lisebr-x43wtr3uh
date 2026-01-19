@@ -73,7 +73,7 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
       set({ professionals: data, isLoading: false })
     } else {
       console.error('Failed to fetch professionals:', error)
-      set({ isLoading: false })
+      set({ isLoading: false, professionals: [] })
     }
   },
 

@@ -33,7 +33,7 @@ const filterList = (
     filtered = filtered.filter(
       (p) =>
         (p.occupation && p.occupation.toLowerCase().includes(lowerTerm)) ||
-        p.name.toLowerCase().includes(lowerTerm),
+        (p.name && p.name.toLowerCase().includes(lowerTerm)),
     )
   }
 
@@ -46,12 +46,16 @@ const filterList = (
   }
 
   if (specFilter && specFilter !== 'all') {
-    filtered = filtered.filter((p) => p.specialties.includes(specFilter))
+    filtered = filtered.filter(
+      (p) => p.specialties && p.specialties.includes(specFilter),
+    )
   }
 
   if (typeFilter && typeFilter !== 'all') {
     const type = typeFilter as 'Online' | 'Presencial'
-    filtered = filtered.filter((p) => p.serviceTypes.includes(type))
+    filtered = filtered.filter(
+      (p) => p.serviceTypes && p.serviceTypes.includes(type),
+    )
   }
 
   return filtered
@@ -142,7 +146,9 @@ export default function SearchPage() {
 
   const specialties = useMemo(
     () =>
-      Array.from(new Set(visibleProfessionals.flatMap((p) => p.specialties)))
+      Array.from(
+        new Set(visibleProfessionals.flatMap((p) => p.specialties || [])),
+      )
         .filter(Boolean)
         .sort(),
     [visibleProfessionals],
