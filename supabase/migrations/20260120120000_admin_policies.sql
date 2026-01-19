@@ -13,11 +13,13 @@ AS $$
 $$;
 
 -- PROFILES policies for Admin
+DROP POLICY IF EXISTS "Admins can view all profiles (including hidden)" ON public.profiles;
 CREATE POLICY "Admins can view all profiles (including hidden)"
   ON public.profiles
   FOR SELECT
   USING (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
 CREATE POLICY "Admins can update all profiles"
   ON public.profiles
   FOR UPDATE
@@ -27,11 +29,13 @@ CREATE POLICY "Admins can update all profiles"
 -- Enable RLS just in case it wasn't enabled
 ALTER TABLE public.triage_submissions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admins can view all triage submissions" ON public.triage_submissions;
 CREATE POLICY "Admins can view all triage submissions"
   ON public.triage_submissions
   FOR SELECT
   USING (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can update triage submissions" ON public.triage_submissions;
 CREATE POLICY "Admins can update triage submissions"
   ON public.triage_submissions
   FOR UPDATE
@@ -40,13 +44,14 @@ CREATE POLICY "Admins can update triage submissions"
 -- ADMIN_LOGS policies for Admin
 ALTER TABLE public.admin_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admins can insert logs" ON public.admin_logs;
 CREATE POLICY "Admins can insert logs"
   ON public.admin_logs
   FOR INSERT
   WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can view logs" ON public.admin_logs;
 CREATE POLICY "Admins can view logs"
   ON public.admin_logs
   FOR SELECT
   USING (public.is_admin());
-
