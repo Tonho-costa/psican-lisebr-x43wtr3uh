@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Filter, Search } from 'lucide-react'
+import { Filter, Search, AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   useProfessionalStore,
@@ -63,7 +63,7 @@ const filterList = (
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { professionals, fetchProfessionals, isLoading } =
+  const { professionals, fetchProfessionals, isLoading, error } =
     useProfessionalStore()
 
   // Fetch professionals on mount
@@ -186,6 +186,24 @@ export default function SearchPage() {
     specialties,
     onApplyFilters: applyFilters,
     onClearFilters: clearFilters,
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-12 md:py-20 min-h-screen flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-6">
+          <AlertCircle className="w-8 h-8 text-destructive" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">
+          Ops! Algo deu errado
+        </h2>
+        <p className="text-muted-foreground mb-8 max-w-md">{error}</p>
+        <Button onClick={() => fetchProfessionals()} className="gap-2">
+          <RefreshCw className="w-4 h-4" />
+          Tentar novamente
+        </Button>
+      </div>
+    )
   }
 
   return (

@@ -28,6 +28,7 @@ interface ProfessionalState {
   professionals: Professional[]
   currentProfessional: Professional | null
   isLoading: boolean
+  error: string | null
   isAuthenticated: boolean
   searchQuery: {
     city: string
@@ -54,6 +55,7 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
   professionals: [],
   currentProfessional: null,
   isLoading: false,
+  error: null,
   isAuthenticated: false,
   searchQuery: {
     city: '',
@@ -67,29 +69,50 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     set({ currentProfessional: pro, isAuthenticated: !!pro }),
 
   fetchProfessionals: async () => {
-    set({ isLoading: true })
-    const { data, error } = await profileService.getAllProfiles()
-    if (data && !error) {
-      set({ professionals: data, isLoading: false })
-    } else {
-      console.error('Failed to fetch professionals:', error)
-      set({ isLoading: false, professionals: [] })
+    set({ isLoading: true, error: null })
+    try {
+      const { data, error } = await profileService.getAllProfiles()
+      if (error) {
+        console.error('Failed to fetch professionals:', error)
+        set({
+          isLoading: false,
+          professionals: [],
+          error:
+            'Não foi possível carregar a lista de profissionais. Verifique sua conexão e tente novamente.',
+        })
+      } else {
+        set({ professionals: data || [], isLoading: false, error: null })
+      }
+    } catch (err) {
+      console.error('Exception fetching professionals:', err)
+      set({
+        isLoading: false,
+        professionals: [],
+        error: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+      })
     }
   },
 
   fetchCurrentProfile: async (userId: string) => {
-    set({ isLoading: true })
-    const { data, error } = await profileService.getProfile(userId)
-    if (data && !error) {
-      set({
-        currentProfessional: data,
-        isAuthenticated: true,
-        isLoading: false,
-      })
-      return data
-    } else {
-      console.error('Failed to fetch current profile:', error)
-      set({ isLoading: false })
+    set({ isLoading: true, error: null })
+    try {
+      const { data, error } = await profileService.getProfile(userId)
+      if (data && !error) {
+        set({
+          currentProfessional: data,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        })
+        return data
+      } else {
+        console.error('Failed to fetch current profile:', error)
+        set({ isLoading: false, error: 'Erro ao carregar perfil.' })
+        return null
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching profile:', err)
+      set({ isLoading: false, error: 'Erro inesperado ao carregar perfil.' })
       return null
     }
   },

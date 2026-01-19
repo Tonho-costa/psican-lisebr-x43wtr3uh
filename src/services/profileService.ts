@@ -32,28 +32,32 @@ interface LocalProfileRow {
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
 // Maps Database Row to Professional Interface
+// Ensures no crashes if fields are null
 const mapToProfessional = (row: any): Professional => {
   const r = row as LocalProfileRow
   return {
     id: r.id,
-    name: r.full_name || '',
-    occupation: r.occupation || '',
-    email: r.email || '',
-    age: r.age || 0,
-    city: r.city || '',
-    state: r.state || '',
-    bio: r.description || '',
-    photoUrl: r.avatar_url || '',
-    serviceTypes: (r.service_types as ('Online' | 'Presencial')[]) || [],
-    specialties: r.specialties || [],
-    education: r.education || [],
-    courses: r.courses || [],
-    availability: r.availability || '',
-    phone: r.phone || '',
+    name: r.full_name ?? '',
+    occupation: r.occupation ?? '',
+    email: r.email ?? '',
+    age: r.age ?? 0,
+    city: r.city ?? '',
+    state: r.state ?? '',
+    bio: r.description ?? '',
+    photoUrl: r.avatar_url ?? '',
+    serviceTypes: (Array.isArray(r.service_types) ? r.service_types : []) as (
+      | 'Online'
+      | 'Presencial'
+    )[],
+    specialties: Array.isArray(r.specialties) ? r.specialties : [],
+    education: Array.isArray(r.education) ? r.education : [],
+    courses: Array.isArray(r.courses) ? r.courses : [],
+    availability: r.availability ?? '',
+    phone: r.phone ?? '',
     instagram: r.instagram || undefined,
     facebook: r.facebook || undefined,
-    isVisible: r.is_visible ?? true,
-    role: r.role || 'user',
+    isVisible: r.is_visible ?? false,
+    role: r.role ?? 'user',
   }
 }
 
@@ -135,17 +139,20 @@ export const profileService = {
    * Fetches all visible profiles.
    */
   async getAllProfiles() {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('is_visible', true)
-      .order('created_at', { ascending: false })
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_visible', true)
+        .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('Error fetching all profiles:', error)
+      if (error) {
+        return { data: null, error }
+      }
+      return { data: (data || []).map(mapToProfessional), error: null }
+    } catch (error) {
       return { data: null, error }
     }
-    return { data: (data || []).map(mapToProfessional), error: null }
   },
 
   /**
