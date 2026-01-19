@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { MapPin, Video, Users, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Professional } from '@/stores/useProfessionalStore'
 import { cn } from '@/lib/utils'
 
@@ -22,13 +23,17 @@ export function ProfessionalCard({
       )}
     >
       <CardHeader className="pb-4 text-center flex flex-col items-center">
-        <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-muted shadow-sm">
-          <img
-            src={professional.photoUrl}
+        <Avatar className="w-24 h-24 mb-4 border-2 border-muted shadow-sm">
+          <AvatarImage
+            src={professional.photoUrl || undefined}
             alt={professional.name}
-            className="w-full h-full object-cover"
+            className="object-cover"
           />
-        </div>
+          <AvatarFallback className="text-2xl font-semibold text-muted-foreground bg-muted">
+            {professional.name?.[0]?.toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+
         <h3 className="font-heading font-bold text-lg text-primary leading-tight">
           {professional.name}
         </h3>

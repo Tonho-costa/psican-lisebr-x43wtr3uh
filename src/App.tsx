@@ -4,6 +4,10 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/hooks/use-auth'
 import Layout from './components/Layout'
+import { AdminLayout } from './components/AdminLayout'
+import { AdminRoute } from './components/AdminRoute'
+
+// Public Pages
 import Index from './pages/Index'
 import SearchPage from './pages/Search'
 import Profile from './pages/Profile'
@@ -17,6 +21,12 @@ import Privacy from './pages/Privacy'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminSubmissions from './pages/admin/AdminSubmissions'
+import AdminProfiles from './pages/admin/AdminProfiles'
+import AdminLogs from './pages/admin/AdminLogs'
+
 const App = () => (
   <AuthProvider>
     <BrowserRouter
@@ -26,6 +36,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" richColors />
         <Routes>
+          {/* Public Routes */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/busca" element={<SearchPage />} />
@@ -41,6 +52,23 @@ const App = () => (
             <Route path="/termos-de-uso" element={<Terms />} />
             <Route path="/politica-de-privacidade" element={<Privacy />} />
           </Route>
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="submissoes" element={<AdminSubmissions />} />
+            <Route path="perfis" element={<AdminProfiles />} />
+            <Route path="logs" element={<AdminLogs />} />
+          </Route>
+
+          {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

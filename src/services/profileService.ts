@@ -25,6 +25,7 @@ const mapToProfessional = (row: ProfileRow): Professional => ({
   instagram: row.instagram || undefined,
   facebook: row.facebook || undefined,
   isVisible: row.is_visible ?? true,
+  role: row.role || 'user',
 })
 
 // Maps Professional Interface to Database Update object
@@ -54,6 +55,7 @@ const mapToDB = (professional: Partial<Professional>): ProfileUpdate => {
   if (professional.facebook !== undefined) db.facebook = professional.facebook
   if (professional.isVisible !== undefined)
     db.is_visible = professional.isVisible
+  // role is usually not updatable via this service, but could be added if needed
   return db
 }
 

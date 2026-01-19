@@ -1,49 +1,60 @@
 import { supabase } from '@/lib/supabase/client'
 
 /**
- * Helper function to convert any image file to a PNG Blob.
- * This ensures consistency in file format stored in the bucket.
+ * Helper function to resize image and convert to PNG.
+ * Constraints: Max 512x512, PNG format, 0.8 quality (requested, though PNG is lossless in many implementations).
  */
-async function convertToPng(file: File): Promise<Blob> {
+async function resizeImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
     reader.onload = (event) => {
       const img = new Image()
       img.onload = () => {
+        let width = img.naturalWidth
+        let height = img.naturalHeight
+        const maxDim = 512
+
+        // Resize logic: Fit within maxDim x maxDim maintaining aspect ratio
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height)
+          width = Math.round(width * ratio)
+          height = Math.round(height * ratio)
+        }
+
         const canvas = document.createElement('canvas')
-        canvas.width = img.width
-        canvas.height = img.height
+        canvas.width = width
+        canvas.height = height
 
         const ctx = canvas.getContext('2d')
         if (!ctx) {
-          reject(new Error('Failed to get canvas context'))
+          reject(new Error('Falha ao processar imagem (Contexto inválido)'))
           return
         }
 
         // Draw image onto canvas
-        ctx.drawImage(img, 0, 0)
+        ctx.drawImage(img, 0, 0, width, height)
 
-        // Convert to PNG Blob
+        // Convert to PNG Blob with 0.8 quality
         canvas.toBlob(
           (blob) => {
             if (blob) {
               resolve(blob)
             } else {
-              reject(new Error('Failed to convert image to PNG'))
+              reject(new Error('Falha ao processar imagem'))
             }
           },
           'image/png',
-          1.0, // Quality (1.0 = Max)
+          0.8,
         )
       }
 
       img.onerror = () =>
-        reject(new Error('Failed to load image for conversion'))
+        reject(new Error('Falha ao carregar imagem para conversão'))
       img.src = event.target?.result as string
     }
 
-    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.onerror = () => reject(new Error('Falha ao ler arquivo'))
     reader.readAsDataURL(file)
   })
 }
@@ -53,57 +64,67 @@ export const storageService = {
    * Uploads an avatar image directly to Supabase Storage.
    *
    * Process:
-   * 1. Validates file type and size.
-   * 2. Converts the image to PNG format.
-   * 3. Uploads to 'avatars' bucket with name '{userId}.png'.
-   * 4. Updates the 'profiles' table with the new avatar URL.
+   * 1. Checks authentication.
+   * 2. Resizes the image to max 512x512 PNG.
+   * 3. Validates processed size (< 2MB).
+   * 4. Uploads to 'avatars' bucket with name '[userId].png'.
+   * 5. Updates the 'profiles' table with the new avatar URL.
    */
   async uploadAvatar(
     userId: string,
     file: File,
   ): Promise<{ url: string | null; error: any }> {
     try {
-      // 1. Initial Client-side Validation
-      if (!file.type.startsWith('image/')) {
-        throw new Error(
-          'O arquivo deve ser uma imagem válida (JPG, PNG, WEBP).',
-        )
+      // 1. Authentication Check
+      // We also check session to ensure the user is really authenticated in the client context
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!userId || !session) {
+        throw new Error('Usuário não autenticado')
       }
 
-      // 5MB Limit
-      const maxSize = 5 * 1024 * 1024
-      if (file.size > maxSize) {
-        throw new Error(
-          'A imagem excede o limite de 5MB. Tente uma imagem menor.',
-        )
+      // 2. Resize to PNG (Max 512x512, Quality 0.8)
+      const processedBlob = await resizeImage(file)
+
+      // 3. Validate Processed Size (Max 2MB)
+      const maxSizeBytes = 2 * 1024 * 1024 // 2MB
+      if (processedBlob.size > maxSizeBytes) {
+        throw new Error('Imagem muito grande após processamento')
       }
 
-      // 2. Convert to PNG
-      const pngBlob = await convertToPng(file)
-
-      // Define path: Strict naming convention {uid}.png
+      // Define path: [user.id].png
       const fileName = `${userId}.png`
-      const filePath = fileName // Root of the bucket
 
-      // 3. Upload to Storage (Direct Client Upload)
-      // Browser automatically handles Content-Type for FormData, but here we use Supabase SDK
-      // which uses Blob, so we can specify contentType.
+      // 4. Upload to Storage
+      // Using upsert: true handles both initial upload and updates
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, pngBlob, {
+        .upload(fileName, processedBlob, {
           contentType: 'image/png',
-          upsert: true, // Replace if exists
+          upsert: true,
+          cacheControl: '3600', // 1 hour cache
         })
 
       if (uploadError) {
         console.error('Supabase Storage Upload Error:', uploadError)
-        throw new Error('Falha ao enviar imagem para o armazenamento.')
+        // Handle specific RLS errors
+        if (
+          uploadError.message.includes('row-level security') ||
+          (uploadError as any).statusCode === '403'
+        ) {
+          throw new Error(
+            'Permissão negada. Você não tem permissão para alterar esta foto.',
+          )
+        }
+        throw new Error('Falha ao enviar imagem para o armazenamento')
       }
 
-      // 4. Get Public URL
+      // 5. Get Public URL
       const {
         data: { publicUrl },
-      } = supabase.storage.from('avatars').getPublicUrl(filePath)
+      } = supabase.storage.from('avatars').getPublicUrl(fileName)
 
       if (!publicUrl) {
         throw new Error('Falha ao obter URL pública da imagem.')
@@ -112,8 +133,7 @@ export const storageService = {
       // Add timestamp to prevent caching issues immediately after upload
       const finalUrl = `${publicUrl}?t=${new Date().getTime()}`
 
-      // 5. Update Profile in Database
-      // We perform this update here to ensure consistency
+      // 6. Update Profile in Database
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: finalUrl })
@@ -121,7 +141,9 @@ export const storageService = {
 
       if (updateError) {
         console.error('Database Update Error:', updateError)
-        throw new Error('Imagem enviada, mas falha ao atualizar perfil.')
+        throw new Error(
+          'Imagem enviada, mas falha ao atualizar o perfil no banco de dados.',
+        )
       }
 
       return { url: finalUrl, error: null }

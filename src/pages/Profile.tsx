@@ -77,8 +77,9 @@ export default function Profile() {
               <div className="relative w-32 h-32 mx-auto">
                 <Avatar className="w-full h-full border-4 border-muted">
                   <AvatarImage
-                    src={professional.photoUrl}
+                    src={professional.photoUrl || undefined}
                     className="object-cover"
+                    alt={professional.name}
                   />
                   <AvatarFallback>{professional.name[0]}</AvatarFallback>
                 </Avatar>
