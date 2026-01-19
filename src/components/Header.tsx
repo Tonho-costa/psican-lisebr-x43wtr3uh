@@ -107,7 +107,7 @@ export function Header() {
                     className="gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
                   >
                     <ShieldCheck className="w-4 h-4" />
-                    Admin
+                    Painel Admin
                   </Button>
                 </Link>
               )}
@@ -183,7 +183,7 @@ export function Header() {
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <ShieldCheck className="w-5 h-5" />
-                        Admin Portal
+                        Painel Admin
                       </Link>
                     )}
                     <Link

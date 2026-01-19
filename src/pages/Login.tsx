@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/card'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
+import { useProfessionalStore } from '@/stores/useProfessionalStore'
+import { supabase } from '@/lib/supabase/client'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -29,6 +31,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { signIn } = useAuth()
+  const { fetchCurrentProfile } = useProfessionalStore()
 
   const {
     register,
@@ -52,7 +55,23 @@ export default function Login() {
         setFocus('password')
       } else {
         toast.success('Login realizado com sucesso!')
-        navigate('/painel/perfil')
+
+        // Fetch user ID to get profile immediately for role check
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (user) {
+          const profile = await fetchCurrentProfile(user.id)
+          if (profile?.role === 'admin') {
+            navigate('/admin')
+          } else {
+            navigate('/painel/perfil')
+          }
+        } else {
+          // Fallback if user retrieval fails (unlikely after successful sign in)
+          navigate('/painel/perfil')
+        }
       }
     } catch (error) {
       console.error('Erro inesperado:', error)
