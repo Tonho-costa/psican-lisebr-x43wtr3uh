@@ -24,12 +24,14 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAuth } from '@/hooks/use-auth'
 import { profileService } from '@/services/profileService'
 import { storageService } from '@/services/storageService'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ProfilePhotoUploader } from '@/components/ProfilePhotoUploader'
+import { TermsOfAgreement } from '@/components/TermsOfAgreement'
 
 // Validation Schemas
 const step1Schema = z
@@ -67,6 +69,11 @@ const step4Schema = z.object({
   phone: z.string().min(10, 'Informe um número de WhatsApp válido com DDD'),
   instagram: z.string().optional(),
   facebook: z.string().optional(),
+  termsAccepted: z.literal(true, {
+    errorMap: () => ({
+      message: 'Você deve aceitar os termos para continuar',
+    }),
+  }),
 })
 
 type RegistrationData = z.infer<typeof step1Schema> &
@@ -117,6 +124,7 @@ export default function Register() {
     resolver: zodResolver(step4Schema),
     defaultValues: {
       serviceTypes: [],
+      termsAccepted: undefined,
       ...formData,
     },
   })
@@ -551,6 +559,47 @@ export default function Register() {
                     className="pl-9"
                     {...registerStep4('facebook')}
                   />
+                </div>
+              </div>
+
+              {/* Terms of Agreement Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <Label>Termo de Adesão</Label>
+                <ScrollArea className="h-[200px] w-full rounded-md border p-4 bg-muted/20">
+                  <TermsOfAgreement />
+                </ScrollArea>
+                <div className="flex items-start space-x-2 pt-2">
+                  <Checkbox
+                    id="termsAccepted"
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setValue('termsAccepted', true, {
+                          shouldValidate: true,
+                        })
+                      } else {
+                        setValue(
+                          'termsAccepted',
+                          undefined as unknown as true,
+                          {
+                            shouldValidate: true,
+                          },
+                        )
+                      }
+                    }}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="termsAccepted"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Li e concordo com o Termo de Adesão à Rede EscutaPsi
+                    </label>
+                    {errorsStep4.termsAccepted && (
+                      <p className="text-sm text-destructive">
+                        {errorsStep4.termsAccepted.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </form>
