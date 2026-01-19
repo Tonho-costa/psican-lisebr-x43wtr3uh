@@ -151,7 +151,7 @@ export default function Register() {
         full_name: data.fullName,
         email: data.email,
         phone: data.phone,
-        profile_url: data.profileUrl,
+        profile_url: data.profileUrl || null,
         service_mode: data.serviceMode,
         education: finalEducation,
         crp_status: data.crpStatus,

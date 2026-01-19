@@ -5,7 +5,7 @@ export interface TriageSubmission {
   created_at?: string
   full_name: string
   phone: string
-  profile_url?: string
+  profile_url?: string | null
   service_mode: string
   education: string
   crp_status: string
@@ -16,17 +16,16 @@ export interface TriageSubmission {
   agrees_to_ethics: boolean
   agrees_to_terms: boolean
   status?: string
-  user_id?: string
-  email?: string
-  admin_notes?: string
+  user_id?: string | null
+  email?: string | null
+  admin_notes?: string | null
 }
 
 export const triageService = {
   async submitTriage(data: TriageSubmission) {
-    // Casting supabase as any to bypass type check for the new table columns
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('triage_submissions')
-      .insert(data)
+      .insert(data as any)
 
     return { error }
   },
