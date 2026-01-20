@@ -107,8 +107,15 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
         return data
       } else {
         console.error('Failed to fetch current profile:', error)
-        // Store the actual error message if available, which helps in debugging RLS issues
-        const errorMessage = error?.message || 'Erro ao carregar perfil.'
+
+        // Enhance error message for debugging RLS issues
+        let errorMessage = 'Erro ao carregar perfil.'
+        if (error?.message?.includes('recursion') || error?.code === '42P17') {
+          errorMessage = 'Erro de permissão (RLS Recursion). Contate o suporte.'
+        } else if (error?.message) {
+          errorMessage = error.message
+        }
+
         set({ isLoading: false, error: errorMessage })
         return null
       }

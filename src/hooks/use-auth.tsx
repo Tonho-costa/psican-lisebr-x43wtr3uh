@@ -54,7 +54,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error('Error getting session:', error)
+        if (import.meta.env.DEV) {
+          console.error('Error getting session:', error)
+        }
       }
       setSession(session)
       setUser(session?.user ?? null)
@@ -86,22 +88,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       })
 
       if (error) {
-        // Log database/schema errors specifically for debugging
+        // Log critical database errors for debugging RLS issues
         if (
           error.message.includes('Database error') ||
           error.message.includes('schema') ||
           error.message.includes('recursion')
         ) {
-          console.error('Database/Schema error during sign in:', error)
+          console.error('Auth Error (Database/Schema/RLS):', error)
         }
       }
 
       return { error }
     } catch (err: any) {
-      // Return error object even if an exception occurs to prevent crashes
-      // Create a structure compatible with AuthError
+      console.error('Unexpected error during sign in:', err)
+      // Return a structured error object
       const error = {
-        message: err?.message || 'An unexpected error occurred',
+        message: err?.message || 'An unexpected error occurred during login',
         name: err?.name || 'UnknownError',
         status: err?.status || 500,
       }
