@@ -60,10 +60,10 @@ export default function AdminLogin() {
           signInError.code === 'XX000'
         ) {
           toast.error(
-            'System Error (Database): Falha de conexão ou erro de schema. Verifique logs.',
+            'Erro de Sistema (Database): Falha de conexão ou erro de schema.',
             {
               description:
-                'Isso geralmente indica um problema de recursividade nas políticas RLS.',
+                'O banco de dados pode estar passando por atualizações de política RLS. Tente novamente em alguns segundos.',
               duration: 6000,
             },
           )
@@ -100,9 +100,11 @@ export default function AdminLogin() {
       }
 
       // 3. Fetch Profile (Critical step where RLS recursion usually occurs)
+      // fetchCurrentProfile handles store updates internally
       const profile = await fetchCurrentProfile(user.id)
       const storeError = useProfessionalStore.getState().error
 
+      // Check if profile exists OR if we hit a critical RLS error
       if (!profile) {
         if (
           storeError?.includes('Recursividade') ||
@@ -111,7 +113,7 @@ export default function AdminLogin() {
         ) {
           toast.error('Erro Crítico de Sistema', {
             description:
-              'O sistema detectou um problema de recursividade ou banco de dados. Contate o suporte.',
+              'O sistema detectou um problema de recursividade ou banco de dados. Contate o suporte técnico.',
             duration: 8000,
             icon: <AlertCircle className="w-5 h-5 text-red-500" />,
           })

@@ -19,7 +19,7 @@ interface AuthContextType {
   signIn: (
     email: string,
     password: string,
-  ) => Promise<{ error: AuthError | null | any }>
+  ) => Promise<{ error: AuthError | null | any; data: any }>
   signOut: () => Promise<{ error: any }>
   resetPassword: (email: string) => Promise<{ data: any; error: any }>
   updatePassword: (password: string) => Promise<{ data: any; error: any }>
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ) {
           console.error('Auth Error (Database/Schema/RLS):', error)
         }
-        return { error }
+        return { error, data: null }
       }
 
       return { error: null, data }
@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name: err?.name || 'UnknownError',
         status: err?.status || 500,
       }
-      return { error }
+      return { error, data: null }
     }
   }
 
