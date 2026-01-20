@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, ShieldCheck } from 'lucide-react'
+import { Loader2, ShieldCheck, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -52,21 +52,32 @@ export default function AdminLogin() {
 
       if (signInError) {
         console.error('Sign In Error:', signInError)
-        // Specific error handling for Database/Recursion errors
+        // Specific error handling matching acceptance criteria
         if (
           signInError.message?.includes('Database error') ||
-          (signInError as any).status === 500
+          (signInError as any).status === 500 ||
+          signInError.code === '500' ||
+          signInError.code === 'XX000'
         ) {
           toast.error(
-            'Erro de sistema (Database). Possível falha de configuração ou recursividade.',
+            'System Error (Database): Falha de conexão ou erro de schema. Verifique logs.',
+            {
+              description:
+                'Isso geralmente indica um problema de recursividade nas políticas RLS.',
+              duration: 6000,
+            },
           )
         } else if (
           signInError.message?.includes('Invalid login credentials') ||
           signInError.message?.includes('Invalid email or password')
         ) {
-          toast.error('Email ou senha incorretos.')
+          toast.error('Credenciais Inválidas', {
+            description: 'O email ou senha informados estão incorretos.',
+          })
         } else {
-          toast.error('Falha no login: ' + signInError.message)
+          toast.error('Falha no login', {
+            description: signInError.message || 'Erro desconhecido.',
+          })
         }
         setIsLoading(false)
         return
@@ -79,7 +90,10 @@ export default function AdminLogin() {
       } = await supabase.auth.getUser()
 
       if (userError || !user) {
-        toast.error('Sessão inválida. Tente novamente.')
+        toast.error('Sessão inválida', {
+          description:
+            'Não foi possível recuperar os dados da sessão. Tente novamente.',
+        })
         await signOut()
         setIsLoading(false)
         return
@@ -92,13 +106,21 @@ export default function AdminLogin() {
       if (!profile) {
         if (
           storeError?.includes('Recursividade') ||
-          storeError?.includes('Database')
+          storeError?.includes('Database') ||
+          storeError?.includes('Infinite')
         ) {
-          toast.error(
-            'Erro Crítico: O sistema detectou um problema de recursividade nas permissões (RLS). Contate o suporte técnico.',
-          )
+          toast.error('Erro Crítico de Sistema', {
+            description:
+              'O sistema detectou um problema de recursividade ou banco de dados. Contate o suporte.',
+            duration: 8000,
+            icon: <AlertCircle className="w-5 h-5 text-red-500" />,
+          })
         } else {
-          toast.error(storeError || 'Perfil de administrador não encontrado.')
+          toast.error('Perfil não encontrado', {
+            description:
+              storeError ||
+              'Não foi possível carregar o perfil do administrador.',
+          })
         }
         await signOut()
         setIsLoading(false)
@@ -107,17 +129,21 @@ export default function AdminLogin() {
 
       // 4. Verify Admin Role
       if (profile.role === 'admin') {
-        toast.success('Login administrativo realizado com sucesso.')
+        toast.success('Bem-vindo de volta', {
+          description: 'Login administrativo realizado com sucesso.',
+        })
         navigate(from, { replace: true })
       } else {
-        toast.error(
-          'Acesso Negado: Esta conta não possui privilégios de administrador.',
-        )
+        toast.error('Acesso Negado', {
+          description: 'Esta conta não possui privilégios de administrador.',
+        })
         await signOut()
       }
     } catch (err: any) {
       console.error('Unexpected admin login error:', err)
-      toast.error('Ocorreu um erro inesperado. Tente novamente.')
+      toast.error('Erro Inesperado', {
+        description: 'Ocorreu um erro ao processar sua solicitação.',
+      })
       await signOut()
     } finally {
       setIsLoading(false)

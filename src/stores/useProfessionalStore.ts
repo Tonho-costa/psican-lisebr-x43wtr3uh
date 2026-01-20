@@ -99,20 +99,25 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
         let msg = 'Erro ao carregar perfil.'
 
         const isRecursion =
-          error.message?.includes('recursion') || error.code === '42P17'
+          error.message?.includes('recursion') ||
+          error.code === '42P17' ||
+          error.message?.includes('infinite')
         const isRLS =
           error.message?.includes('row-level security') ||
-          error.code === '42501'
+          error.code === '42501' ||
+          error.message?.includes('policy')
         const isDatabase =
-          error.message?.includes('Database error') || error.code === '500'
+          error.message?.includes('Database error') ||
+          error.code === '500' ||
+          error.code === 'XX000'
 
         if (isRecursion) {
           msg =
-            'Erro crítico: Recursividade detectada nas políticas de segurança.'
+            'Erro crítico: Recursividade detectada nas políticas de segurança. (Infinite Recursion)'
         } else if (isRLS) {
           msg = 'Erro de permissão: Acesso negado ao perfil.'
         } else if (isDatabase) {
-          msg = 'Erro de conexão com o banco de dados.'
+          msg = 'Erro de Sistema (Database). Falha na conexão ou configuração.'
         } else if (error.message) {
           msg = error.message
         }
