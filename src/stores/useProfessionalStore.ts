@@ -144,24 +144,20 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
   },
 
   updateProfile: async (userId: string, data: Partial<Professional>) => {
-    try {
-      const { data: updated, error } = await profileService.updateProfile(
-        userId,
-        data,
-      )
-      if (updated && !error) {
-        set((state) => ({
-          currentProfessional: updated,
-          professionals: state.professionals.map((p) =>
-            p.id === updated.id ? updated : p,
-          ),
-        }))
-        return updated
-      } else {
-        throw error || new Error('Falha ao atualizar perfil')
-      }
-    } catch (error) {
-      throw error
+    const { data: updated, error } = await profileService.updateProfile(
+      userId,
+      data,
+    )
+    if (updated && !error) {
+      set((state) => ({
+        currentProfessional: updated,
+        professionals: state.professionals.map((p) =>
+          p.id === updated.id ? updated : p,
+        ),
+      }))
+      return updated
+    } else {
+      throw error || new Error('Falha ao atualizar perfil')
     }
   },
 
@@ -187,13 +183,9 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     set((state) => ({ searchQuery: { ...state.searchQuery, ...query } })),
 
   deleteAccount: async () => {
-    try {
-      const { error } = await profileService.deleteAccount()
-      if (error) throw error
-      await supabase.auth.signOut()
-      set({ currentProfessional: null, isAuthenticated: false })
-    } catch (error) {
-      throw error
-    }
+    const { error } = await profileService.deleteAccount()
+    if (error) throw error
+    await supabase.auth.signOut()
+    set({ currentProfessional: null, isAuthenticated: false })
   },
 }))
