@@ -107,12 +107,17 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
         return data
       } else {
         console.error('Failed to fetch current profile:', error)
-        set({ isLoading: false, error: 'Erro ao carregar perfil.' })
+        // Store the actual error message if available, which helps in debugging RLS issues
+        const errorMessage = error?.message || 'Erro ao carregar perfil.'
+        set({ isLoading: false, error: errorMessage })
         return null
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Unexpected error fetching profile:', err)
-      set({ isLoading: false, error: 'Erro inesperado ao carregar perfil.' })
+      set({
+        isLoading: false,
+        error: err?.message || 'Erro inesperado ao carregar perfil.',
+      })
       return null
     }
   },

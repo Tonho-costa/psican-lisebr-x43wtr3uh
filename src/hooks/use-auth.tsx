@@ -52,7 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     })
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error)
+      }
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -81,6 +84,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email,
         password,
       })
+
+      if (error) {
+        // Log database/schema errors specifically for debugging
+        if (
+          error.message.includes('Database error') ||
+          error.message.includes('schema') ||
+          error.message.includes('recursion')
+        ) {
+          console.error('Database/Schema error during sign in:', error)
+        }
+      }
+
       return { error }
     } catch (err: any) {
       // Return error object even if an exception occurs to prevent crashes

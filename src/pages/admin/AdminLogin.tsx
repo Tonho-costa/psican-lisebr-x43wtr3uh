@@ -32,7 +32,7 @@ export default function AdminLogin() {
   const navigate = useNavigate()
   const location = useLocation()
   const { signIn } = useAuth()
-  const { fetchCurrentProfile } = useProfessionalStore()
+  const { fetchCurrentProfile, error: profileError } = useProfessionalStore()
 
   // Get return url from location state or default to /admin
   const from = location.state?.from?.pathname || '/admin'
@@ -54,14 +54,17 @@ export default function AdminLogin() {
         console.error('Login Error:', error)
 
         // Handle specific errors based on Acceptance Criteria
+        // This includes "Database error querying schema" and recursion errors
         const isDatabaseError =
           error.message?.includes('Database error') ||
+          error.message?.includes('schema') ||
+          error.message?.includes('recursion') ||
           (error as any).status === 500 ||
           (error as any).code === '500'
 
         if (isDatabaseError) {
           toast.error(
-            'Erro interno do servidor. Ocorreu um problema ao conectar com o banco de dados. Tente novamente mais tarde.',
+            'Erro de sistema (Database/Schema). Por favor, tente novamente em alguns instantes.',
           )
         } else if (
           error.message?.includes('Invalid login credentials') ||
@@ -69,7 +72,10 @@ export default function AdminLogin() {
         ) {
           toast.error('Verifique suas credenciais e tente novamente.')
         } else {
-          toast.error('Ocorreu um erro ao realizar o login. Tente novamente.')
+          toast.error(
+            error.message ||
+              'Ocorreu um erro ao realizar o login. Tente novamente.',
+          )
         }
         setIsLoading(false)
         return
@@ -91,17 +97,37 @@ export default function AdminLogin() {
       // Fetch profile to verify role
       const profile = await fetchCurrentProfile(user.id)
 
+      // Handle profile fetch errors specifically
+      const storeError = useProfessionalStore.getState().error
+      if (!profile && storeError) {
+        const isSchemaError =
+          storeError.includes('schema') ||
+          storeError.includes('Database error') ||
+          storeError.includes('recursion')
+
+        if (isSchemaError) {
+          toast.error(
+            'Erro crítico ao carregar perfil de administrador. (Database Schema/RLS Error)',
+          )
+        } else {
+          toast.error(`Erro ao carregar perfil: ${storeError}`)
+        }
+        await supabase.auth.signOut()
+        setIsLoading(false)
+        return
+      }
+
       if (profile?.role === 'admin') {
         toast.success('Bem-vindo ao Painel Administrativo')
         navigate(from, { replace: true })
       } else {
         toast.error('Acesso Negado. Área restrita a administradores.')
         await supabase.auth.signOut()
+        setIsLoading(false)
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Unexpected error:', err)
       toast.error('Ocorreu um erro inesperado. Tente novamente.')
-    } finally {
       setIsLoading(false)
     }
   }
