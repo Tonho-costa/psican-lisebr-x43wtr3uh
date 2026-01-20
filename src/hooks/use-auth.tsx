@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -96,9 +96,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ) {
           console.error('Auth Error (Database/Schema/RLS):', error)
         }
+        return { error }
       }
 
-      return { error }
+      return { error: null, data }
     } catch (err: any) {
       console.error('Unexpected error during sign in:', err)
       // Return a structured error object

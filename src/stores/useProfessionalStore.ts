@@ -111,7 +111,10 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
         // Enhance error message for debugging RLS issues
         let errorMessage = 'Erro ao carregar perfil.'
         if (error?.message?.includes('recursion') || error?.code === '42P17') {
-          errorMessage = 'Erro de permissão (RLS Recursion). Contate o suporte.'
+          errorMessage =
+            'Erro de permissão (RLS Recursion). O sistema não conseguiu verificar seu nível de acesso.'
+        } else if (error?.message?.includes('Database error')) {
+          errorMessage = 'Erro de conexão com o banco de dados.'
         } else if (error?.message) {
           errorMessage = error.message
         }

@@ -49,37 +49,38 @@ export default function AdminLogin() {
     setIsLoading(true)
     try {
       // 1. Sign in with Supabase Auth
-      const { error } = await signIn(data.email, data.password)
+      const { error: signInError } = await signIn(data.email, data.password)
 
-      if (error) {
-        console.error('Login Error:', error)
+      if (signInError) {
+        console.error('Login Error:', signInError)
 
         // Handle specific error cases including database/recursion errors
         const isDatabaseError =
-          error.message?.includes('Database error') ||
-          error.message?.includes('schema') ||
-          error.message?.includes('recursion') ||
-          (error as any).status === 500
+          signInError.message?.includes('Database error') ||
+          signInError.message?.includes('schema') ||
+          signInError.message?.includes('recursion') ||
+          (signInError as any).status === 500
 
         if (isDatabaseError) {
           toast.error(
             'Erro de sistema (Conexão/Database). Tente novamente em alguns segundos.',
           )
         } else if (
-          error.message?.includes('Invalid login credentials') ||
-          error.message?.includes('Invalid email or password')
+          signInError.message?.includes('Invalid login credentials') ||
+          signInError.message?.includes('Invalid email or password')
         ) {
           toast.error('Email ou senha incorretos.')
         } else {
           toast.error(
-            error.message || 'Ocorreu um erro ao entrar. Tente novamente.',
+            signInError.message ||
+              'Ocorreu um erro ao entrar. Tente novamente.',
           )
         }
         setIsLoading(false)
         return
       }
 
-      // 2. Check if user session exists
+      // 2. Check if user session exists explicitly
       const {
         data: { user },
         error: userError,
@@ -96,27 +97,33 @@ export default function AdminLogin() {
       const profile = await fetchCurrentProfile(user.id)
       const storeError = useProfessionalStore.getState().error
 
-      if (!profile && storeError) {
-        // Specifically handle RLS recursion errors if they persist
-        const isRecursionError =
-          storeError.includes('recursion') ||
-          storeError.includes('Database error') ||
-          storeError.includes('schema')
+      if (!profile) {
+        // If no profile, check if it was a store error
+        if (storeError) {
+          const isRecursionError =
+            storeError.includes('recursion') ||
+            storeError.includes('Database error') ||
+            storeError.includes('schema') ||
+            storeError.includes('RLS')
 
-        if (isRecursionError) {
-          toast.error(
-            'Erro crítico de permissões (RLS). Contate o suporte técnico.',
-          )
+          if (isRecursionError) {
+            toast.error(
+              'Erro crítico de permissões (RLS). Contate o suporte técnico.',
+            )
+          } else {
+            toast.error(storeError)
+          }
         } else {
-          toast.error(`Erro ao carregar perfil: ${storeError}`)
+          toast.error('Perfil não encontrado para este usuário.')
         }
+
         await supabase.auth.signOut()
         setIsLoading(false)
         return
       }
 
       // 4. Verify Admin Role
-      if (profile?.role === 'admin') {
+      if (profile.role === 'admin') {
         toast.success('Bem-vindo ao Painel Administrativo')
         navigate(from, { replace: true })
       } else {

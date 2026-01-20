@@ -27,14 +27,26 @@ export function AdminRoute({ children }: AdminRouteProps) {
       user &&
       !currentProfessional &&
       !profileError &&
-      !isFetchingRef.current
+      !isFetchingRef.current &&
+      !profileLoading
     ) {
       isFetchingRef.current = true
       fetchCurrentProfile(user.id).finally(() => {
         isFetchingRef.current = false
       })
     }
-  }, [user, currentProfessional, profileError, fetchCurrentProfile])
+  }, [
+    user,
+    currentProfessional,
+    profileError,
+    fetchCurrentProfile,
+    profileLoading,
+  ])
+
+  // Reset notification ref on location change
+  useEffect(() => {
+    hasNotified.current = false
+  }, [location.pathname])
 
   // Determine if we are in a loading state
   const isLoading =
@@ -61,14 +73,15 @@ export function AdminRoute({ children }: AdminRouteProps) {
   // Case 2: Authenticated but Profile Error (Fetch failed)
   if (profileError) {
     if (!hasNotified.current) {
-      toast.error('Erro ao verificar permissões de administrador.')
+      toast.error(
+        'Erro ao verificar permissões de administrador. ' + profileError,
+      )
       hasNotified.current = true
     }
     return <Navigate to="/" replace />
   }
 
   // Case 3: Authenticated but not Admin
-  // We check the role explicitly
   if (!currentProfessional || currentProfessional.role !== 'admin') {
     if (!hasNotified.current) {
       toast.error('Acesso não autorizado. Área restrita a administradores.')
