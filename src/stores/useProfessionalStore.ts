@@ -36,7 +36,6 @@ interface ProfessionalState {
     education: string
     serviceType: string
   }
-  // Actions
   setProfessionals: (pros: Professional[]) => void
   setCurrentProfessional: (pro: Professional | null) => void
   fetchProfessionals: () => Promise<void>
@@ -73,22 +72,19 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     try {
       const { data, error } = await profileService.getAllProfiles()
       if (error) {
-        console.error('Failed to fetch professionals:', error)
         set({
           isLoading: false,
           professionals: [],
-          error:
-            'Não foi possível carregar a lista de profissionais. Verifique sua conexão e tente novamente.',
+          error: 'Não foi possível carregar a lista de profissionais.',
         })
       } else {
         set({ professionals: data || [], isLoading: false, error: null })
       }
     } catch (err) {
-      console.error('Exception fetching professionals:', err)
       set({
         isLoading: false,
         professionals: [],
-        error: 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+        error: 'Ocorreu um erro inesperado.',
       })
     }
   },
@@ -97,7 +93,35 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
     set({ isLoading: true, error: null })
     try {
       const { data, error } = await profileService.getProfile(userId)
-      if (data && !error) {
+
+      if (error) {
+        console.error('Fetch Profile Error:', error)
+        let msg = 'Erro ao carregar perfil.'
+
+        const isRecursion =
+          error.message?.includes('recursion') || error.code === '42P17'
+        const isRLS =
+          error.message?.includes('row-level security') ||
+          error.code === '42501'
+        const isDatabase =
+          error.message?.includes('Database error') || error.code === '500'
+
+        if (isRecursion) {
+          msg =
+            'Erro crítico: Recursividade detectada nas políticas de segurança.'
+        } else if (isRLS) {
+          msg = 'Erro de permissão: Acesso negado ao perfil.'
+        } else if (isDatabase) {
+          msg = 'Erro de conexão com o banco de dados.'
+        } else if (error.message) {
+          msg = error.message
+        }
+
+        set({ isLoading: false, error: msg })
+        return null
+      }
+
+      if (data) {
         set({
           currentProfessional: data,
           isAuthenticated: true,
@@ -105,28 +129,15 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
           error: null,
         })
         return data
-      } else {
-        console.error('Failed to fetch current profile:', error)
-
-        // Enhance error message for debugging RLS issues
-        let errorMessage = 'Erro ao carregar perfil.'
-        if (error?.message?.includes('recursion') || error?.code === '42P17') {
-          errorMessage =
-            'Erro de permissão (RLS Recursion). O sistema não conseguiu verificar seu nível de acesso.'
-        } else if (error?.message?.includes('Database error')) {
-          errorMessage = 'Erro de conexão com o banco de dados.'
-        } else if (error?.message) {
-          errorMessage = error.message
-        }
-
-        set({ isLoading: false, error: errorMessage })
-        return null
       }
+
+      set({ isLoading: false, error: 'Perfil não encontrado.' })
+      return null
     } catch (err: any) {
       console.error('Unexpected error fetching profile:', err)
       set({
         isLoading: false,
-        error: err?.message || 'Erro inesperado ao carregar perfil.',
+        error: 'Erro inesperado de conexão.',
       })
       return null
     }
@@ -150,7 +161,6 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
         throw error || new Error('Falha ao atualizar perfil')
       }
     } catch (error) {
-      console.error('Error in store updateProfile:', error)
       throw error
     }
   },
@@ -183,7 +193,6 @@ export const useProfessionalStore = create<ProfessionalState>((set, _get) => ({
       await supabase.auth.signOut()
       set({ currentProfessional: null, isAuthenticated: false })
     } catch (error) {
-      console.error('Error in store deleteAccount:', error)
       throw error
     }
   },

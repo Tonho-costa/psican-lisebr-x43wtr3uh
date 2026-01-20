@@ -31,10 +31,9 @@ export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const { signIn } = useAuth()
+  const { signIn, signOut } = useAuth()
   const { fetchCurrentProfile } = useProfessionalStore()
 
-  // Get return url from location state or default to /admin
   const from = location.state?.from?.pathname || '/admin'
 
   const {
@@ -48,22 +47,18 @@ export default function AdminLogin() {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
     try {
-      // 1. Sign in with Supabase Auth
+      // 1. Authenticate with Supabase Auth
       const { error: signInError } = await signIn(data.email, data.password)
 
       if (signInError) {
-        console.error('Login Error:', signInError)
-
-        // Handle specific error cases including database/recursion errors
-        const isDatabaseError =
+        console.error('Sign In Error:', signInError)
+        // Specific error handling for Database/Recursion errors
+        if (
           signInError.message?.includes('Database error') ||
-          signInError.message?.includes('schema') ||
-          signInError.message?.includes('recursion') ||
           (signInError as any).status === 500
-
-        if (isDatabaseError) {
+        ) {
           toast.error(
-            'Erro de sistema (Conexão/Database). Tente novamente em alguns segundos.',
+            'Erro de sistema (Database). Possível falha de configuração ou recursividade.',
           )
         } else if (
           signInError.message?.includes('Invalid login credentials') ||
@@ -71,69 +66,60 @@ export default function AdminLogin() {
         ) {
           toast.error('Email ou senha incorretos.')
         } else {
-          toast.error(
-            signInError.message ||
-              'Ocorreu um erro ao entrar. Tente novamente.',
-          )
+          toast.error('Falha no login: ' + signInError.message)
         }
         setIsLoading(false)
         return
       }
 
-      // 2. Check if user session exists explicitly
+      // 2. Verify Session validity
       const {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser()
 
       if (userError || !user) {
-        toast.error('Erro ao verificar sessão. Tente fazer login novamente.')
-        await supabase.auth.signOut()
+        toast.error('Sessão inválida. Tente novamente.')
+        await signOut()
         setIsLoading(false)
         return
       }
 
-      // 3. Fetch profile to verify role and check for RLS errors
+      // 3. Fetch Profile (Critical step where RLS recursion usually occurs)
       const profile = await fetchCurrentProfile(user.id)
       const storeError = useProfessionalStore.getState().error
 
       if (!profile) {
-        // If no profile, check if it was a store error
-        if (storeError) {
-          const isRecursionError =
-            storeError.includes('recursion') ||
-            storeError.includes('Database error') ||
-            storeError.includes('schema') ||
-            storeError.includes('RLS')
-
-          if (isRecursionError) {
-            toast.error(
-              'Erro crítico de permissões (RLS). Contate o suporte técnico.',
-            )
-          } else {
-            toast.error(storeError)
-          }
+        if (
+          storeError?.includes('Recursividade') ||
+          storeError?.includes('Database')
+        ) {
+          toast.error(
+            'Erro Crítico: O sistema detectou um problema de recursividade nas permissões (RLS). Contate o suporte técnico.',
+          )
         } else {
-          toast.error('Perfil não encontrado para este usuário.')
+          toast.error(storeError || 'Perfil de administrador não encontrado.')
         }
-
-        await supabase.auth.signOut()
+        await signOut()
         setIsLoading(false)
         return
       }
 
       // 4. Verify Admin Role
       if (profile.role === 'admin') {
-        toast.success('Bem-vindo ao Painel Administrativo')
+        toast.success('Login administrativo realizado com sucesso.')
         navigate(from, { replace: true })
       } else {
-        toast.error('Acesso Negado. Área restrita a administradores.')
-        await supabase.auth.signOut()
-        setIsLoading(false)
+        toast.error(
+          'Acesso Negado: Esta conta não possui privilégios de administrador.',
+        )
+        await signOut()
       }
     } catch (err: any) {
-      console.error('Unexpected error:', err)
+      console.error('Unexpected admin login error:', err)
       toast.error('Ocorreu um erro inesperado. Tente novamente.')
+      await signOut()
+    } finally {
       setIsLoading(false)
     }
   }
@@ -146,16 +132,16 @@ export default function AdminLogin() {
             <ShieldCheck className="w-6 h-6" />
           </div>
           <CardTitle className="text-2xl font-heading font-bold">
-            Acesso Administrativo
+            Portal Administrativo
           </CardTitle>
           <CardDescription>
-            Entre com suas credenciais de administrador
+            Entre com suas credenciais de segurança
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email Corporativo</Label>
               <Input
                 id="email"
                 type="email"
@@ -171,7 +157,7 @@ export default function AdminLogin() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password">Senha de Acesso</Label>
               <Input
                 id="password"
                 type="password"
@@ -193,17 +179,17 @@ export default function AdminLogin() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verificando...
+                  Autenticando...
                 </>
               ) : (
-                'Entrar'
+                'Acessar Painel'
               )}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-xs text-muted-foreground text-center">
-            Área restrita. O acesso não autorizado é monitorado.
+            Monitoramento de segurança ativo. Todos os acessos são registrados.
           </p>
         </CardFooter>
       </Card>
